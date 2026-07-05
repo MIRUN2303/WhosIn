@@ -54,9 +54,14 @@ export const EventDetailPage: React.FC = () => {
   return (
     <div className="pb-32 max-w-lg mx-auto">
       {/* Cover */}
-      <div className="relative h-48 overflow-hidden rounded-b-3xl">
-        <img src={event.coverImage} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#080808] to-transparent" />
+      <div
+        className="relative h-40 overflow-hidden rounded-b-3xl"
+        style={{
+          backgroundImage: `linear-gradient(to top, #080808 0%, #080808 20%, transparent 60%), url(${event.coverImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <button
           onClick={() => navigate(-1)}
           className="absolute top-4 left-4 glass w-10 h-10 rounded-2xl flex items-center justify-center text-white text-lg z-10"

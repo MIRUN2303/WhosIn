@@ -15,11 +15,11 @@
   --bg-overlay:     rgba(8,8,8,0.85);
 
   /* Brand Colors */
-  --lime:           #aaeb00;
-  --lime-bright:    #c8ff00;
-  --lime-dim:       #7ab800;
-  --lime-glow:      rgba(170,235,0,0.25);
-  --lime-glow-sm:   rgba(170,235,0,0.12);
+  --lime:           #00ff41;
+  --lime-bright:    #00ff41;
+  --lime-dim:       #00aa1e;
+  --lime-glow:      rgba(0,255,65,0.25);
+  --lime-glow-sm:   rgba(0,255,65,0.12);
 
   --amber:          #f97316;
   --amber-bright:   #fb923c;
@@ -122,7 +122,7 @@ body {
 
 /* ===== GRADIENT TEXTS ===== */
 .gradient-text {
-  background: linear-gradient(135deg, var(--lime-bright) 0%, var(--lime) 50%, var(--amber) 100%);
+  background: linear-gradient(135deg, #00ff41 0%, #00aa1e 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -148,7 +148,7 @@ body {
   height: 8px;
   background: var(--lime);
   border-radius: 50%;
-  box-shadow: 0 0 8px var(--lime), 0 0 16px rgba(170,235,0,0.4);
+  box-shadow: 0 0 8px var(--lime), 0 0 16px rgba(0,255,65,0.4);
 }
 
 /* ===== ANIMATED LIME BACKGROUND ===== */
@@ -254,8 +254,8 @@ body {
 
 /* ===== PULSE LIME ===== */
 @keyframes pulseLime {
-  0%,100% { box-shadow: 0 0 6px var(--lime), 0 0 12px rgba(170,235,0,0.4); }
-  50% { box-shadow: 0 0 14px var(--lime), 0 0 28px rgba(170,235,0,0.6); }
+   0%,100% { box-shadow: 0 0 6px var(--lime), 0 0 12px rgba(0,255,65,0.4); }
+   50% { box-shadow: 0 0 14px var(--lime), 0 0 28px rgba(0,255,65,0.6); }
 }
 .pulse-lime { animation: pulseLime 2s ease-in-out infinite; }
 
