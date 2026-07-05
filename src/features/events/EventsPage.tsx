@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
-import { SPORT_CONFIG, getUserById } from '../../data/mockData';
+import { SPORT_CONFIG, getUserById, getGroupById } from '../../data/mockData';
 import { Card, Avatar, Badge, Button, SportOrb, SectionHeader, Chip } from '../../components/ui';
 import { StaggerList, StaggerItem, FadeUp } from '../../components/motion';
 import type { AttendanceStatus } from '../../data/types';
@@ -263,9 +263,15 @@ export const EventDetailPage: React.FC = () => {
 export const EventsPage: React.FC = () => {
   const navigate = useNavigate();
   const events = useAppStore(s => s.events);
+  const currentUserId = useAppStore(s => s.currentUserId);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('upcoming');
 
-  const filtered = events.filter(e => filter === 'all' || e.status === filter)
+  const user = currentUserId ? getUserById(currentUserId) : null;
+  const myGroupIds = user ? [...user.createdGroups, ...user.joinedGroups] : [];
+
+  const filtered = events
+    .filter(e => myGroupIds.includes(e.groupId))
+    .filter(e => filter === 'all' || e.status === filter)
     .sort((a, b) => a.date.localeCompare(b.date));
 
   return (
@@ -298,6 +304,7 @@ export const EventsPage: React.FC = () => {
                       {event.status === 'upcoming' ? '⚡ Upcoming' : '✓ Done'}
                     </Badge>
                     {event.isRecurring && <Badge variant="glass">🔁</Badge>}
+                    {(() => { const g = getGroupById(event.groupId); return g ? <Badge variant="glass">{g.logo} {g.name}</Badge> : null; })()}
                   </div>
                   <div className="absolute top-3 right-3 glass rounded-xl px-2 py-1 text-xs text-white">
                     {event.weather.icon} {event.weather.temp}°
