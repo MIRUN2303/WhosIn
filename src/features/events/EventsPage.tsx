@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
-import { USERS, SPORT_CONFIG, getUserById, EVENTS } from '../../data/mockData';
+import { SPORT_CONFIG, getUserById } from '../../data/mockData';
 import { Card, Avatar, Badge, Button, SportOrb, SectionHeader, Chip } from '../../components/ui';
 import { StaggerList, StaggerItem, FadeUp } from '../../components/motion';
-import type { AttendanceStatus, Event } from '../../data/types';
+import type { AttendanceStatus } from '../../data/types';
 
 const ATTENDANCE_OPTIONS: { status: AttendanceStatus; label: string; emoji: string; color: string }[] = [
   { status: 'coming',      label: 'Coming',     emoji: '✅', color: '#10b981' },
@@ -196,7 +196,7 @@ export const EventDetailPage: React.FC = () => {
               <Card key={league.id} padding="md" className="mb-3">
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-display font-bold text-white">{league.name}</p>
-                  <Badge variant={league.status === 'completed' ? 'green' : league.status === 'ongoing' ? 'violet' : 'glass'}>
+                  <Badge variant={league.status === 'completed' ? 'green' : league.status === 'ongoing' ? 'blue' : 'glass'}>
                     {league.status}
                   </Badge>
                 </div>
@@ -294,7 +294,7 @@ export const EventsPage: React.FC = () => {
                   <img src={event.coverImage} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0f0a1e] via-[#0f0a1e]/30 to-transparent" />
                   <div className="absolute top-3 left-3 flex gap-2">
-                    <Badge variant={event.status === 'upcoming' ? 'violet' : 'glass'}>
+                    <Badge variant={event.status === 'upcoming' ? 'blue' : 'glass'}>
                       {event.status === 'upcoming' ? '⚡ Upcoming' : '✓ Done'}
                     </Badge>
                     {event.isRecurring && <Badge variant="glass">🔁</Badge>}

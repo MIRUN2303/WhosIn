@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { LEADERBOARD, getUserById } from '../../data/mockData';
-import { Avatar, Badge, Chip, SectionHeader } from '../../components/ui';
+import { Avatar, Badge, Chip } from '../../components/ui';
 import { FadeUp, StaggerList, StaggerItem, AnimatedNumber } from '../../components/motion';
 
 const PERIODS = ['Weekly', 'Monthly', 'Yearly', 'All Time'] as const;
@@ -12,10 +11,8 @@ const SPORTS_FILTER = [
   { key: 'cricket',   label: 'Cricket',   emoji: '🏏' },
   { key: 'football',  label: 'Football',  emoji: '⚽' },
 ];
-const RANK_EMOJIS = ['👑', '🥇', '🥈', '🥉', '4', '5', '6'];
 
 export const LeaderboardPage: React.FC = () => {
-  const navigate = useNavigate();
   const [period, setPeriod] = useState('All Time');
   const [sportFilter, setSportFilter] = useState('overall');
   const currentUserId = 'u1';

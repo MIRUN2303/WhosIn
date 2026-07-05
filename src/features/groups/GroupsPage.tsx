@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GROUPS, USERS, SPORT_CONFIG, getUserById, EVENTS } from '../../data/mockData';
-import { Card, Avatar, Badge, Button, SectionHeader, Chip, ProgressBar } from '../../components/ui';
+import { GROUPS, SPORT_CONFIG, getUserById, EVENTS } from '../../data/mockData';
+import { Card, Avatar, Badge, Button, SectionHeader, ProgressBar } from '../../components/ui';
 import { FadeUp, StaggerList, StaggerItem } from '../../components/motion';
 import { clsx } from 'clsx';
 
@@ -292,7 +292,7 @@ export const GroupDetailPage: React.FC = () => {
                                 <span className="text-white/40 text-[10px]">{confirmed}/{event.maxSlots} going</span>
                               </div>
                             </div>
-                            <Badge variant="violet" size="sm">Upcoming</Badge>
+                            <Badge variant="blue" size="sm">Upcoming</Badge>
                           </div>
                         </Card>
                       );
@@ -382,7 +382,7 @@ export const GroupsPage: React.FC = () => {
             <h1 className="font-display font-black text-2xl text-white">Groups</h1>
             <p className="text-white/50 text-sm">Your weekend communities</p>
           </div>
-          <Button variant="primary" size="sm">+ Create</Button>
+          <Button variant="lime" size="sm">+ Create</Button>
         </div>
       </FadeUp>
 
@@ -431,7 +431,7 @@ export const GroupsPage: React.FC = () => {
                       </div>
                       {group.upcomingEvents > 0 && (
                         <div className="ml-auto">
-                          <Badge variant="violet">{group.upcomingEvents} events</Badge>
+                          <Badge variant="blue">{group.upcomingEvents} events</Badge>
                         </div>
                       )}
                     </div>
@@ -462,7 +462,7 @@ export const GroupsPage: React.FC = () => {
                         <p className="font-bold text-white">{group.name}</p>
                         <p className="text-white/50 text-xs">{group.memberCount} members · {cfg.label}</p>
                       </div>
-                      <Button variant="secondary" size="sm">Join</Button>
+                      <Button variant="ghost" size="sm">Join</Button>
                     </div>
                   </Card>
                 </StaggerItem>

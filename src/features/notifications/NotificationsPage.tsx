@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { format, parseISO } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
-import { Avatar, Button, SectionHeader } from '../../components/ui';
+import { Button } from '../../components/ui';
 import { FadeUp, StaggerList, StaggerItem } from '../../components/motion';
 import { clsx } from 'clsx';
 

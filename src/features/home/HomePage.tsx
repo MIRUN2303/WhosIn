@@ -4,11 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format, differenceInSeconds, parseISO } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
 import { USERS, GROUPS, SPORT_CONFIG, LEADERBOARD, getUserById, getGroupById } from '../../data/mockData';
-import { Card, Avatar, Badge, Button, StatCard, SportOrb, SectionHeader } from '../../components/ui';
-import { StaggerList, StaggerItem, FadeUp, AnimatedNumber } from '../../components/motion';
+import { Avatar, Button, StatCard, SportOrb, SectionHeader } from '../../components/ui';
+import { FadeUp } from '../../components/motion';
 import { CreateEventSheet } from '../../components/events/CreateEventSheet';
 import type { AttendanceStatus, Event } from '../../data/types';
-import { clsx } from 'clsx';
 
 // =============================================
 // COUNTDOWN HOOK
@@ -324,7 +323,6 @@ export const HomePage: React.FC = () => {
         <div className="flex gap-3 overflow-x-auto scrollbar-hidden pb-1">
           {GROUPS.filter(g => g.members.some(m => m.userId === currentUserId)).map(group => {
             const nextEvent = myGroupEvents.find(e => e.groupId === group.id);
-            const cfg = SPORT_CONFIG[group.sport];
             return (
               <motion.div key={group.id}
                 onClick={() => navigate(`/groups/${group.id}`)}

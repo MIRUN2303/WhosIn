@@ -6,8 +6,8 @@ import {
   PieChart, Pie, Cell,
 } from 'recharts';
 import { USERS, SPORT_CONFIG, BADGE_CONFIG } from '../../data/mockData';
-import { Card, Avatar, Badge, Button, StatCard, ProgressBar, SectionHeader } from '../../components/ui';
-import { FadeUp, StaggerList, StaggerItem, AnimatedNumber } from '../../components/motion';
+import { Card, Avatar, Button, StatCard, ProgressBar } from '../../components/ui';
+import { FadeUp, AnimatedNumber } from '../../components/motion';
 import { clsx } from 'clsx';
 
 const TABS = ['Stats', 'Badges', 'History', 'Sports'];
@@ -77,7 +77,7 @@ export const ProfilePage: React.FC = () => {
               </div>
               <span className="text-white/50 text-xs">{xpToNext} XP to next level</span>
             </div>
-            <ProgressBar value={xpProgress} max={100} color="#7c3aed" animated />
+            <ProgressBar value={xpProgress} max={100} color="#7c3aed" />
             <p className="text-right text-white/40 text-xs mt-1">{user.xp.toLocaleString()} / {Math.ceil(user.xp / 1000) * 1000} XP</p>
           </div>
 
@@ -239,7 +239,7 @@ export const ProfilePage: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-3"
             >
-              {sportBreakdownData.map((s, i) => (
+              {sportBreakdownData.map(s => (
                 <Card key={s.sport} padding="md">
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-2xl">{s.emoji}</span>

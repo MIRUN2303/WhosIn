@@ -33,15 +33,9 @@ export const LandingPage: React.FC = () => {
   const heroY = useTransform(scrollY, [0, 500], [0, -60]);
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0.4]);
   const [testimonialIndex, setTestimonialIndex] = useState(0);
-  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => setTestimonialIndex(i => (i + 1) % TESTIMONIALS.length), 4000);
-    return () => clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
 

@@ -131,7 +131,7 @@ export const CalendarPage: React.FC = () => {
                             <p className="font-bold text-white text-sm">{event.title}</p>
                             <p className="text-white/50 text-xs">{event.time} · {confirmed} going</p>
                           </div>
-                          <Badge variant={event.status === 'upcoming' ? 'violet' : 'glass'} size="sm">
+                          <Badge variant={event.status === 'upcoming' ? 'blue' : 'glass'} size="sm">
                             {event.status}
                           </Badge>
                         </div>
@@ -152,7 +152,6 @@ export const CalendarPage: React.FC = () => {
     const weekStart = startOfWeek(current, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(current, { weekStartsOn: 1 });
     const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
-    const HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
     return (
       <div className="space-y-3">
