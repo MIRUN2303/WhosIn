@@ -131,10 +131,13 @@ const StatItem: React.FC<{ label: string; value: string | number; color: string 
 // CALENDAR VIEW
 // =============================================
 const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
+  const navigate = useNavigate();
   const events = getGroupEvents(groupId);
+  const currentUserId = useAppStore(s => s.currentUserId);
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -148,8 +151,11 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
     eventMap[d].push(e);
   }
 
-  const prev = () => { if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1); };
-  const next = () => { if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1); };
+  const selectedDateStr = selectedDay ? `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}` : '';
+  const selectedEvents = selectedDateStr ? eventMap[selectedDateStr] || [] : [];
+
+  const prev = () => { if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1); setSelectedDay(null); };
+  const next = () => { if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1); setSelectedDay(null); };
 
   const cells: { day: number; events: typeof events }[] = [];
   for (let i = 0; i < firstDay; i++) cells.push({ day: 0, events: [] });
@@ -158,61 +164,155 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
     cells.push({ day: d, events: eventMap[key] || [] });
   }
 
+  const groups = useAppStore(s => s.groups);
+  const grp = groups.find(g => g.id === groupId);
+  const isAdmin = grp?.members.some(m => m.userId === currentUserId && (m.role === 'creator' || m.role === 'admin'));
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <button onClick={prev} className="text-white/40 text-sm">←</button>
-        <p className="font-bold text-white text-sm">{monthLabel}</p>
-        <button onClick={next} className="text-white/40 text-sm">→</button>
+      {/* Header + nav */}
+      <div className="flex items-center justify-between mb-4">
+        <motion.button whileTap={{ scale: 0.9 }} onClick={prev}
+          className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40 text-sm"
+          style={{ background: 'rgba(255,255,255,0.05)' }}>←</motion.button>
+        <p className="font-display font-bold text-white text-sm">{monthLabel}</p>
+        <motion.button whileTap={{ scale: 0.9 }} onClick={next}
+          className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40 text-sm"
+          style={{ background: 'rgba(255,255,255,0.05)' }}>→</motion.button>
       </div>
-      <button onClick={() => setShowCreate(true)} className="w-full mb-3 py-2 rounded-xl text-xs font-bold"
-        style={{ background: '#00ff41', color: '#080808' }}>
-        + Schedule Event
-      </button>
-      <CreateEventSheet isOpen={showCreate} onClose={() => setShowCreate(false)} preselectedGroupId={groupId} />
-      <div className="grid grid-cols-7 gap-1 mb-1">
+
+      {/* Day labels */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
           <div key={d} className="text-center text-[10px] font-bold text-white/30 py-1">{d}</div>
         ))}
       </div>
+
+      {/* Grid */}
       <div className="grid grid-cols-7 gap-1">
         {cells.map((cell, i) => {
           const isToday = cell.day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
+          const isSelected = cell.day === selectedDay && cell.day > 0;
           return (
-            <div key={i} className={clsx('text-center text-xs py-2 rounded-xl', cell.day === 0 ? 'invisible' : '')}
-              style={{ background: isToday ? 'rgba(0,255,65,0.15)' : 'transparent' }}>
-              <span className={clsx('font-semibold', isToday ? 'text-[#00ff41]' : 'text-white/70')}>{cell.day}</span>
+            <motion.button
+              key={i}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => cell.day > 0 && setSelectedDay(cell.day === selectedDay ? null : cell.day)}
+              className={clsx(
+                'relative text-center py-2 rounded-xl text-xs transition-all',
+                cell.day === 0 && 'invisible',
+              )}
+              style={{
+                background: isSelected
+                  ? '#00ff41'
+                  : isToday
+                  ? 'rgba(0,255,65,0.12)'
+                  : 'transparent',
+              }}
+            >
+              <span className={clsx(
+                'font-semibold',
+                isSelected ? 'text-[#080808]' : isToday ? 'text-[#00ff41]' : 'text-white/60'
+              )}>
+                {cell.day}
+              </span>
               {cell.events.length > 0 && (
                 <div className="flex justify-center gap-0.5 mt-0.5">
                   {cell.events.slice(0, 3).map(e => {
                     const cfg = SPORT_CONFIG[e.sport as keyof typeof SPORT_CONFIG];
-                    return <span key={e.id} className="w-1 h-1 rounded-full" style={{ background: cfg?.color || '#7c3aed' }} />;
+                    return <span key={e.id} className="w-1 h-1 rounded-full" style={{ background: isSelected ? '#080808' : (cfg?.color || '#7c3aed') }} />;
                   })}
                 </div>
               )}
-            </div>
+            </motion.button>
           );
         })}
       </div>
-      {/* Events list for this month */}
-      <div className="mt-4 space-y-1.5">
-        {events.filter(e => e.date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)).map(e => {
-          const cfg = SPORT_CONFIG[e.sport as keyof typeof SPORT_CONFIG];
-          return (
-            <div key={e.id} className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
-              <span className="text-sm">{cfg?.emoji || '📅'}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate">{e.title}</p>
-                <p className="text-[10px] text-white/40">{e.date} · {e.time}</p>
+
+      {/* Selected date section */}
+      <AnimatePresence mode="wait">
+        {selectedDay ? (
+          <motion.div
+            key="selected"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="mt-4"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold text-white/50">
+                {new Date(year, month, selectedDay).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              </p>
+              {isAdmin && (
+                <button onClick={() => setShowCreate(true)}
+                  className="text-xs font-bold px-3 py-1.5 rounded-xl transition-all active:scale-95"
+                  style={{ background: '#00ff41', color: '#080808' }}>
+                  + Schedule
+                </button>
+              )}
+            </div>
+            {selectedEvents.length > 0 ? (
+              <div className="space-y-1.5">
+                {selectedEvents.map(e => {
+                  const cfg = SPORT_CONFIG[e.sport as keyof typeof SPORT_CONFIG];
+                  return (
+                    <motion.div
+                      key={e.id}
+                      initial={{ opacity: 0, x: -6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 cursor-pointer hover:bg-white/[0.04] transition-all"
+                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                      onClick={() => navigate(`/events/${e.id}`)}
+                    >
+                      <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs"
+                        style={{ background: `${cfg?.color || '#7c3aed'}20` }}>{cfg?.emoji || '📅'}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-white truncate">{e.title}</p>
+                        <p className="text-[10px] text-white/40">{e.time} · {e.venue}</p>
+                      </div>
+                      <Badge variant={e.status === 'upcoming' ? 'blue' : 'glass'} size="sm">
+                        {e.status === 'upcoming' ? 'Soon' : '✓'}
+                      </Badge>
+                    </motion.div>
+                  );
+                })}
               </div>
-              <Badge variant={e.status === 'upcoming' ? 'blue' : 'glass'} size="sm">{e.status === 'upcoming' ? 'Soon' : '✓'}</Badge>
+            ) : (
+              <div className="text-center py-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.06)' }}>
+                <p className="text-2xl mb-1">📅</p>
+                <p className="text-white/30 text-xs">No events on this day</p>
+                {isAdmin && (
+                  <button onClick={() => setShowCreate(true)}
+                    className="mt-2 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all active:scale-95"
+                    style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)', color: '#00ff41' }}>
+                    + Schedule Event
+                  </button>
+                )}
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="prompt"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="mt-4"
+          >
+            <div className="text-center py-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.06)' }}>
+              <p className="text-white/30 text-xs">Select a date to view or schedule events</p>
             </div>
-          );
-        })}
-        {events.filter(e => e.date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)).length === 0 && (
-          <p className="text-center text-white/30 text-xs py-4">No events this month</p>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
+
+      <CreateEventSheet
+        isOpen={showCreate}
+        onClose={() => setShowCreate(false)}
+        preselectedGroupId={groupId}
+        preselectedDate={selectedDay ? `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}` : undefined}
+      />
     </div>
   );
 };
