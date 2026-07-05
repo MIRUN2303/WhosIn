@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../../store/useAppStore';
 import { USERS } from '../../data/mockData';
@@ -6,6 +7,7 @@ import { Avatar } from '../../components/ui';
 import { FadeUp } from '../../components/motion';
 
 export const StoriesPage: React.FC = () => {
+  const navigate = useNavigate();
   const currentUserId = useAppStore(s => s.currentUserId);
   const uploadStory = useAppStore(s => s.uploadStory);
   const getFriendsWithStories = useAppStore(s => s.getFriendsWithStories);
@@ -82,7 +84,12 @@ export const StoriesPage: React.FC = () => {
             <div className="text-center py-10">
               <p className="text-5xl mb-3">📸</p>
               <p className="text-white/40 text-sm">No stories from friends yet</p>
-              <p className="text-white/20 text-xs mt-1">Add friends from your profile to see their stories</p>
+              <p className="text-white/20 text-xs mt-1 mb-4">Add friends to see their stories</p>
+              <button onClick={() => navigate('/profile')}
+                className="px-5 py-2.5 rounded-2xl text-sm font-bold transition-all active:scale-95"
+                style={{ background: '#00ff41', color: '#080808' }}>
+                + Add Friends
+              </button>
             </div>
           ) : (
             <>
