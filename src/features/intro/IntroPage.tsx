@@ -52,15 +52,13 @@ export const IntroPage: React.FC = () => {
         {phase === 'logo' && (
           <motion.div
             key="logo"
-            initial={{ opacity: 0, scale: 0.4, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 1.05, y: -10 }}
-            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, filter: 'blur(20px)', scale: 0.8 }}
+            animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+            exit={{ opacity: 0, filter: 'blur(6px)', scale: 0.95 }}
+            transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col items-center relative z-10"
           >
             <motion.span
-              animate={{ opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
               className="font-logo text-5xl tracking-[0.08em] text-white/85 select-none"
               style={{ letterSpacing: '0.08em' }}
             >
@@ -75,13 +73,13 @@ export const IntroPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col items-center gap-6 relative z-10"
           >
             <motion.span
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.7 }}
+              initial={{ scale: 0.9, filter: 'blur(4px)' }}
+              animate={{ scale: 1, filter: 'blur(0px)' }}
+              transition={{ delay: 0.2, duration: 1 }}
               className="font-logo text-5xl tracking-[0.08em] text-white/85 select-none"
               style={{ letterSpacing: '0.08em' }}
             >
@@ -90,14 +88,14 @@ export const IntroPage: React.FC = () => {
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: '40px' }}
-              transition={{ delay: 0.4, duration: 0.6 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
               className="h-px rounded-full"
               style={{ background: 'rgba(255,255,255,0.25)' }}
             />
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
               className="text-[11px] text-white/30 font-medium tracking-[0.3em] uppercase"
             >
               Play. Compete. Conquer.
