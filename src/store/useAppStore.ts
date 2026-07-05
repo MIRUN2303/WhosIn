@@ -64,8 +64,8 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      isLoggedIn: false,
-      currentUserId: null,
+      isLoggedIn: true,
+      currentUserId: 'u1',
 
       login: (emailOrPhone, password) => {
         const user = emailOrPhone.includes('@')

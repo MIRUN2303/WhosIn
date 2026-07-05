@@ -1,6 +1,6 @@
 import type { User, Group, Event, LeaderboardEntry, Notification } from './types';
 
-export let CURRENT_USER_ID: string | null = null;
+export let CURRENT_USER_ID: string | null = 'u1';
 export const setCurrentUserId = (id: string | null) => { CURRENT_USER_ID = id; };
 
 export const SPORT_CONFIG = {
