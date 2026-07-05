@@ -143,23 +143,7 @@ export const EventDetailPage: React.FC = () => {
 
         {/* ATTENDANCE */}
         <FadeUp delay={0.1}>
-          <SectionHeader title="Attendance" subtitle={`${confirmed.length}/${event.maxSlots} spots filled`} className="mb-3" />
-          
-          {/* Progress bar */}
-          <div className="glass rounded-2xl p-3 mb-3">
-            <div className="flex justify-between text-xs text-white/50 mb-2">
-              <span>{confirmed.length} confirmed</span>
-              <span>{event.maxSlots - confirmed.length} slots left</span>
-            </div>
-            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(confirmed.length / event.maxSlots) * 100}%` }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                className="h-full bg-gradient-to-r from-violet-600 to-pink-500 rounded-full"
-              />
-            </div>
-          </div>
+          <SectionHeader title="Attendance" subtitle={`${confirmed.length} confirmed`} className="mb-3" />
 
           {/* Vote buttons */}
           <div className="grid grid-cols-2 gap-2 mb-4">
@@ -431,7 +415,7 @@ export const EventsPage: React.FC = () => {
                           return u ? <Avatar key={a.userId} src={u.avatar} name={u.name} size="xs" /> : null;
                         })}
                       </div>
-                      <span className="text-white/40 text-xs">{confirmed} going · {event.maxSlots - confirmed} slots left</span>
+                      <span className="text-white/40 text-xs">{confirmed} going</span>
                     </div>
                   </div>
                 </div>

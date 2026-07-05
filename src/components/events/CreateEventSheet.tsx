@@ -32,7 +32,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
   const [endTime, setEndTime] = useState('22:00');
   const [venue, setVenue] = useState('');
   const [description, setDescription] = useState('');
-  const [maxSlots, setMaxSlots] = useState(12);
+
   const [isRecurring, setIsRecurring] = useState(false);
   const [step, setStep] = useState<'details' | 'schedule'>('details');
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
     if (!canSubmit) return;
     setLoading(true);
     await new Promise(r => setTimeout(r, 400));
-    const newId = createEvent({ groupId, title, sport: 'badminton', date, time, endTime, venue, description, maxSlots, isRecurring });
+    const newId = createEvent({ groupId, title, sport: 'badminton', date, time, endTime, venue, description, isRecurring });
     setLoading(false);
     onClose();
     if (newId) navigate(`/events/${newId}`);
@@ -178,25 +178,6 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         />
                       </div>
 
-                      {/* Max slots */}
-                      <div>
-                        <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>MAX PLAYERS</label>
-                        <div className="flex items-center gap-3">
-                          {[6, 8, 10, 12, 16, 20].map(n => (
-                            <motion.button key={n}
-                              onClick={() => setMaxSlots(n)}
-                              className="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all"
-                              style={maxSlots === n
-                                ? { background: 'rgba(0,255,65,0.1)', borderColor: '#00ff41', color: '#00ff41' }
-                                : { background: '#161616', borderColor: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }
-                              }
-                              whileTap={{ scale: 0.95 }}>
-                              {n}
-                            </motion.button>
-                          ))}
-                        </div>
-                      </div>
-
                       {/* Description */}
                       <div>
                         <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>DESCRIPTION (optional)</label>
@@ -232,7 +213,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         <span className="text-2xl">🏸</span>
                         <div>
                           <p className="font-bold text-white text-sm">{title}</p>
-                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{selectedGroup?.name} · Badminton · {maxSlots} max</p>
+                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{selectedGroup?.name} · Badminton</p>
                         </div>
                       </div>
 

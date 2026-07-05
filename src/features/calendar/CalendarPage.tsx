@@ -24,6 +24,11 @@ export const CalendarPage: React.FC = () => {
   const [current, setCurrent] = useState(new Date());
   const [selected, setSelected] = useState<Date | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const groups = useAppStore(s => s.groups);
+
+  const isGroupAdmin = groups.some(g =>
+    g.members.some(m => m.userId === currentUserId && (m.role === 'creator' || m.role === 'admin'))
+  );
 
   const getEventsForDate = (date: Date) =>
     events.filter(e => isSameDay(parseISO(e.date), date));
@@ -106,7 +111,7 @@ export const CalendarPage: React.FC = () => {
 
         {/* Selected day events */}
         <AnimatePresence>
-          {selected && (
+          {selected ? (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -114,13 +119,23 @@ export const CalendarPage: React.FC = () => {
               className="overflow-hidden"
             >
               <div className="pt-2 space-y-2">
-                <p className="text-white/60 text-xs font-semibold">
-                  {format(selected, 'EEEE, MMMM d')}
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-white/60 text-xs font-semibold">
+                    {format(selected, 'EEEE, MMMM d')}
+                  </p>
+                  {isGroupAdmin && (
+                    <Button variant="lime" size="sm" onClick={() => { setShowCreate(true); }}>
+                      + Schedule Event
+                    </Button>
+                  )}
+                </div>
                 {selectedEvents.length === 0 ? (
                   <div className="glass rounded-2xl p-4 text-center">
                     <p className="text-white/40 text-sm">No events this day</p>
-                    <p className="text-2xl mt-1">📅</p>
+                    {!isGroupAdmin && <p className="text-2xl mt-1">📅</p>}
+                    {isGroupAdmin && (
+                      <p className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.3)' }}>Select a date to schedule an event</p>
+                    )}
                   </div>
                 ) : (
                   selectedEvents.map(event => {
@@ -147,6 +162,15 @@ export const CalendarPage: React.FC = () => {
                   })
                 )}
               </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="glass rounded-2xl p-4 text-center"
+            >
+              <p className="text-white/40 text-sm">Select a date to schedule an event</p>
+              <p className="text-2xl mt-1">📅</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -313,9 +337,6 @@ export const CalendarPage: React.FC = () => {
             <Chip key={v} label={v} active={view === v} onClick={() => setView(v)} />
           ))}
           <Chip label="Today" onClick={() => setCurrent(new Date())} />
-          <Button variant="lime" size="sm" className="ml-auto" onClick={() => setShowCreate(true)}>
-            + Schedule
-          </Button>
         </div>
       </FadeUp>
 
