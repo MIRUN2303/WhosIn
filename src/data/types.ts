@@ -185,3 +185,26 @@ export interface Notification {
   actionUrl?: string;
   avatar?: string;
 }
+
+// =============================================
+// FRIENDS & STORIES
+// =============================================
+export type FriendRequestStatus = 'pending' | 'accepted' | 'declined';
+
+export interface Friendship {
+  id: string;
+  userId: string;
+  friendId: string;
+  status: FriendRequestStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Story {
+  id: string;
+  userId: string;
+  imageUrl: string;
+  caption: string;
+  createdAt: string;
+  expiresAt: string;
+} 

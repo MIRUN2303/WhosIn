@@ -136,7 +136,7 @@ export const CalendarPage: React.FC = () => {
                             <p className="text-white/50 text-xs">{event.time} · {confirmed} going</p>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            {myStatus && <span className="text-xs">{myStatus === 'coming' ? '✅' : myStatus === 'maybe' ? '🤔' : myStatus === 'late' ? '⏰' : '❌'}</span>}
+                            {myStatus && <span className="text-xs">{myStatus === 'coming' ? '✅' : '❌'}</span>}
                             <Badge variant={event.status === 'upcoming' ? 'blue' : 'glass'} size="sm">
                               {event.status}
                             </Badge>
@@ -211,7 +211,7 @@ export const CalendarPage: React.FC = () => {
                     <p className="text-white/50 text-xs">{format(event._day, 'EEE, MMM d')} · {event.time}</p>
                   </div>
                   {myStatus && (
-                    <span className="text-xs">{myStatus === 'coming' ? '✅' : myStatus === 'maybe' ? '🤔' : myStatus === 'late' ? '⏰' : '❌'}</span>
+                    <span className="text-xs">{myStatus === 'coming' ? '✅' : '❌'}</span>
                   )}
                 </div>
               </Card>
@@ -264,7 +264,7 @@ export const CalendarPage: React.FC = () => {
                         <p className="text-white/50 text-xs">{event.time} · {confirmed} going · {event.venue}</p>
                       </div>
                       {myStatus && (
-                        <span className="text-xs">{myStatus === 'coming' ? '✅' : myStatus === 'maybe' ? '🤔' : myStatus === 'late' ? '⏰' : '❌'}</span>
+                        <span className="text-xs">{myStatus === 'coming' ? '✅' : '❌'}</span>
                       )}
                     </div>
                   </div>

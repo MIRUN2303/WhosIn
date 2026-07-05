@@ -7,12 +7,12 @@ import {
   PieChart, Pie, Cell,
 } from 'recharts';
 import { USERS, SPORT_CONFIG, BADGE_CONFIG, GROUPS, computeMemberGroupStats, getOverallWinRate } from '../../data/mockData';
-import { Card, Avatar, Button, StatCard, ProgressBar } from '../../components/ui';
+import { Card, Avatar, Button, StatCard, ProgressBar, Badge } from '../../components/ui';
 import { FadeUp, AnimatedNumber } from '../../components/motion';
 import { clsx } from 'clsx';
 import { useAppStore } from '../../store/useAppStore';
 
-const TABS = ['Stats', 'Badges', 'History', 'Sports', 'Groups'];
+const TABS = ['Stats', 'Badges', 'History', 'Sports', 'Groups', 'Friends'];
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -321,6 +321,12 @@ export const ProfilePage: React.FC = () => {
               </div>
             </motion.div>
           )}
+
+          {tab === 'Friends' && (
+            <motion.div key="friends" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+              <FriendsPanel />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>
@@ -328,3 +334,144 @@ export const ProfilePage: React.FC = () => {
 };
 
 const RARITY_COLORS: Record<string, string> = { common: '#6b7280', uncommon: '#10b981', rare: '#3b82f6', legendary: '#f59e0b' };
+
+// =============================================
+// FRIENDS PANEL
+// =============================================
+const FriendsPanel: React.FC = () => {
+  const currentUserId = useAppStore(s => s.currentUserId);
+  const friendships = useAppStore(s => s.friendships);
+  const sendFriendRequest = useAppStore(s => s.sendFriendRequest);
+  const acceptFriendRequest = useAppStore(s => s.acceptFriendRequest);
+  const [search, setSearch] = useState('');
+
+  const friends = friendships.filter(f =>
+    (f.userId === currentUserId || f.friendId === currentUserId) && f.status === 'accepted'
+  ).map(f => {
+    const fid = f.userId === currentUserId ? f.friendId : f.userId;
+    return { ...f, otherUser: USERS.find(u => u.id === fid) };
+  });
+
+  const pendingReceived = friendships.filter(f =>
+    f.friendId === currentUserId && f.status === 'pending'
+  ).map(f => ({ ...f, from: USERS.find(u => u.id === f.userId) }));
+
+  const pendingSent = friendships.filter(f =>
+    f.userId === currentUserId && f.status === 'pending'
+  );
+
+  const otherUsers = USERS.filter(u =>
+    u.id !== currentUserId &&
+    !friendships.some(f =>
+      ((f.userId === currentUserId && f.friendId === u.id) ||
+       (f.friendId === currentUserId && f.userId === u.id)) &&
+      (f.status === 'accepted' || f.status === 'pending')
+    )
+  );
+
+  const filteredOthers = otherUsers.filter(u =>
+    u.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-4">
+      {pendingReceived.length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">📩 Requests</p>
+          <div className="space-y-2">
+            {pendingReceived.map(fr => (
+              <Card key={fr.id} padding="md">
+                <div className="flex items-center gap-3">
+                  <Avatar src={fr.from?.avatar} name={fr.from?.name || ''} size="sm" />
+                  <div className="flex-1">
+                    <p className="font-bold text-white text-sm">{fr.from?.name}</p>
+                    <p className="text-white/40 text-xs">@{fr.from?.profileCode}</p>
+                  </div>
+                  <Button variant="lime" size="sm" onClick={() => acceptFriendRequest(fr.id)}>Accept</Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">👥 Friends ({friends.length})</p>
+        {friends.length > 0 ? (
+          <div className="space-y-2">
+            {friends.map(f => (
+              <Card key={f.id} padding="md">
+                <div className="flex items-center gap-3">
+                  <Avatar src={f.otherUser?.avatar} name={f.otherUser?.name || ''} size="sm" />
+                  <div className="flex-1">
+                    <p className="font-bold text-white text-sm">{f.otherUser?.name}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#00ff41', boxShadow: '0 0 6px #00ff41' }} />
+                      <span className="text-[10px]" style={{ color: '#00ff41' }}>Online</span>
+                    </div>
+                  </div>
+                  <Badge variant="lime" size="sm">Friends</Badge>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+            <p className="text-white/30 text-xs">No friends yet. Search for users to add!</p>
+          </div>
+        )}
+      </div>
+
+      {pendingSent.length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">⏳ Sent Requests</p>
+          <div className="space-y-2">
+            {pendingSent.map(fr => {
+              const u = USERS.find(us => us.id === fr.friendId);
+              return (
+                <Card key={fr.id} padding="md">
+                  <div className="flex items-center gap-3">
+                    <Avatar src={u?.avatar} name={u?.name || ''} size="sm" />
+                    <div className="flex-1">
+                      <p className="font-bold text-white text-sm">{u?.name}</p>
+                      <p className="text-white/40 text-xs">@{u?.profileCode}</p>
+                    </div>
+                    <Badge variant="glass" size="sm">Pending</Badge>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">🔍 Find Users</p>
+        <div className="flex gap-2 mb-3">
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name..."
+            className="flex-1 bg-transparent border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#00ff41]/40"
+          />
+        </div>
+        {filteredOthers.length > 0 ? (
+          <div className="space-y-2">
+            {filteredOthers.map(u => (
+              <Card key={u.id} padding="md">
+                <div className="flex items-center gap-3">
+                  <Avatar src={u.avatar} name={u.name} size="sm" />
+                  <div className="flex-1">
+                    <p className="font-bold text-white text-sm">{u.name}</p>
+                    <p className="text-white/40 text-xs">@{u.profileCode}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => sendFriendRequest(u.id)}>+ Add</Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : search ? (
+          <div className="text-center py-4"><p className="text-white/30 text-xs">No users found</p></div>
+        ) : null}
+      </div>
+    </div>
+  );
+};

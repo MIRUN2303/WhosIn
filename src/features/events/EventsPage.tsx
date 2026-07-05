@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
@@ -6,12 +6,11 @@ import { useAppStore } from '../../store/useAppStore';
 import { SPORT_CONFIG, getUserById, getGroupById } from '../../data/mockData';
 import { Card, Avatar, Badge, Button, SportOrb, SectionHeader, Chip } from '../../components/ui';
 import { StaggerList, StaggerItem, FadeUp } from '../../components/motion';
+import { ImageLightbox } from '../../components/media/ImageLightbox';
 import type { AttendanceStatus } from '../../data/types';
 
 const ATTENDANCE_OPTIONS: { status: AttendanceStatus; label: string; emoji: string; color: string }[] = [
-  { status: 'coming',      label: 'Coming',     emoji: '✅', color: '#10b981' },
-  { status: 'maybe',       label: 'Maybe',      emoji: '🤔', color: '#f59e0b' },
-  { status: 'late',        label: 'Late',       emoji: '⏰', color: '#8b5cf6' },
+  { status: 'coming',      label: 'Coming',     emoji: '✅', color: '#22c55e' },
   { status: 'not_coming',  label: 'Can\'t Make It', emoji: '❌', color: '#ef4444' },
 ];
 
@@ -23,7 +22,10 @@ export const EventDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const events = useAppStore(s => s.events);
   const updateAttendance = useAppStore(s => s.updateAttendance);
+  const uploadEventImage = useAppStore(s => s.uploadEventImage);
   const currentUserId = useAppStore(s => s.currentUserId);
+  const [galleryIdx, setGalleryIdx] = useState<number | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const event = events.find(e => e.id === id);
   if (!event) return (
@@ -40,16 +42,19 @@ export const EventDetailPage: React.FC = () => {
   const myAttendance = event.attendance.find(a => a.userId === currentUserId);
   const organizer = getUserById(event.organizer);
   const confirmed = event.attendance.filter(a => a.status === 'coming');
-  const maybe = event.attendance.filter(a => a.status === 'maybe');
-  const late = event.attendance.filter(a => a.status === 'late');
   const notComing = event.attendance.filter(a => a.status === 'not_coming');
 
   const attendanceGroups = [
-    { label: 'Coming', emoji: '✅', items: confirmed, color: '#10b981' },
-    { label: 'Maybe', emoji: '🤔', items: maybe, color: '#f59e0b' },
-    { label: 'Late', emoji: '⏰', items: late, color: '#8b5cf6' },
+    { label: 'Coming', emoji: '✅', items: confirmed, color: '#22c55e' },
     { label: "Can't", emoji: '❌', items: notComing, color: '#ef4444' },
   ];
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || event.gallery.length >= 10) return;
+    const url = URL.createObjectURL(file);
+    uploadEventImage(event.id, url);
+  };
 
   return (
     <div className="pb-32 max-w-lg mx-auto">
@@ -272,21 +277,46 @@ export const EventDetailPage: React.FC = () => {
         )}
 
         {/* GALLERY */}
-        {event.gallery.length > 0 && (
-          <FadeUp delay={0.2}>
-            <SectionHeader title="📸 Gallery" action={<Button variant="ghost" size="sm">See all</Button>} className="mb-3" />
+        <FadeUp delay={0.2}>
+          <SectionHeader
+            title="📸 Gallery"
+            action={
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-white/30">{event.gallery.length}/10</span>
+                {event.gallery.length < 10 && (
+                  <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()}>+ Add</Button>
+                )}
+              </div>
+            }
+            className="mb-3"
+          />
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+          {event.gallery.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
               {event.gallery.map((img, i) => (
                 <motion.div
                   key={i}
                   whileHover={{ scale: 1.05 }}
-                  className="aspect-square rounded-2xl overflow-hidden"
+                  className="aspect-square rounded-2xl overflow-hidden cursor-pointer"
+                  onClick={() => setGalleryIdx(i)}
                 >
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </motion.div>
               ))}
             </div>
-          </FadeUp>
+          ) : (
+            <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <p className="text-white/30 text-xs">No photos yet</p>
+            </div>
+          )}
+        </FadeUp>
+
+        {galleryIdx !== null && (
+          <ImageLightbox
+            images={event.gallery}
+            initialIndex={galleryIdx}
+            onClose={() => setGalleryIdx(null)}
+          />
         )}
       </div>
     </div>

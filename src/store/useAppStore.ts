@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AttendanceStatus, Notification, Event, Group } from '../data/types';
+import type { AttendanceStatus, Notification, Event, Group, Story, Friendship } from '../data/types';
 import { EVENTS, NOTIFICATIONS, GROUPS, USERS, setCurrentUserId, getUserById, getUserByEmail, getUserByPhone, getUserByProfileCode, generateId } from '../data/mockData';
 import toast from 'react-hot-toast';
 
@@ -41,6 +41,9 @@ interface AppState {
 
   updateAttendance: (eventId: string, userId: string, status: AttendanceStatus) => void;
   createEvent: (input: CreateEventInput) => string;
+  startEvent: (eventId: string) => void;
+  updateMatchScore: (eventId: string, leagueId: string, matchId: string, score1: number, score2: number, winnerId: string) => void;
+  completeEvent: (eventId: string) => void;
 
   getGroupEvents: (groupId: string) => Event[];
   getNextGroupEvent: (groupId: string) => Event | undefined;
@@ -58,6 +61,16 @@ interface AppState {
   createGroup: (input: CreateGroupInput) => string;
   joinGroup: (groupId: string) => void;
   inviteByProfileCode: (groupId: string, profileCode: string) => boolean;
+
+  // Friends & Stories
+  stories: Story[];
+  friendships: Friendship[];
+  sendFriendRequest: (friendId: string) => void;
+  acceptFriendRequest: (friendshipId: string) => void;
+  uploadStory: (imageUrl: string, caption?: string) => void;
+  getActiveStories: (userId: string) => Story[];
+  getFriendsWithStories: () => { user: any; stories: Story[] }[];
+  uploadEventImage: (eventId: string, imageUrl: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -119,6 +132,8 @@ export const useAppStore = create<AppState>()(
       notifications: NOTIFICATIONS,
       activeTab: 'home',
       groups: GROUPS,
+      stories: [],
+      friendships: [],
 
       updateAttendance: (eventId, userId, status) => {
         set(state => ({
@@ -195,6 +210,50 @@ export const useAppStore = create<AppState>()(
         });
 
         return newId;
+      },
+
+      startEvent: (eventId) => {
+        set(state => ({
+          events: state.events.map(e =>
+            e.id === eventId && e.status === 'upcoming'
+              ? { ...e, status: 'live' as const }
+              : e
+          ),
+        }));
+      },
+
+      updateMatchScore: (eventId, leagueId, matchId, score1, score2, winnerId) => {
+        set(state => ({
+          events: state.events.map(e =>
+            e.id === eventId
+              ? {
+                  ...e,
+                  leagues: e.leagues.map(l =>
+                    l.id === leagueId
+                      ? {
+                          ...l,
+                          matches: l.matches.map(m =>
+                            m.id === matchId
+                              ? { ...m, score1, score2, winnerId }
+                              : m
+                          ),
+                        }
+                      : l
+                  ),
+                }
+              : e
+          ),
+        }));
+      },
+
+      completeEvent: (eventId) => {
+        set(state => ({
+          events: state.events.map(e =>
+            e.id === eventId && e.status === 'live'
+              ? { ...e, status: 'completed' as const }
+              : e
+          ),
+        }));
       },
 
       getGroupEvents: (groupId) => {
@@ -372,6 +431,79 @@ export const useAppStore = create<AppState>()(
         toast.success(`Invited ${invitedUser.name} to the group!`);
         return true;
       },
+
+      // Friends
+      sendFriendRequest: (friendId) => {
+        const id = `fs_${Date.now()}`;
+        const currentUserId = get().currentUserId;
+        if (!currentUserId) return;
+        set(state => ({
+          friendships: [
+            ...state.friendships,
+            { id, userId: currentUserId, friendId, status: 'pending', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+          ],
+        }));
+        toast.success('Friend request sent!');
+      },
+
+      acceptFriendRequest: (friendshipId) => {
+        set(state => ({
+          friendships: state.friendships.map(f =>
+            f.id === friendshipId ? { ...f, status: 'accepted' as const, updatedAt: new Date().toISOString() } : f
+          ),
+        }));
+        toast.success('Friend request accepted!');
+      },
+
+      // Stories
+      uploadStory: (imageUrl, caption) => {
+        const currentUserId = get().currentUserId;
+        if (!currentUserId) return;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayCount = get().stories.filter(s => s.userId === currentUserId && s.createdAt.startsWith(todayStr)).length;
+        if (todayCount >= 10) { toast.error('Daily limit reached (10 stories)'); return; }
+        const id = `st_${Date.now()}`;
+        const now = new Date();
+        const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        set(state => ({
+          stories: [
+            ...state.stories,
+            { id, userId: currentUserId, imageUrl, caption: caption || '', createdAt: now.toISOString(), expiresAt: expires.toISOString() },
+          ],
+        }));
+        toast.success('Story uploaded!');
+      },
+
+      getActiveStories: (userId) => {
+        const now = Date.now();
+        return get().stories.filter(s => s.userId === userId && new Date(s.expiresAt).getTime() > now);
+      },
+
+      getFriendsWithStories: () => {
+        const currentUserId = get().currentUserId;
+        if (!currentUserId) return [];
+        const now = Date.now();
+        const friendIds = get().friendships
+          .filter(f => (f.userId === currentUserId || f.friendId === currentUserId) && f.status === 'accepted')
+          .map(f => f.userId === currentUserId ? f.friendId : f.userId);
+        const allUserIds = [...new Set([...friendIds, currentUserId])];
+        return allUserIds.map(uid => {
+          const user = getUserById(uid);
+          const activeStories = get().stories.filter(s => s.userId === uid && new Date(s.expiresAt).getTime() > now).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+          return { user, stories: activeStories };
+        }).filter(x => x.user && x.stories.length > 0);
+      },
+
+      // Event Gallery
+      uploadEventImage: (eventId, imageUrl) => {
+        set(state => ({
+          events: state.events.map(e =>
+            e.id === eventId && e.gallery.length < 10
+              ? { ...e, gallery: [...e.gallery, imageUrl] }
+              : e
+          ),
+        }));
+      },
     }),
     {
       name: 'machiverse-store',
@@ -386,6 +518,8 @@ export const useAppStore = create<AppState>()(
         notifications: state.notifications,
         activeTab: state.activeTab,
         groups: state.groups,
+        stories: state.stories,
+        friendships: state.friendships,
       }),
     }
   )

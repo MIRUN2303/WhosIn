@@ -10,6 +10,7 @@ import { CalendarPage } from './features/calendar/CalendarPage';
 import { ProfilePage } from './features/profile/ProfilePage';
 import { GroupsPage, GroupDetailPage } from './features/groups/GroupsPage';
 import { NotificationsPage } from './features/notifications/NotificationsPage';
+import { IntroPage } from './features/intro/IntroPage';
 
 const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <motion.div
@@ -50,7 +51,7 @@ const AppContent: React.FC = () => {
         <Suspense fallback={<PageSkeleton />}>
           <AnimatePresence mode="wait" initial={false}>
             <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route path="/" element={<IntroPage />} />
               <Route path="/home" element={<PageWrapper><HomePage /></PageWrapper>} />
               <Route path="/events/:id" element={<PageWrapper><EventDetailPage /></PageWrapper>} />
               <Route path="/calendar" element={<PageWrapper><CalendarPage /></PageWrapper>} />

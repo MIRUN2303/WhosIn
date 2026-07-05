@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Crenzo';
+  src: url('/fonts/CRENZO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-logo: "Crenzo", "Plus Jakarta Sans", sans-serif;
 }
 
 :root {

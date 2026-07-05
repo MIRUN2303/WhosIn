@@ -135,6 +135,7 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
+  const [showCreate, setShowCreate] = useState(false);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
@@ -164,6 +165,11 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
         <p className="font-bold text-white text-sm">{monthLabel}</p>
         <button onClick={next} className="text-white/40 text-sm">→</button>
       </div>
+      <button onClick={() => setShowCreate(true)} className="w-full mb-3 py-2 rounded-xl text-xs font-bold"
+        style={{ background: '#00ff41', color: '#080808' }}>
+        + Schedule Event
+      </button>
+      <CreateEventSheet isOpen={showCreate} onClose={() => setShowCreate(false)} preselectedGroupId={groupId} />
       <div className="grid grid-cols-7 gap-1 mb-1">
         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
           <div key={d} className="text-center text-[10px] font-bold text-white/30 py-1">{d}</div>
@@ -317,16 +323,21 @@ export const GroupDetailPage: React.FC = () => {
 
   return (
     <div className="pb-24 max-w-lg mx-auto">
-      <div className="relative h-52 overflow-hidden">
-        <img src={group.banner} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0a1e] via-[#0f0a1e]/40 to-transparent" />
+      <div
+        className="relative h-44 overflow-hidden rounded-b-3xl"
+        style={{
+          backgroundImage: `linear-gradient(to top, #080808 0%, #080808 20%, transparent 60%), url(${group.banner})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <button onClick={() => navigate(-1)} className="absolute top-4 left-4 glass w-10 h-10 rounded-2xl flex items-center justify-center text-white">←</button>
       </div>
 
-      <div className="px-4 -mt-10 space-y-4">
+      <div className="px-4 mt-4 space-y-4">
         <FadeUp>
           <div className="flex items-start gap-3">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border-2 border-white/20 shadow-lg flex-shrink-0 -mt-2 glass">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border-2 border-white/20 shadow-lg flex-shrink-0 glass">
               {group.logo}
             </div>
             <div className="flex-1">
@@ -441,7 +452,7 @@ export const GroupDetailPage: React.FC = () => {
                           </div>
                           <div className="flex items-center gap-1.5">
                             {myStatus && (
-                              <span className="text-xs">{myStatus === 'coming' ? '✅' : myStatus === 'maybe' ? '🤔' : myStatus === 'late' ? '⏰' : '❌'}</span>
+                              <span className="text-xs">{myStatus === 'coming' ? '✅' : '❌'}</span>
                             )}
                             <Badge variant="blue" size="sm">Soon</Badge>
                           </div>
