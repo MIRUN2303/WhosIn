@@ -16,7 +16,7 @@ export const IntroPage: React.FC = () => {
   return (
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
       style={{
-        backgroundImage: `url('/bg-intro.jpg')`,
+        backgroundImage: `url('/1.jpg')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}>
