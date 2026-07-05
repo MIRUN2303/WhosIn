@@ -226,12 +226,14 @@ export const EventDetailPage: React.FC = () => {
                   ✏️ Edit Details
                 </Button>
               </div>
-              <Button variant="glass" size="sm" className="w-full"
-                onClick={() => { setShowLeagueSetup(v => !v); if (!showLeagueSetup) { setLeagueName(`${sportCfg.label} League`); setSelectedPlayers(event.attendance.filter(a => a.status === 'coming').map(a => a.userId)); } }}>
-                🏟️ {showLeagueSetup ? 'Cancel Setup' : (event.leagues.length > 0 ? '+ Add League' : 'Setup League')}
-              </Button>
+              {event.status === 'live' && (
+                <Button variant="glass" size="sm" className="w-full"
+                  onClick={() => { setShowLeagueSetup(v => !v); if (!showLeagueSetup) { setLeagueName(`${sportCfg.label} League`); setSelectedPlayers(event.attendance.filter(a => a.status === 'coming').map(a => a.userId)); } }}>
+                  🏟️ {showLeagueSetup ? 'Cancel Setup' : (event.leagues.length > 0 ? '+ Add League' : 'Setup League')}
+                </Button>
+              )}
 
-              {showLeagueSetup && (
+              {showLeagueSetup && event.status === 'live' && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 overflow-hidden">
                   <input
                     value={leagueName}
@@ -284,7 +286,7 @@ export const EventDetailPage: React.FC = () => {
           {event.leagues.length === 0 ? (
             <Card padding="md" variant="dark">
               <p className="text-white/30 text-xs text-center">No leagues set up yet</p>
-              {isEditable && (
+              {event.status === 'live' && isEventAdmin && (
                 <Button variant="ghost" size="sm" className="w-full mt-2"
                   onClick={() => { setShowLeagueSetup(true); setLeagueName(`${sportCfg.label} League`); setSelectedPlayers(event.attendance.filter(a => a.status === 'coming').map(a => a.userId)); }}>
                   + Create League
