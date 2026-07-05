@@ -103,7 +103,7 @@ export interface Event {
   weather: WeatherInfo;
   attendance: AttendanceRecord[];
   leagues: League[];
-  status: 'upcoming' | 'live' | 'completed' | 'cancelled';
+  status: 'upcoming' | 'live' | 'paused' | 'completed' | 'cancelled';
   isRecurring: boolean;
   recurringPattern?: string;
   announcements: Announcement[];

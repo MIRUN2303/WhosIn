@@ -27,6 +27,11 @@ export const EventDetailPage: React.FC = () => {
   const createLeague = useAppStore(s => s.createLeague);
   const addMatch = useAppStore(s => s.addMatch);
   const updateMatchScore = useAppStore(s => s.updateMatchScore);
+  const pauseEvent = useAppStore(s => s.pauseEvent);
+  const resumeEvent = useAppStore(s => s.resumeEvent);
+  const deleteMatch = useAppStore(s => s.deleteMatch);
+  const deleteLeague = useAppStore(s => s.deleteLeague);
+  const editEvent = useAppStore(s => s.editEvent);
   const [galleryIdx, setGalleryIdx] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [showLeagueSetup, setShowLeagueSetup] = useState(false);
@@ -34,6 +39,8 @@ export const EventDetailPage: React.FC = () => {
   const [leagueFormat, setLeagueFormat] = useState<'single' | 'doubles'>('doubles');
   const [editingScore, setEditingScore] = useState<{ leagueId: string; matchId: string; s1: string; s2: string } | null>(null);
   const [matchForm, setMatchForm] = useState<{ leagueId: string; side1: string[]; side2: string[]; score1: string; score2: string } | null>(null);
+  const [showEditDetails, setShowEditDetails] = useState(false);
+  const [editFields, setEditFields] = useState({ title: '', date: '', time: '', endTime: '', venue: '', description: '' });
 
   const event = events.find(e => e.id === id);
   const groups = useAppStore(s => s.groups);
@@ -44,7 +51,7 @@ export const EventDetailPage: React.FC = () => {
     groupMember?.role === 'creator' ||
     groupMember?.role === 'admin'
   );
-  const isEditable = isEventAdmin && (event.status === 'upcoming' || event.status === 'live');
+  const isEditable = isEventAdmin && (event.status === 'upcoming' || event.status === 'live' || event.status === 'paused');
   if (!event) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
@@ -208,24 +215,72 @@ export const EventDetailPage: React.FC = () => {
         {isEditable && (
           <FadeUp delay={0.14}>
             <Card padding="md" className="space-y-3" variant="dark">
-              <p className="text-xs font-bold text-white/40 uppercase tracking-wider">🛠️ Admin</p>
-              <div className="flex gap-2">
+              <p className="text-xs font-bold text-white/40 uppercase tracking-wider">Admin</p>
+              <div className="flex gap-2 flex-wrap">
                 {event.status === 'upcoming' && (
                   <Button variant="lime" size="sm" className="flex-1"
                     onClick={() => { useAppStore.getState().startEvent(event.id); }}>
-                    ▶️ Start Now
+                    Start Now
                   </Button>
                 )}
                 {event.status === 'live' && (
-                  <Button variant="amber" size="sm" className="flex-1"
-                    onClick={() => { useAppStore.getState().completeEvent(event.id); }}>
-                    ✅ End & Save
-                  </Button>
+                  <>
+                    <Button variant="ghost" size="sm" className="flex-1"
+                      onClick={() => pauseEvent(event.id)}>
+                      Pause & Save
+                    </Button>
+                    <Button variant="amber" size="sm" className="flex-1"
+                      onClick={() => { useAppStore.getState().completeEvent(event.id); }}>
+                      End & Save
+                    </Button>
+                  </>
                 )}
-                <Button variant="ghost" size="sm" className="flex-1">
-                  ✏️ Edit Details
+                {event.status === 'paused' && (
+                  <>
+                    <Button variant="lime" size="sm" className="flex-1"
+                      onClick={() => resumeEvent(event.id)}>
+                      Resume
+                    </Button>
+                    <Button variant="amber" size="sm" className="flex-1"
+                      onClick={() => { useAppStore.getState().completeEvent(event.id); }}>
+                      End & Save
+                    </Button>
+                  </>
+                )}
+                <Button variant="ghost" size="sm" className="flex-1"
+                  onClick={() => {
+                    setEditFields({ title: event.title, date: event.date, time: event.time, endTime: event.endTime || '', venue: event.venue, description: event.description || '' });
+                    setShowEditDetails(v => !v);
+                  }}>
+                  Edit Details
                 </Button>
               </div>
+
+              {showEditDetails && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 overflow-hidden">
+                  <input value={editFields.title} onChange={e => setEditFields(f => ({ ...f, title: e.target.value }))} placeholder="Title"
+                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="date" value={editFields.date} onChange={e => setEditFields(f => ({ ...f, date: e.target.value }))}
+                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                    <input type="time" value={editFields.time} onChange={e => setEditFields(f => ({ ...f, time: e.target.value }))}
+                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input value={editFields.venue} onChange={e => setEditFields(f => ({ ...f, venue: e.target.value }))} placeholder="Venue"
+                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                    <input type="time" value={editFields.endTime} onChange={e => setEditFields(f => ({ ...f, endTime: e.target.value }))}
+                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                  </div>
+                  <textarea value={editFields.description} onChange={e => setEditFields(f => ({ ...f, description: e.target.value }))} placeholder="Description" rows={2}
+                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41] resize-none" />
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="flex-1" onClick={() => setShowEditDetails(false)}>Cancel</Button>
+                    <Button variant="lime" size="sm" className="flex-1" onClick={() => { editEvent(event.id, editFields); setShowEditDetails(false); }}>Save</Button>
+                  </div>
+                </motion.div>
+              )}
+
               {event.status === 'live' && (
                 <Button variant="glass" size="sm" className="w-full"
                   onClick={() => setShowLeagueSetup(v => !v)}>
@@ -310,9 +365,15 @@ export const EventDetailPage: React.FC = () => {
                         <span className="text-white/40 text-xs">{formatLabel}</span>
                       </div>
                     </div>
-                    <Badge variant={league.status === 'completed' ? 'green' : league.status === 'ongoing' ? 'blue' : 'glass'}>
-                      {league.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {isEventAdmin && (
+                        <button onClick={() => deleteLeague(event.id, league.id)}
+                          className="text-[10px] text-red-400/50 hover:text-red-400 transition-colors">Delete League</button>
+                      )}
+                      <Badge variant={league.status === 'completed' ? 'green' : league.status === 'ongoing' ? 'blue' : 'glass'}>
+                        {league.status}
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* League Winner */}
@@ -368,6 +429,10 @@ export const EventDetailPage: React.FC = () => {
                           </div>
                           {isWin1 && <p className="text-center text-green-400/60 text-[10px] mt-0.5">{p1} win</p>}
                           {isWin2 && <p className="text-center text-green-400/60 text-[10px] mt-0.5">{p2} win</p>}
+                          {isEventAdmin && (event.status === 'live' || event.status === 'paused') && (
+                            <button onClick={() => deleteMatch(event.id, league.id, match.id)}
+                              className="text-[9px] text-red-400/40 hover:text-red-400 transition-colors mt-1">Remove Match</button>
+                          )}
                         </div>
                       );
                     })}

@@ -64,9 +64,14 @@ interface AppState {
   createEvent: (input: CreateEventInput) => string;
   createLiveEvent: (input: CreateLiveEventInput) => string;
   startEvent: (eventId: string) => void;
+  pauseEvent: (eventId: string) => void;
+  resumeEvent: (eventId: string) => void;
   createLeague: (input: CreateLeagueInput) => string;
   addMatch: (input: CreateMatchInput) => string;
   updateMatchScore: (eventId: string, leagueId: string, matchId: string, score1: number, score2: number, winnerId: string) => void;
+  deleteMatch: (eventId: string, leagueId: string, matchId: string) => void;
+  deleteLeague: (eventId: string, leagueId: string) => void;
+  editEvent: (eventId: string, updates: Partial<Pick<Event, 'title' | 'date' | 'time' | 'endTime' | 'venue' | 'description'>>) => void;
   completeEvent: (eventId: string) => void;
 
   getGroupEvents: (groupId: string) => Event[];
@@ -298,6 +303,26 @@ export const useAppStore = create<AppState>()(
         }));
       },
 
+      pauseEvent: (eventId) => {
+        set(state => ({
+          events: state.events.map(e =>
+            e.id === eventId && e.status === 'live'
+              ? { ...e, status: 'paused' as const }
+              : e
+          ),
+        }));
+      },
+
+      resumeEvent: (eventId) => {
+        set(state => ({
+          events: state.events.map(e =>
+            e.id === eventId && e.status === 'paused'
+              ? { ...e, status: 'live' as const }
+              : e
+          ),
+        }));
+      },
+
       createLeague: (input) => {
         const lid = `l_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
         const league = {
@@ -385,6 +410,41 @@ export const useAppStore = create<AppState>()(
             e.id === eventId && e.status === 'live'
               ? { ...e, status: 'completed' as const }
               : e
+          ),
+        }));
+      },
+
+      deleteMatch: (eventId, leagueId, matchId) => {
+        set(state => ({
+          events: state.events.map(e =>
+            e.id === eventId
+              ? {
+                  ...e,
+                  leagues: e.leagues.map(l =>
+                    l.id === leagueId
+                      ? { ...l, matches: l.matches.filter(m => m.id !== matchId) }
+                      : l
+                  ),
+                }
+              : e
+          ),
+        }));
+      },
+
+      deleteLeague: (eventId, leagueId) => {
+        set(state => ({
+          events: state.events.map(e =>
+            e.id === eventId
+              ? { ...e, leagues: e.leagues.filter(l => l.id !== leagueId) }
+              : e
+          ),
+        }));
+      },
+
+      editEvent: (eventId, updates) => {
+        set(state => ({
+          events: state.events.map(e =>
+            e.id === eventId ? { ...e, ...updates } : e
           ),
         }));
       },
