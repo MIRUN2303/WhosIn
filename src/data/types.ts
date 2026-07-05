@@ -27,7 +27,8 @@ export interface User {
   favouriteSports: SportType[];
   badges: BadgeId[];
   stats: UserStats;
-  groupIds: string[];
+  createdGroups: string[];
+  joinedGroups: string[];
   joinedAt: string;
   level: number;
   xp: number;
@@ -61,6 +62,7 @@ export interface Group {
   rules: string[];
   isPrivate: boolean;
   tags: string[];
+  inviteCode: string;
   upcomingEvents: number;
   totalEvents: number;
 }
