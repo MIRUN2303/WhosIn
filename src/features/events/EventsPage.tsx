@@ -56,7 +56,7 @@ export const EventDetailPage: React.FC = () => {
       {/* Cover */}
       <div className="relative h-48 overflow-hidden rounded-b-3xl">
         <img src={event.coverImage} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0a1e] via-[#0f0a1e]/60 to-[#0f0a1e]/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080808] to-transparent" />
         <button
           onClick={() => navigate(-1)}
           className="absolute top-4 left-4 glass w-10 h-10 rounded-2xl flex items-center justify-center text-white text-lg z-10"
@@ -233,7 +233,7 @@ export const EventDetailPage: React.FC = () => {
 
                   {/* League Winner */}
                   {league.status === 'completed' && leagueWinners && (
-                    <div className="rounded-xl p-2.5 mb-3 text-center text-sm font-bold" style={{ background: 'rgba(170,235,0,0.1)', border: '1px solid rgba(170,235,0,0.25)', color: '#aaeb00' }}>
+                    <div className="rounded-xl p-2.5 mb-3 text-center text-sm font-bold" style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.25)', color: '#00ff41' }}>
                       🏆 Winners: {leagueWinners}
                     </div>
                   )}

@@ -17,12 +17,12 @@ export const Button: React.FC<ButtonProps> = ({
   variant = 'lime', size = 'md', icon, iconRight, loading, fullWidth,
   className, children, disabled, ...props
 }) => {
-  const base = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 select-none outline-none focus-visible:ring-2 focus-visible:ring-[#aaeb00] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080808] active:scale-95';
+  const base = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 select-none outline-none focus-visible:ring-2 focus-visible:ring-[#00ff41] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080808] active:scale-95';
 
   const variants = {
     lime: 'btn-lime text-black',
     amber: 'btn-amber text-black',
-    ghost: 'btn-ghost text-white/60 hover:text-[#aaeb00] hover:border-[#aaeb00]/40',
+    ghost: 'btn-ghost text-white/60 hover:text-[#00ff41] hover:border-[#00ff41]/40',
     glass: 'glass text-white/70 hover:text-white hover:border-white/20',
     danger: 'bg-red-600 text-white hover:bg-red-500',
     dark: 'bg-[#1c1c1c] border border-white/10 text-white hover:border-white/20',
@@ -65,7 +65,7 @@ export const Card: React.FC<CardProps> = ({
   children, className, onClick, interactive, glow = 'none', padding = 'md', variant = 'default'
 }) => {
   const glows = {
-    lime: 'hover:shadow-[0_0_30px_rgba(170,235,0,0.2)]',
+    lime: 'hover:shadow-[0_0_30px_rgba(0,255,65,0.2)]',
     amber: 'hover:shadow-[0_0_30px_rgba(249,115,22,0.25)]',
     gold: 'hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]',
     none: '',
@@ -103,12 +103,12 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md', online, 
   return (
     <div className={clsx('relative flex-shrink-0', className)}>
       <div className={clsx(sizes[size], 'rounded-full overflow-hidden flex items-center justify-center font-bold flex-shrink-0',
-        ring && 'ring-2 ring-[#aaeb00]/60 ring-offset-2 ring-offset-[#080808]',
+        ring && 'ring-2 ring-[#00ff41]/60 ring-offset-2 ring-offset-[#080808]',
         !src && 'text-black font-bold'
-      )} style={!src ? { background: 'linear-gradient(135deg, #aaeb00, #7ab800)' } : {}}>
+      )} style={!src ? { background: 'linear-gradient(135deg, #00ff41, #00aa1e)' } : {}}>
         {src ? <img src={src} alt={name} className="w-full h-full object-cover" /> : <span>{initials}</span>}
       </div>
-      {online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#aaeb00] rounded-full border-2 border-[#080808]" />}
+      {online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00ff41] rounded-full border-2 border-[#080808]" />}
     </div>
   );
 };
@@ -124,7 +124,7 @@ interface BadgeProps {
 
 export const Badge: React.FC<BadgeProps> = ({ children, variant = 'lime', size = 'md', dot, className }) => {
   const variants = {
-    lime: 'bg-[#aaeb00]/15 text-[#aaeb00] border border-[#aaeb00]/30',
+    lime: 'bg-[#00ff41]/15 text-[#00ff41] border border-[#00ff41]/30',
     amber: 'bg-orange-500/15 text-orange-300 border border-orange-500/30',
     gold: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
     green: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
@@ -173,7 +173,7 @@ interface ProgressBarProps {
   size?: 'sm' | 'md'; className?: string;
 }
 export const ProgressBar: React.FC<ProgressBarProps> = ({
-  value, max = 100, color = '#aaeb00', size = 'md', className
+  value, max = 100, color = '#00ff41', size = 'md', className
 }) => {
   const pct = Math.min(100, (value / max) * 100);
   return (
@@ -232,7 +232,7 @@ export const Chip: React.FC<ChipProps> = ({ label, active, onClick, className })
   <button onClick={onClick} className={clsx(
     'text-sm font-semibold px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap border',
     active
-      ? 'bg-[#aaeb00] text-black border-[#aaeb00] shadow-[0_0_15px_rgba(170,235,0,0.4)]'
+      ? 'bg-[#00ff41] text-black border-[#00ff41] shadow-[0_0_15px_rgba(0,255,65,0.4)]'
       : 'bg-transparent border-white/10 text-white/50 hover:text-white hover:border-white/20',
     className
   )}>{label}</button>

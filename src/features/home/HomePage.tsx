@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, differenceInSeconds, parseISO } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
-import { USERS, GROUPS, SPORT_CONFIG, LEADERBOARD, getUserById, getGroupById } from '../../data/mockData';
+import { USERS, GROUPS, SPORT_CONFIG, getGroupById } from '../../data/mockData';
 import { Avatar, Button, StatCard, SportOrb, SectionHeader } from '../../components/ui';
 import { FadeUp } from '../../components/motion';
 import { CreateEventSheet } from '../../components/events/CreateEventSheet';
@@ -34,7 +34,7 @@ const useCountdown = (targetDate: string, targetTime: string) => {
 const OPTS: { status: AttendanceStatus; label: string; emoji: string; color: string }[] = [
   { status: 'coming',     label: 'In',    emoji: '✅', color: '#22c55e' },
   { status: 'maybe',      label: 'Maybe', emoji: '🤔', color: '#f59e0b' },
-  { status: 'late',       label: 'Late',  emoji: '⏰', color: '#aaeb00' },
+  { status: 'late',       label: 'Late',  emoji: '⏰', color: '#00ff41' },
   { status: 'not_coming', label: 'Out',   emoji: '❌', color: '#ef4444' },
 ];
 
@@ -116,7 +116,7 @@ const GroupEventCard: React.FC<{
               <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.4)' }}>{group?.name}</span>
               {event.isRecurring && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: 'rgba(170,235,0,0.1)', border: '1px solid rgba(170,235,0,0.2)', color: '#aaeb00' }}>
+                  style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)', color: '#00ff41' }}>
                   🔄 {event.recurringPattern}
                 </span>
               )}
@@ -226,7 +226,6 @@ export const HomePage: React.FC = () => {
   if (!currentUser) return <div className="min-h-screen flex items-center justify-center"><p className="text-white/50">Loading...</p></div>;
   const myGroupEvents = getMyGroupsNextEvents();
   const [heroEntry, ...moreEntries] = myGroupEvents;
-  const recentWinners = LEADERBOARD.slice(0, 3);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? '🌅 Good morning' : hour < 17 ? '☀️ Good afternoon' : '🌙 Good evening';
@@ -245,8 +244,8 @@ export const HomePage: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-              style={{ background: 'rgba(170,235,0,0.1)', border: '1px solid rgba(170,235,0,0.2)', color: '#aaeb00' }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#aaeb00', boxShadow: '0 0 6px #aaeb00' }} />
+              style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)', color: '#00ff41' }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#00ff41', boxShadow: '0 0 6px #00ff41' }} />
               Lv.{currentUser.level}
             </div>
             <Avatar src={currentUser.avatar} name={currentUser.name} size="md" ring />
@@ -257,7 +256,7 @@ export const HomePage: React.FC = () => {
       {/* QUICK STATS */}
       <FadeUp delay={0.06}>
         <div className="grid grid-cols-4 gap-2">
-          <StatCard icon="🔥" label="Streak" value={currentUser.stats.currentStreak} color="#aaeb00" />
+          <StatCard icon="🔥" label="Streak" value={currentUser.stats.currentStreak} color="#00ff41" />
           <StatCard icon="🏆" label="Wins" value={currentUser.stats.wins} color="#f59e0b" />
           <StatCard icon="📅" label="Events" value={myGroupEvents.length} color="#22c55e" />
           <StatCard icon="📊" label="Win %" value={`${currentUser.stats.winRate}%`} color="#06b6d4" />
@@ -273,7 +272,7 @@ export const HomePage: React.FC = () => {
             <motion.button
               onClick={() => setShowCreate(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
-              style={{ background: 'rgba(170,235,0,0.1)', border: '1px solid rgba(170,235,0,0.25)', color: '#aaeb00' }}
+              style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.25)', color: '#00ff41' }}
               whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
             >
               + New Event
@@ -337,7 +336,7 @@ export const HomePage: React.FC = () => {
                   <span className="absolute top-2 left-2 text-xl">{group.logo}</span>
                   {nextEvent && (
                     <span className="absolute top-2 right-2 w-2 h-2 rounded-full pulse-lime"
-                      style={{ background: '#aaeb00' }} />
+                      style={{ background: '#00ff41' }} />
                   )}
                 </div>
                 <div className="p-3" style={{ background: '#111' }}>
@@ -357,46 +356,13 @@ export const HomePage: React.FC = () => {
             onClick={() => navigate('/groups')}
             className="flex-shrink-0 w-[160px] rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer"
             style={{ border: '1px dashed rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)', minHeight: 120 }}
-            whileHover={{ scale: 1.03, borderColor: 'rgba(170,235,0,0.3)' }}
+            whileHover={{ scale: 1.03, borderColor: 'rgba(0,255,65,0.3)' }}
             whileTap={{ scale: 0.97 }}
           >
             <span className="w-9 h-9 rounded-xl flex items-center justify-center text-xl"
-              style={{ background: 'rgba(170,235,0,0.1)', border: '1px solid rgba(170,235,0,0.2)' }}>+</span>
+              style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)' }}>+</span>
             <p className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.35)' }}>New Group</p>
           </motion.div>
-        </div>
-      </FadeUp>
-
-      {/* LEADERBOARD PREVIEW */}
-      <FadeUp delay={0.3}>
-        <SectionHeader
-          title="🏆 Top Ranked"
-          subtitle="All time"
-          action={<Button variant="ghost" size="sm" onClick={() => navigate('/leaderboard')}>Full board →</Button>}
-          className="mb-3"
-        />
-        <div className="rounded-3xl overflow-hidden" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.06)' }}>
-          {recentWinners.map((entry, i) => {
-            const user = getUserById(entry.userId);
-            if (!user) return null;
-            const medals = ['🥇', '🥈', '🥉'];
-            return (
-              <div key={entry.userId}
-                className="flex items-center gap-3 p-3.5 cursor-pointer"
-                style={{ borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
-                onClick={() => navigate('/leaderboard')}>
-                <span className="text-xl w-8 text-center">{medals[i]}</span>
-                <Avatar src={user.avatar} name={user.name} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white text-sm">{user.name}</p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                    {entry.wins}W · {entry.winRate}% WR · 🔥 {entry.streak}
-                  </p>
-                </div>
-                <p className="font-bold text-sm" style={{ color: '#aaeb00' }}>{entry.points.toLocaleString()}</p>
-              </div>
-            );
-          })}
         </div>
       </FadeUp>
 
@@ -418,12 +384,12 @@ export const HomePage: React.FC = () => {
                     transition={{ delay: i * 0.04 + 0.4, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     className="w-full rounded-t-lg min-h-[4px]"
                     style={{
-                      background: isToday ? '#aaeb00' : 'rgba(170,235,0,0.18)',
-                      boxShadow: isToday ? '0 0 8px rgba(170,235,0,0.5)' : 'none',
+                      background: isToday ? '#00ff41' : 'rgba(0,255,65,0.18)',
+                      boxShadow: isToday ? '0 0 8px rgba(0,255,65,0.5)' : 'none',
                     }}
                   />
                   <span className="text-[10px] font-medium"
-                    style={{ color: isToday ? '#aaeb00' : 'rgba(255,255,255,0.25)' }}>{day}</span>
+                    style={{ color: isToday ? '#00ff41' : 'rgba(255,255,255,0.25)' }}>{day}</span>
                 </div>
               );
             })}

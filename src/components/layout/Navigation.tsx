@@ -6,7 +6,6 @@ import { useAppStore } from '../../store/useAppStore';
 
 const NAV_ITEMS = [
   { path: '/home',        icon: '⌂',  label: 'Home'    },
-  { path: '/leaderboard', icon: '◉',  label: 'Ranks'   },
   { path: '/groups',      icon: '◎',  label: 'Groups'  },
   { path: '/profile',     icon: '◐',  label: 'Profile' },
 ];
@@ -37,27 +36,27 @@ export const BottomNav: React.FC = () => {
                   <motion.div
                     layoutId="nav-pill"
                     className="absolute inset-0 rounded-2xl"
-                    style={{ background: 'rgba(170,235,0,0.1)', border: '1px solid rgba(170,235,0,0.2)' }}
+                    style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)' }}
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
                 )}
                 <div className="relative">
                   <motion.span
                     className={clsx('text-xl leading-none block transition-all duration-200',
-                      isActive ? 'text-[#aaeb00]' : 'text-white/30')}
+                      isActive ? 'text-[#00ff41]' : 'text-white/30')}
                     animate={{ scale: isActive ? 1.1 : 1 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   >
                     {item.icon}
                   </motion.span>
                   {item.label === 'Home' && unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#aaeb00] rounded-full text-[8px] font-black text-black flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#00ff41] rounded-full text-[8px] font-black text-black flex items-center justify-center">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </div>
                 <span className={clsx('text-[10px] font-semibold transition-colors duration-200',
-                  isActive ? 'text-[#aaeb00]' : 'text-white/25')}>
+                  isActive ? 'text-[#00ff41]' : 'text-white/25')}>
                   {item.label}
                 </span>
               </NavLink>
@@ -78,8 +77,8 @@ export const FAB: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   return (
     <motion.button
       className="fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full text-black text-2xl font-black flex items-center justify-center focus:outline-none"
-      style={{ background: '#aaeb00', boxShadow: '0 6px 24px rgba(170,235,0,0.5)' }}
-      whileHover={{ scale: 1.1, boxShadow: '0 8px 32px rgba(170,235,0,0.7)' }}
+      style={{ background: '#00ff41', boxShadow: '0 6px 24px rgba(0,255,65,0.5)' }}
+      whileHover={{ scale: 1.1, boxShadow: '0 8px 32px rgba(0,255,65,0.7)' }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
     >+</motion.button>
@@ -102,7 +101,7 @@ export const AppHeader: React.FC<{
       <div>
         {title
           ? <h1 className="font-display font-bold text-white text-lg">{title}</h1>
-          : <span className="font-display font-black text-xl gradient-text">Machiverse</span>
+          : <span className="font-display font-black text-xl gradient-text">MachiVerse</span>
         }
         {subtitle && <p className="text-white/40 text-xs">{subtitle}</p>}
       </div>
@@ -112,7 +111,7 @@ export const AppHeader: React.FC<{
           style={{ background: '#111', border: '1px solid rgba(255,255,255,0.08)' }}>
           <span className="text-base">🔔</span>
           {notifCount > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-[#aaeb00] rounded-full" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-[#00ff41] rounded-full" />
           )}
         </NavLink>
       </div>

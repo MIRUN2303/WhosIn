@@ -4,7 +4,7 @@ export let CURRENT_USER_ID: string | null = 'u1';
 export const setCurrentUserId = (id: string | null) => { CURRENT_USER_ID = id; };
 
 export const SPORT_CONFIG = {
-  badminton:  { emoji: '🏸', label: 'Badminton',    color: '#aaeb00', bg: 'rgba(170,235,0,0.1)' },
+  badminton:  { emoji: '🏸', label: 'Badminton',    color: '#00ff41', bg: 'rgba(0,255,65,0.1)' },
   cricket:    { emoji: '🏏', label: 'Cricket',      color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
   football:   { emoji: '⚽', label: 'Football',     color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
   pickleball: { emoji: '🎾', label: 'Pickleball',   color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },

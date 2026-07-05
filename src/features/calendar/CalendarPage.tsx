@@ -8,7 +8,8 @@ import {
 } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
 import { SPORT_CONFIG } from '../../data/mockData';
-import { Card, SportOrb, Badge, Chip } from '../../components/ui';
+import { Card, SportOrb, Badge, Chip, Button } from '../../components/ui';
+import { CreateEventSheet } from '../../components/events/CreateEventSheet';
 import { FadeUp } from '../../components/motion';
 import { clsx } from 'clsx';
 
@@ -21,6 +22,7 @@ export const CalendarPage: React.FC = () => {
   const [view, setView] = useState<View>('Month');
   const [current, setCurrent] = useState(new Date());
   const [selected, setSelected] = useState<Date | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const getEventsForDate = (date: Date) =>
     events.filter(e => isSameDay(parseISO(e.date), date));
@@ -293,11 +295,14 @@ export const CalendarPage: React.FC = () => {
       </FadeUp>
 
       <FadeUp delay={0.05}>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {VIEWS.map(v => (
             <Chip key={v} label={v} active={view === v} onClick={() => setView(v)} />
           ))}
           <Chip label="Today" onClick={() => setCurrent(new Date())} />
+          <Button variant="lime" size="sm" className="ml-auto" onClick={() => setShowCreate(true)}>
+            + Schedule
+          </Button>
         </div>
       </FadeUp>
 
@@ -316,6 +321,12 @@ export const CalendarPage: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </FadeUp>
+
+      <CreateEventSheet
+        isOpen={showCreate}
+        onClose={() => setShowCreate(false)}
+        preselectedDate={selected ? format(selected, 'yyyy-MM-dd') : undefined}
+      />
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { Card, Avatar, Badge, Button, SectionHeader } from '../../components/ui'
 import { FadeUp, StaggerList, StaggerItem } from '../../components/motion';
 import { clsx } from 'clsx';
 import { useAppStore } from '../../store/useAppStore';
+import { CreateEventSheet } from '../../components/events/CreateEventSheet';
 import toast from 'react-hot-toast';
 
 const ROLE_CONFIG = {
@@ -173,8 +174,8 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
           const isToday = cell.day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
           return (
             <div key={i} className={clsx('text-center text-xs py-2 rounded-xl', cell.day === 0 ? 'invisible' : '')}
-              style={{ background: isToday ? 'rgba(170,235,0,0.15)' : 'transparent' }}>
-              <span className={clsx('font-semibold', isToday ? 'text-[#aaeb00]' : 'text-white/70')}>{cell.day}</span>
+              style={{ background: isToday ? 'rgba(0,255,65,0.15)' : 'transparent' }}>
+              <span className={clsx('font-semibold', isToday ? 'text-[#00ff41]' : 'text-white/70')}>{cell.day}</span>
               {cell.events.length > 0 && (
                 <div className="flex justify-center gap-0.5 mt-0.5">
                   {cell.events.slice(0, 3).map(e => {
@@ -255,7 +256,7 @@ const CreateGroupModal: React.FC<{ open: boolean; onClose: () => void }> = ({ op
         <div className="space-y-3">
           <div>
             <label className="text-white/50 text-xs font-semibold mb-1 block">Name *</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Weekend Crew" className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#aaeb00]/50" />
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Weekend Crew" className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#00ff41]/50" />
           </div>
           <div>
             <label className="text-white/50 text-xs font-semibold mb-1 block">Logo / Emoji</label>
@@ -269,17 +270,17 @@ const CreateGroupModal: React.FC<{ open: boolean; onClose: () => void }> = ({ op
           </div>
           <div>
             <label className="text-white/50 text-xs font-semibold mb-1 block">Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="What's this group about?" rows={2} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#aaeb00]/50 resize-none" />
+            <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="What's this group about?" rows={2} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#00ff41]/50 resize-none" />
           </div>
           <div className="flex items-center gap-3">
             <label className="text-white/50 text-xs font-semibold">Private group</label>
-            <button onClick={() => setIsPrivate(!isPrivate)} className={clsx('w-10 h-5 rounded-full transition-all', isPrivate ? 'bg-[#aaeb00]' : 'bg-white/20')}>
+            <button onClick={() => setIsPrivate(!isPrivate)} className={clsx('w-10 h-5 rounded-full transition-all', isPrivate ? 'bg-[#00ff41]' : 'bg-white/20')}>
               <div className={clsx('w-4 h-4 rounded-full bg-white transition-all', isPrivate ? 'translate-x-5' : 'translate-x-0.5')} />
             </button>
           </div>
           <div>
             <label className="text-white/50 text-xs font-semibold mb-1 block">Rules (one per line)</label>
-            <textarea value={rules} onChange={e => setRules(e.target.value)} placeholder="Be on time&#10;Respect others&#10;Have fun!" rows={3} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#aaeb00]/50 resize-none" />
+            <textarea value={rules} onChange={e => setRules(e.target.value)} placeholder="Be on time&#10;Respect others&#10;Have fun!" rows={3} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#00ff41]/50 resize-none" />
           </div>
           <motion.button onClick={handleSubmit} className="btn-lime w-full py-3 font-black text-sm" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             Create Group →
@@ -297,6 +298,7 @@ export const GroupDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tab, setTab] = useState('Members');
+  const [showCreate, setShowCreate] = useState(false);
 
   const group = GROUPS.find(g => g.id === id);
   if (!group) return <div className="min-h-screen flex items-center justify-center"><p className="text-white/50">Group not found</p></div>;
@@ -417,6 +419,9 @@ export const GroupDetailPage: React.FC = () => {
 
           {tab === 'Events' && (
             <motion.div key="events" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <Button variant="lime" fullWidth size="sm" onClick={() => setShowCreate(true)}>
+                ⚡ Create Live Event
+              </Button>
               <div>
                 <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <span>⚡ Upcoming ({upcomingEvents.length})</span>
@@ -488,7 +493,7 @@ export const GroupDetailPage: React.FC = () => {
                                     <span className="text-white/30 text-[10px]">🏸 {formatLabel}</span>
                                   </div>
                                   {league.status === 'completed' && leagueWinners && (
-                                    <div className="rounded-lg p-1.5 mb-2 text-xs font-bold text-center" style={{ background: 'rgba(170,235,0,0.1)', border: '1px solid rgba(170,235,0,0.2)', color: '#aaeb00' }}>
+                                    <div className="rounded-lg p-1.5 mb-2 text-xs font-bold text-center" style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)', color: '#00ff41' }}>
                                       🏆 {leagueWinners}
                                     </div>
                                   )}
@@ -566,6 +571,8 @@ export const GroupDetailPage: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
+
+      <CreateEventSheet isOpen={showCreate} onClose={() => setShowCreate(false)} preselectedGroupId={group.id} />
     </div>
   );
 };
@@ -589,7 +596,7 @@ const InviteByCodeForm: React.FC<{ groupId: string }> = ({ groupId }) => {
         value={code}
         onChange={e => setCode(e.target.value.toUpperCase())}
         placeholder="Enter profile code (e.g. MIRUN001)"
-        className="flex-1 glass rounded-2xl px-4 py-2.5 text-white text-sm outline-none border border-white/10 focus:border-[#aaeb00]/50"
+        className="flex-1 glass rounded-2xl px-4 py-2.5 text-white text-sm outline-none border border-white/10 focus:border-[#00ff41]/50"
         onKeyDown={e => e.key === 'Enter' && handleInvite()}
       />
       <Button variant="lime" size="sm" onClick={handleInvite}>Invite</Button>
@@ -624,7 +631,7 @@ export const GroupsPage: React.FC = () => {
             <p className="text-white/50 text-sm">Your weekend communities</p>
           </div>
           <div className="text-right">
-            <p className="font-bold text-sm" style={{ color: '#aaeb00' }}>Overall WR: {overall.overallWinRate}%</p>
+            <p className="font-bold text-sm" style={{ color: '#00ff41' }}>Overall WR: {overall.overallWinRate}%</p>
             <p className="text-white/40 text-xs">{overall.totalWins}W · {overall.totalLosses}L</p>
           </div>
         </div>

@@ -9,10 +9,12 @@ interface CreateEventSheetProps {
   onClose: () => void;
   /** Pre-select a group (when opened from within a group) */
   preselectedGroupId?: string;
+  /** Pre-select a date (when opened from calendar) */
+  preselectedDate?: string;
 }
 
 export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
-  isOpen, onClose, preselectedGroupId,
+  isOpen, onClose, preselectedGroupId, preselectedDate,
 }) => {
   const navigate = useNavigate();
   const createEvent = useAppStore(s => s.createEvent);
@@ -25,7 +27,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
 
   const [groupId, setGroupId] = useState(preselectedGroupId || myGroups[0]?.id || '');
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(preselectedDate || new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('19:00');
   const [endTime, setEndTime] = useState('22:00');
   const [venue, setVenue] = useState('');
@@ -110,16 +112,16 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                     <div className="flex items-center gap-1.5">
                       <span className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-all"
                         style={step === s || (i === 0 && step === 'schedule')
-                          ? { background: '#aaeb00', color: '#000' }
+                          ? { background: '#00ff41', color: '#000' }
                           : { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}>
                         {i + 1}
                       </span>
                       <span className="text-xs font-semibold capitalize"
-                        style={{ color: step === s ? '#aaeb00' : 'rgba(255,255,255,0.35)' }}>
+                        style={{ color: step === s ? '#00ff41' : 'rgba(255,255,255,0.35)' }}>
                         {s}
                       </span>
                     </div>
-                    {i === 0 && <div className="flex-1 h-px" style={{ background: step === 'schedule' ? 'rgba(170,235,0,0.4)' : 'rgba(255,255,255,0.06)' }} />}
+                    {i === 0 && <div className="flex-1 h-px" style={{ background: step === 'schedule' ? 'rgba(0,255,65,0.4)' : 'rgba(255,255,255,0.06)' }} />}
                   </React.Fragment>
                 ))}
               </div>
@@ -142,7 +144,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                                 onClick={() => setGroupId(g.id)}
                                 className="flex items-center gap-2 px-3 py-2.5 rounded-2xl whitespace-nowrap text-sm font-semibold transition-all border flex-shrink-0"
                                 style={groupId === g.id
-                                  ? { background: 'rgba(170,235,0,0.1)', borderColor: '#aaeb00', color: '#aaeb00' }
+                                  ? { background: 'rgba(0,255,65,0.1)', borderColor: '#00ff41', color: '#00ff41' }
                                   : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
                                 }
                                 whileTap={{ scale: 0.97 }}
@@ -165,7 +167,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none transition-all"
                           style={{
                             background: '#161616',
-                            border: title ? '1px solid rgba(170,235,0,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                            border: title ? '1px solid rgba(0,255,65,0.4)' : '1px solid rgba(255,255,255,0.08)',
                           }}
                           autoFocus
                         />
@@ -180,7 +182,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                               onClick={() => setMaxSlots(n)}
                               className="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all"
                               style={maxSlots === n
-                                ? { background: 'rgba(170,235,0,0.1)', borderColor: '#aaeb00', color: '#aaeb00' }
+                                ? { background: 'rgba(0,255,65,0.1)', borderColor: '#00ff41', color: '#00ff41' }
                                 : { background: '#161616', borderColor: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }
                               }
                               whileTap={{ scale: 0.95 }}>
@@ -221,7 +223,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
 
                       {/* Summary pill */}
                       <div className="flex items-center gap-2 p-3 rounded-2xl"
-                        style={{ background: 'rgba(170,235,0,0.06)', border: '1px solid rgba(170,235,0,0.2)' }}>
+                        style={{ background: 'rgba(0,255,65,0.06)', border: '1px solid rgba(0,255,65,0.2)' }}>
                         <span className="text-2xl">🏸</span>
                         <div>
                           <p className="font-bold text-white text-sm">{title}</p>
@@ -240,7 +242,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none appearance-none"
                           style={{
                             background: '#161616',
-                            border: date ? '1px solid rgba(170,235,0,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                            border: date ? '1px solid rgba(0,255,65,0.4)' : '1px solid rgba(255,255,255,0.08)',
                             colorScheme: 'dark',
                           }}
                         />
@@ -281,7 +283,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none"
                           style={{
                             background: '#161616',
-                            border: venue ? '1px solid rgba(170,235,0,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                            border: venue ? '1px solid rgba(0,255,65,0.4)' : '1px solid rgba(255,255,255,0.08)',
                           }}
                         />
                       </div>
@@ -296,7 +298,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         <motion.button
                           onClick={() => setIsRecurring(!isRecurring)}
                           className="w-12 h-7 rounded-full relative transition-colors"
-                          style={{ background: isRecurring ? '#aaeb00' : 'rgba(255,255,255,0.12)' }}
+                          style={{ background: isRecurring ? '#00ff41' : 'rgba(255,255,255,0.12)' }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <motion.span
