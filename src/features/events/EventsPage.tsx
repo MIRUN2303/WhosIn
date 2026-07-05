@@ -54,16 +54,16 @@ export const EventDetailPage: React.FC = () => {
   return (
     <div className="pb-32 max-w-lg mx-auto">
       {/* Cover */}
-      <div className="relative h-56 overflow-hidden">
+      <div className="relative h-48 overflow-hidden rounded-b-3xl">
         <img src={event.coverImage} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0a1e] via-[#0f0a1e]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0a1e] via-[#0f0a1e]/60 to-[#0f0a1e]/20" />
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 glass w-10 h-10 rounded-2xl flex items-center justify-center text-white text-lg"
+          className="absolute top-4 left-4 glass w-10 h-10 rounded-2xl flex items-center justify-center text-white text-lg z-10"
         >
           ←
         </button>
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-4 right-4 flex gap-2 z-10">
           {event.status === 'completed'
             ? <Badge variant="glass">✓ Completed</Badge>
             : <Badge variant="green" dot>Upcoming</Badge>
@@ -71,7 +71,7 @@ export const EventDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-4 -mt-8 space-y-4">
+      <div className="px-4 mt-4 space-y-4">
         {/* Header */}
         <FadeUp>
           <Card padding="md">
@@ -192,46 +192,77 @@ export const EventDetailPage: React.FC = () => {
         {event.leagues.length > 0 && (
           <FadeUp delay={0.15}>
             <SectionHeader title="🏟️ Leagues & Scores" className="mb-3" />
-            {event.leagues.map(league => (
-              <Card key={league.id} padding="md" className="mb-3">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-display font-bold text-white">{league.name}</p>
-                  <Badge variant={league.status === 'completed' ? 'green' : league.status === 'ongoing' ? 'blue' : 'glass'}>
-                    {league.status}
-                  </Badge>
-                </div>
-                {/* Teams */}
-                <div className="flex gap-2 mb-3">
-                  {league.teams.map(team => (
-                    <div
-                      key={team.id}
-                      className="flex-1 rounded-xl p-2 text-center text-xs font-semibold text-white"
-                      style={{ background: `${team.color}25`, border: `1px solid ${team.color}50` }}
-                    >
-                      {team.name}
-                      <p className="text-white/50 font-normal mt-0.5">{team.playerIds.length} players</p>
-                    </div>
-                  ))}
-                </div>
-                {/* Matches */}
-                {league.matches.map(match => {
-                  const t1 = league.teams.find(t => t.id === match.team1Id);
-                  const t2 = league.teams.find(t => t.id === match.team2Id);
-                  const isWin1 = match.winnerId === t1?.id;
-                  const isWin2 = match.winnerId === t2?.id;
-                  return (
-                    <div key={match.id} className="glass rounded-2xl p-3">
-                      <div className="flex items-center gap-2">
-                        <span className={`flex-1 text-sm font-bold text-right ${isWin1 ? 'text-green-400' : 'text-white/70'}`}>{t1?.name}</span>
-                        <span className="font-display font-black text-white text-xl px-2">{match.score1}—{match.score2}</span>
-                        <span className={`flex-1 text-sm font-bold ${isWin2 ? 'text-green-400' : 'text-white/70'}`}>{t2?.name}</span>
+            {event.leagues.map(league => {
+              const participantCount = new Set(league.players).size;
+              const team1 = league.teams[0];
+              const team2 = league.teams[1];
+              const format1 = team1?.playerIds.length === 1 ? 'Single' : 'Doubles';
+              const format2 = team2?.playerIds.length === 1 ? 'Single' : 'Doubles';
+              const formatLabel = format1 === format2 ? format1 : `${format1} vs ${format2}`;
+
+              const getPlayerNames = (playerIds: string[]) =>
+                playerIds.map(pid => getUserById(pid)?.name.split(' ')[0] || '?').join(' & ');
+
+              const leagueWinners = league.matches.length > 0
+                ? (() => {
+                    const counts: Record<string, number> = {};
+                    for (const m of league.matches) {
+                      if (m.winnerId) counts[m.winnerId] = (counts[m.winnerId] || 0) + 1;
+                    }
+                    const bestTeamId = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0];
+                    const bestTeam = league.teams.find(t => t.id === bestTeamId);
+                    return bestTeam ? getPlayerNames(bestTeam.playerIds) : null;
+                  })()
+                : null;
+
+              return (
+                <Card key={league.id} padding="md" className="mb-3">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-display font-bold text-white">{league.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-white/40 text-xs">👤 {participantCount} participants</span>
+                        <span className="text-white/40 text-xs">·</span>
+                        <span className="text-white/40 text-xs">🏸 {formatLabel}</span>
                       </div>
-                      {match.notes && <p className="text-center text-white/40 text-xs mt-1">{match.notes}</p>}
                     </div>
-                  );
-                })}
-              </Card>
-            ))}
+                    <Badge variant={league.status === 'completed' ? 'green' : league.status === 'ongoing' ? 'blue' : 'glass'}>
+                      {league.status}
+                    </Badge>
+                  </div>
+
+                  {/* League Winner */}
+                  {league.status === 'completed' && leagueWinners && (
+                    <div className="rounded-xl p-2.5 mb-3 text-center text-sm font-bold" style={{ background: 'rgba(170,235,0,0.1)', border: '1px solid rgba(170,235,0,0.25)', color: '#aaeb00' }}>
+                      🏆 Winners: {leagueWinners}
+                    </div>
+                  )}
+
+                  {/* Matches */}
+                  <div className="space-y-2">
+                    {league.matches.map(match => {
+                      const t1 = league.teams.find(t => t.id === match.team1Id);
+                      const t2 = league.teams.find(t => t.id === match.team2Id);
+                      const p1 = t1 ? getPlayerNames(t1.playerIds) : '?';
+                      const p2 = t2 ? getPlayerNames(t2.playerIds) : '?';
+                      const isWin1 = match.winnerId === t1?.id;
+                      const isWin2 = match.winnerId === t2?.id;
+                      return (
+                        <div key={match.id} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                          <div className="flex items-center gap-2">
+                            <span className={`flex-1 text-sm font-bold text-right ${isWin1 ? 'text-green-400' : 'text-white/70'}`}>{p1}</span>
+                            <span className="font-display font-black text-white text-xl px-2">{match.score1}—{match.score2}</span>
+                            <span className={`flex-1 text-sm font-bold ${isWin2 ? 'text-green-400' : 'text-white/70'}`}>{p2}</span>
+                          </div>
+                          {isWin1 && <p className="text-center text-green-400/60 text-xs mt-1">🏆 {p1} win</p>}
+                          {isWin2 && <p className="text-center text-green-400/60 text-xs mt-1">🏆 {p2} win</p>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              );
+            })}
           </FadeUp>
         )}
 

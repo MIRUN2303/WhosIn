@@ -2,16 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
-import { SPORT_CONFIG } from '../../data/mockData';
 import { Button } from '../ui';
-
-// =============================================
-// SPORT SELECTOR
-// =============================================
-const SPORT_OPTIONS = [
-  'badminton', 'cricket', 'football', 'basketball', 'volleyball',
-  'cycling', 'trekking', 'running', 'swimming', 'cafe', 'movie', 'gaming', 'custom',
-] as const;
 
 interface CreateEventSheetProps {
   isOpen: boolean;
@@ -34,7 +25,6 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
 
   const [groupId, setGroupId] = useState(preselectedGroupId || myGroups[0]?.id || '');
   const [title, setTitle] = useState('');
-  const [sport, setSport] = useState('badminton');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('19:00');
   const [endTime, setEndTime] = useState('22:00');
@@ -46,7 +36,6 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
   const [loading, setLoading] = useState(false);
 
   const selectedGroup = storeGroups.find(g => g.id === groupId);
-  const sportCfg = SPORT_CONFIG[sport as keyof typeof SPORT_CONFIG];
 
   const canProceed = title.trim().length > 0 && groupId;
   const canSubmit = canProceed && date && venue.trim().length > 0;
@@ -55,7 +44,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
     if (!canSubmit) return;
     setLoading(true);
     await new Promise(r => setTimeout(r, 400));
-    const newId = createEvent({ groupId, title, sport, date, time, endTime, venue, description, maxSlots, isRecurring });
+    const newId = createEvent({ groupId, title, sport: 'badminton', date, time, endTime, venue, description, maxSlots, isRecurring });
     setLoading(false);
     onClose();
     if (newId) navigate(`/events/${newId}`);
@@ -182,57 +171,6 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         />
                       </div>
 
-                      {/* Sport */}
-                      <div>
-                        <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>SPORT / ACTIVITY *</label>
-                        <div className="grid grid-cols-4 gap-2">
-                          {SPORT_OPTIONS.slice(0, 8).map(s => {
-                            const cfg = SPORT_CONFIG[s];
-                            const isActive = sport === s;
-                            return (
-                              <motion.button key={s}
-                                onClick={() => setSport(s as any)}
-                                className="flex flex-col items-center gap-1 p-2.5 rounded-2xl border text-center transition-all"
-                                style={isActive
-                                  ? { background: `${cfg.color}18`, borderColor: cfg.color, boxShadow: `0 0 12px ${cfg.color}30` }
-                                  : { background: '#161616', borderColor: 'rgba(255,255,255,0.06)' }
-                                }
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                <span className="text-xl">{cfg.emoji}</span>
-                                <span className="text-[10px] font-semibold leading-tight"
-                                  style={{ color: isActive ? cfg.color : 'rgba(255,255,255,0.4)' }}>
-                                  {cfg.label.split(' ')[0]}
-                                </span>
-                              </motion.button>
-                            );
-                          })}
-                        </div>
-                        <div className="grid grid-cols-4 gap-2 mt-2">
-                          {SPORT_OPTIONS.slice(8).map(s => {
-                            const cfg = SPORT_CONFIG[s];
-                            const isActive = sport === s;
-                            return (
-                              <motion.button key={s}
-                                onClick={() => setSport(s as any)}
-                                className="flex flex-col items-center gap-1 p-2.5 rounded-2xl border text-center transition-all"
-                                style={isActive
-                                  ? { background: `${cfg.color}18`, borderColor: cfg.color }
-                                  : { background: '#161616', borderColor: 'rgba(255,255,255,0.06)' }
-                                }
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                <span className="text-xl">{cfg.emoji}</span>
-                                <span className="text-[10px] font-semibold leading-tight"
-                                  style={{ color: isActive ? cfg.color : 'rgba(255,255,255,0.4)' }}>
-                                  {cfg.label.split(' ')[0]}
-                                </span>
-                              </motion.button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
                       {/* Max slots */}
                       <div>
                         <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>MAX PLAYERS</label>
@@ -284,10 +222,10 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                       {/* Summary pill */}
                       <div className="flex items-center gap-2 p-3 rounded-2xl"
                         style={{ background: 'rgba(170,235,0,0.06)', border: '1px solid rgba(170,235,0,0.2)' }}>
-                        <span className="text-2xl">{sportCfg.emoji}</span>
+                        <span className="text-2xl">🏸</span>
                         <div>
                           <p className="font-bold text-white text-sm">{title}</p>
-                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{selectedGroup?.name} · {sportCfg.label} · {maxSlots} max</p>
+                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{selectedGroup?.name} · Badminton · {maxSlots} max</p>
                         </div>
                       </div>
 

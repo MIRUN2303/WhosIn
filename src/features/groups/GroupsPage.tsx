@@ -460,27 +460,54 @@ export const GroupDetailPage: React.FC = () => {
                           <Badge variant="glass" size="sm">✓ Done</Badge>
                         </div>
                         {event.leagues.length > 0 && (
-                          <div className="space-y-2">
-                            {event.leagues.map(league => (
-                              <div key={league.id}>
-                                <p className="text-xs font-semibold text-white/50 mb-1">{league.name}</p>
-                                {league.matches.map(match => {
-                                  const t1 = league.teams.find(t => t.id === match.team1Id);
-                                  const t2 = league.teams.find(t => t.id === match.team2Id);
-                                  return (
-                                    <div key={match.id} className="flex items-center gap-2 rounded-xl p-2 mb-1" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                                      <span className={clsx('flex-1 text-xs font-bold text-right', match.winnerId === match.team1Id ? 'text-green-400' : 'text-white/50')}>
-                                        {t1?.name}
-                                      </span>
-                                      <span className="font-bold text-white text-sm">{match.score1}–{match.score2}</span>
-                                      <span className={clsx('flex-1 text-xs font-bold', match.winnerId === match.team2Id ? 'text-green-400' : 'text-white/50')}>
-                                        {t2?.name}
-                                      </span>
+                          <div className="space-y-3">
+                            {event.leagues.map(league => {
+                              const team1 = league.teams[0];
+                              const team2 = league.teams[1];
+                              const format1 = team1?.playerIds.length === 1 ? 'Single' : 'Doubles';
+                              const format2 = team2?.playerIds.length === 1 ? 'Single' : 'Doubles';
+                              const formatLabel = format1 === format2 ? format1 : `${format1} vs ${format2}`;
+                              const getPlayerNames = (playerIds: string[]) =>
+                                playerIds.map(pid => getUserById(pid)?.name.split(' ')[0] || '?').join(' & ');
+                              const leagueWinners = league.matches.length > 0
+                                ? (() => {
+                                    const counts: Record<string, number> = {};
+                                    for (const m of league.matches) {
+                                      if (m.winnerId) counts[m.winnerId] = (counts[m.winnerId] || 0) + 1;
+                                    }
+                                    const bestId = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0];
+                                    const best = league.teams.find(t => t.id === bestId);
+                                    return best ? getPlayerNames(best.playerIds) : null;
+                                  })()
+                                : null;
+                              return (
+                                <div key={league.id}>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <p className="text-xs font-semibold text-white/50">{league.name}</p>
+                                    <span className="text-white/30 text-[10px]">👤 {new Set(league.players).size}</span>
+                                    <span className="text-white/30 text-[10px]">🏸 {formatLabel}</span>
+                                  </div>
+                                  {league.status === 'completed' && leagueWinners && (
+                                    <div className="rounded-lg p-1.5 mb-2 text-xs font-bold text-center" style={{ background: 'rgba(170,235,0,0.1)', border: '1px solid rgba(170,235,0,0.2)', color: '#aaeb00' }}>
+                                      🏆 {leagueWinners}
                                     </div>
-                                  );
-                                })}
-                              </div>
-                            ))}
+                                  )}
+                                  {league.matches.map(match => {
+                                    const t1 = league.teams.find(t => t.id === match.team1Id);
+                                    const t2 = league.teams.find(t => t.id === match.team2Id);
+                                    const p1 = t1 ? getPlayerNames(t1.playerIds) : '?';
+                                    const p2 = t2 ? getPlayerNames(t2.playerIds) : '?';
+                                    return (
+                                      <div key={match.id} className="flex items-center gap-2 rounded-xl p-2 mb-1" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                                        <span className={clsx('flex-1 text-xs font-bold text-right', match.winnerId === match.team1Id ? 'text-green-400' : 'text-white/50')}>{p1}</span>
+                                        <span className="font-bold text-white text-sm">{match.score1}–{match.score2}</span>
+                                        <span className={clsx('flex-1 text-xs font-bold', match.winnerId === match.team2Id ? 'text-green-400' : 'text-white/50')}>{p2}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </Card>
