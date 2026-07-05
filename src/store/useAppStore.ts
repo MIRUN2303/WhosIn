@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AttendanceStatus, Notification, Event, Group, Story, Friendship } from '../data/types';
+import type { AttendanceStatus, Notification, Event, Group, Story, Friendship, League } from '../data/types';
 import { EVENTS, NOTIFICATIONS, GROUPS, USERS, setCurrentUserId, getUserById, getUserByEmail, getUserByPhone, getUserByProfileCode, generateId } from '../data/mockData';
 import toast from 'react-hot-toast';
 
@@ -307,7 +307,8 @@ export const useAppStore = create<AppState>()(
           teams: [],
           matches: [],
           status: 'pending' as const,
-        };
+          format: input.format,
+        } as League;
         set(state => ({
           events: state.events.map(e =>
             e.id === input.eventId ? { ...e, leagues: [...e.leagues, league] } : e

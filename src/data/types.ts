@@ -128,6 +128,7 @@ export interface AttendanceRecord {
 export interface League {
   id: string;
   name: string;
+  format?: 'single' | 'doubles';
   players: string[];
   teams: Team[];
   matches: Match[];

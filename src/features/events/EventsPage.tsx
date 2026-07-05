@@ -281,7 +281,7 @@ export const EventDetailPage: React.FC = () => {
               const getPlayerNames = (playerIds: string[]) =>
                 playerIds.map(pid => getUserById(pid)?.name.split(' ')[0] || '?').join(' & ');
 
-              const formatLabel = leagueFormat === 'singles' ? 'Singles' : 'Doubles';
+              const formatLabel = league.format === 'single' ? 'Singles' : league.format === 'doubles' ? 'Doubles' : (league.teams[0]?.playerIds.length === 1 ? 'Singles' : 'Doubles');
 
               const leagueWinners = league.matches.length > 0
                 ? (() => {
@@ -296,7 +296,7 @@ export const EventDetailPage: React.FC = () => {
                 : null;
 
               const isFormOpen = matchForm?.leagueId === league.id;
-              const maxPerSide = leagueFormat === 'singles' ? 1 : 2;
+              const maxPerSide = league.format === 'single' ? 1 : league.format === 'doubles' ? 2 : (league.teams[0]?.playerIds.length || 1);
 
               return (
                 <Card key={league.id} padding="md" className="mb-3">
