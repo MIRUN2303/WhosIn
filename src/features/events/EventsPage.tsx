@@ -443,7 +443,10 @@ export const EventDetailPage: React.FC = () => {
                       const isEditing = editingScore?.matchId === match.id;
                       const isLocked = event.status === 'completed';
                       return (
-                        <div key={match.id} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                        <div key={match.id} className="rounded-xl p-3" style={{
+                          background: match.isFinal ? 'rgba(255,215,0,0.06)' : 'rgba(255,255,255,0.03)',
+                          border: match.isFinal ? '1px solid rgba(255,215,0,0.3)' : 'none',
+                        }}>
                           {(match.name || match.isFinal) && (
                             <div className="flex items-center justify-center gap-1.5 mb-2">
                               {match.isFinal && <span className="text-[11px]">🏆</span>}
