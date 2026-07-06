@@ -347,7 +347,7 @@ export const useAppStore = create<AppState>()(
 
       completeEvent: (eventId) => {
         const event = get().events.find(e => e.id === eventId);
-        if (!event || event.status !== 'live') return;
+        if (!event || (event.status !== 'live' && event.status !== 'paused')) return;
 
         const teamWins: Record<string, { wins: number; matches: number }> = {};
         const playerWins: Record<string, { wins: number; matches: number }> = {};
@@ -397,7 +397,7 @@ export const useAppStore = create<AppState>()(
 
         set(s => ({
           events: s.events.map(e =>
-            e.id === eventId && e.status === 'live'
+            e.id === eventId && (e.status === 'live' || e.status === 'paused')
               ? { ...e, status: 'completed' as const, rankings, mvps }
               : e
           ),

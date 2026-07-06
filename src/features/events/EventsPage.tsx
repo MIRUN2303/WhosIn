@@ -102,6 +102,8 @@ export const EventDetailPage: React.FC = () => {
         <div className="absolute top-4 right-4 flex gap-2 z-10">
           {event.status === 'live'
             ? <Badge variant="lime" dot>🔴 Live</Badge>
+            : event.status === 'paused'
+            ? <Badge variant="amber" dot>⏸ Paused</Badge>
             : event.status === 'completed'
             ? <Badge variant="glass">✓ History</Badge>
             : <Badge variant="green" dot>Upcoming</Badge>
@@ -678,7 +680,7 @@ export const EventsPage: React.FC = () => {
   const navigate = useNavigate();
   const events = useAppStore(s => s.events);
   const currentUserId = useAppStore(s => s.currentUserId);
-  const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('upcoming');
+  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [showCreate, setShowCreate] = useState(false);
 
   const user = currentUserId ? getUserById(currentUserId) : null;
@@ -686,7 +688,7 @@ export const EventsPage: React.FC = () => {
 
   const filtered = events
     .filter(e => myGroupIds.includes(e.groupId))
-    .filter(e => filter === 'all' || e.status === filter)
+    .filter(e => filter === 'all' || (filter === 'active' ? (e.status === 'upcoming' || e.status === 'live' || e.status === 'paused') : e.status === filter))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   return (
@@ -710,7 +712,7 @@ export const EventsPage: React.FC = () => {
 
       <FadeUp delay={0.05}>
         <div className="flex gap-2 overflow-x-auto scrollbar-hidden pb-1">
-          {(['upcoming', 'all', 'completed'] as const).map(f => (
+          {(['active', 'all', 'completed'] as const).map(f => (
             <Chip key={f} label={f.charAt(0).toUpperCase() + f.slice(1)} active={filter === f} onClick={() => setFilter(f)} />
           ))}
         </div>
