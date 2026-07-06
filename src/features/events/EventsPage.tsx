@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
-import { SPORT_CONFIG, getUserById, getGroupById } from '../../data/mockData';
+import { SPORT_CONFIG, getUserById } from '../../data/mockData';
 import { Card, Avatar, Badge, Button, SportOrb, SectionHeader, Chip } from '../../components/ui';
 import { StaggerList, StaggerItem, FadeUp } from '../../components/motion';
 import { ImageLightbox } from '../../components/media/ImageLightbox';
@@ -811,11 +811,13 @@ export const EventsPage: React.FC = () => {
   const navigate = useNavigate();
   const events = useAppStore(s => s.events);
   const currentUserId = useAppStore(s => s.currentUserId);
+  const groups = useAppStore(s => s.groups);
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [showCreate, setShowCreate] = useState(false);
 
-  const user = currentUserId ? getUserById(currentUserId) : null;
-  const myGroupIds = user ? [...user.createdGroups, ...user.joinedGroups] : [];
+  const myGroupIds = currentUserId
+    ? groups.filter(g => g.members.some(m => m.userId === currentUserId)).map(g => g.id)
+    : [];
 
   const filtered = events
     .filter(e => myGroupIds.includes(e.groupId))
@@ -864,7 +866,7 @@ export const EventsPage: React.FC = () => {
                       {event.status === 'upcoming' ? '⚡ Upcoming' : '✓ Done'}
                     </Badge>
                     {event.isRecurring && <Badge variant="glass">🔁</Badge>}
-                    {(() => { const g = getGroupById(event.groupId); return g ? <Badge variant="glass">{g.logo} {g.name}</Badge> : null; })()}
+                    {(() => { const g = groups.find(gr => gr.id === event.groupId); return g ? <Badge variant="glass">{g.logo} {g.name}</Badge> : null; })()}
                   </div>
                   <div className="absolute top-3 right-3 glass rounded-xl px-2 py-1 text-xs text-white">
                     {event.weather.icon} {event.weather.temp}°
@@ -873,6 +875,9 @@ export const EventsPage: React.FC = () => {
                 <div className="p-4 flex items-start gap-3">
                   <SportOrb emoji={cfg.emoji} color={cfg.color} bg={cfg.bg} size="sm" />
                   <div className="flex-1 min-w-0">
+                    <p className="text-white/40 text-xs font-medium mb-0.5">
+                      {(() => { const g = groups.find(gr => gr.id === event.groupId); return g ? `${g.logo} ${g.name}` : ''; })()}
+                    </p>
                     <p className="font-display font-bold text-white truncate">{event.title}</p>
                     <p className="text-white/50 text-xs mt-0.5">
                       {format(parseISO(event.date), 'EEE, MMM d')} · {event.time}

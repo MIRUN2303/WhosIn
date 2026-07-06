@@ -227,7 +227,7 @@ export const HomePage: React.FC = () => {
   const currentUser = USERS.find(u => u.id === currentUserId);
   if (!currentUser) return <div className="min-h-screen flex items-center justify-center"><p className="text-white/50">Loading...</p></div>;
   const myGroupEvents = getMyGroupsNextEvents();
-  const [heroEntry, ...moreEntries] = myGroupEvents;
+  const heroEntry = myGroupEvents[0];
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? '🌅 Good morning' : hour < 17 ? '☀️ Good afternoon' : '🌙 Good evening';
@@ -295,21 +295,10 @@ export const HomePage: React.FC = () => {
         </FadeUp>
       ) : (
         <div className="space-y-3">
-          {/* HERO: first/soonest event across all groups */}
+          {/* HERO: closest upcoming or live event */}
           {heroEntry && (
             <FadeUp delay={0.12}>
               <GroupEventCard event={heroEntry.event} groupId={heroEntry.groupId} isHero />
-            </FadeUp>
-          )}
-
-          {/* Remaining group events — compact */}
-          {moreEntries.length > 0 && (
-            <FadeUp delay={0.18}>
-              <div className="space-y-2">
-                {moreEntries.map(({ event, groupId }) => (
-                  <GroupEventCard key={event.id} event={event} groupId={groupId} isHero={false} />
-                ))}
-              </div>
             </FadeUp>
           )}
         </div>
