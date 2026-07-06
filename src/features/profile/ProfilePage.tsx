@@ -19,8 +19,17 @@ export const ProfilePage: React.FC = () => {
   const [tab, setTab] = useState('Stats');
   const currentUserId = useAppStore(s => s.currentUserId);
   const logout = useAppStore(s => s.logout);
+  const userProfiles = useAppStore(s => s.userProfiles);
+  const updateProfile = useAppStore(s => s.updateProfile);
   const user = USERS.find(u => u.id === currentUserId);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editBio, setEditBio] = useState('');
   if (!user) return null;
+
+  const profile = userProfiles[currentUserId || ''];
+  const displayName = profile?.name || user.name;
+  const displayBio = profile?.bio !== undefined ? profile.bio : (user.bio || '');
   const { stats } = user;
 
   const createdGroups = GROUPS.filter(g => user.createdGroups.includes(g.id));
@@ -69,13 +78,53 @@ export const ProfilePage: React.FC = () => {
         {/* Name & info */}
         <FadeUp>
           <div className="flex items-start justify-between">
-            <div>
-              <h1 className="font-display font-black text-2xl text-white">{user.name}</h1>
+            <div className="flex-1">
+              {editing ? (
+                <div className="space-y-2">
+                  <input value={editName} onChange={e => setEditName(e.target.value.slice(0, 12))}
+                    maxLength={12}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-display font-black text-2xl outline-none focus:border-[#00ff41]"
+                  />
+                  <p className="text-[10px] text-white/30">{editName.length}/12</p>
+                </div>
+              ) : (
+                <h1 className="font-display font-black text-2xl text-white">{displayName}</h1>
+              )}
               <p className="text-white/50 text-sm">@{user.username}</p>
-              {user.bio && <p className="text-white/70 text-sm mt-1 max-w-xs">{user.bio}</p>}
+              {editing ? (
+                <div className="space-y-1 mt-1">
+                  <textarea value={editBio} onChange={e => {
+                    const words = e.target.value.split(/\s+/).filter(Boolean);
+                    if (words.length <= 70) setEditBio(e.target.value);
+                  }}
+                    rows={3}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-[#00ff41] resize-none"
+                  />
+                  <p className="text-[10px] text-white/30">{editBio.split(/\s+/).filter(Boolean).length}/70 words</p>
+                </div>
+              ) : (
+                displayBio && <p className="text-white/70 text-sm mt-1 max-w-xs">{displayBio}</p>
+              )}
             </div>
-            <div className="flex gap-2">
-              <Button variant="glass" size="sm" onClick={() => { logout(); navigate('/login'); }}>Logout</Button>
+            <div className="flex gap-2 flex-shrink-0">
+              {editing ? (
+                <>
+                  <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>Cancel</Button>
+                  <Button variant="lime" size="sm" onClick={() => {
+                    updateProfile(currentUserId!, { name: editName.trim() || displayName, bio: editBio });
+                    setEditing(false);
+                  }}>Save</Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="glass" size="sm" onClick={() => {
+                    setEditName(displayName);
+                    setEditBio(displayBio);
+                    setEditing(true);
+                  }}>Edit</Button>
+                  <Button variant="glass" size="sm" onClick={() => { logout(); navigate('/login'); }}>Logout</Button>
+                </>
+              )}
             </div>
           </div>
 

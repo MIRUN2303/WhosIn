@@ -102,6 +102,9 @@ interface AppState {
   getActiveStories: (userId: string) => Story[];
   getFriendsWithStories: () => { user: any; stories: Story[] }[];
   uploadEventImage: (eventId: string, imageUrl: string) => void;
+
+  userProfiles: Record<string, { name: string; bio: string }>;
+  updateProfile: (userId: string, data: { name?: string; bio?: string }) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -109,6 +112,7 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       isLoggedIn: true,
       currentUserId: 'u1',
+      userProfiles: {},
 
       login: (emailOrPhone, password) => {
         const user = emailOrPhone.includes('@')
@@ -751,6 +755,16 @@ export const useAppStore = create<AppState>()(
         }).filter(x => x.user && x.stories.length > 0);
       },
 
+      // Profile
+      updateProfile: (userId, data) => {
+        set(state => ({
+          userProfiles: {
+            ...state.userProfiles,
+            [userId]: { ...state.userProfiles[userId], ...data },
+          },
+        }));
+      },
+
       // Event Gallery
       uploadEventImage: (eventId, imageUrl) => {
         set(state => ({
@@ -777,6 +791,7 @@ export const useAppStore = create<AppState>()(
         groups: state.groups,
         stories: state.stories,
         friendships: state.friendships,
+        userProfiles: state.userProfiles,
       }),
     }
   )
