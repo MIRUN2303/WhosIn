@@ -248,7 +248,7 @@ export const useAppStore = create<AppState>()(
         const end = new Date(now.getTime() + 24 * 60 * 60 * 1000);
         const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
         const cat = (input.category || 'badminton') as EventCategory;
-        const defaultTitle = cat === 'badminton' ? 'Live Match' : cat === 'movie' ? 'Movie Night' : cat === 'cafe' ? 'Cafe Session' : cat === 'roaming' ? 'Roaming' : 'Cycle Ride';
+        const defaultTitle = cat === 'badminton' ? 'Live Match' : cat === 'movie' ? 'Movie Night' : cat === 'cafe' ? 'Cafe Session' : cat === 'roaming' ? 'Roaming' : cat === 'cycling' ? 'Cycle Ride' : cat === 'jogging' ? 'Jogging' : 'Walking';
         const newEvent: Event = {
           id: newId, title: input.title || defaultTitle + ' @ ' + input.venue,
           sport: 'badminton' as any, category: cat, groupId: input.groupId,

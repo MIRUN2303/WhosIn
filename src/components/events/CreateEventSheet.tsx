@@ -11,6 +11,8 @@ const CATEGORIES: { value: EventCategory; label: string; emoji: string; desc: st
   { value: 'cafe', label: 'Cafe Out', emoji: '☕', desc: 'Attendance & summary' },
   { value: 'roaming', label: 'Roaming', emoji: '🚶', desc: 'Attendance & summary' },
   { value: 'cycling', label: 'Cycle Ride', emoji: '🚴', desc: 'Route, distance & summary' },
+  { value: 'jogging', label: 'Jogging', emoji: '🏃', desc: 'Route, distance & summary' },
+  { value: 'walking', label: 'Walking', emoji: '🚶‍➡️', desc: 'Route, distance & summary' },
 ];
 
 const CATEGORY_MAP: Record<EventCategory, string> = {
@@ -19,6 +21,8 @@ const CATEGORY_MAP: Record<EventCategory, string> = {
   cafe: '☕',
   roaming: '🚶',
   cycling: '🚴',
+  jogging: '🏃',
+  walking: '🚶‍➡️',
 };
 
 const CATEGORY_BANNERS: Record<EventCategory, string> = {
@@ -27,6 +31,8 @@ const CATEGORY_BANNERS: Record<EventCategory, string> = {
   cafe: '/3.jpg',
   roaming: '/4.jpg',
   cycling: '/5.jpg',
+  jogging: '/6.jpg',
+  walking: '/7.jpg',
 };
 
 interface CreateEventSheetProps {
@@ -98,7 +104,7 @@ const CategoryDropdown: React.FC<{ value: EventCategory; onChange: (v: EventCate
       <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>CATEGORY</label>
       <motion.button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen(true)}
         className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all"
         style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.08)', color: 'white' }}
         whileTap={{ scale: 0.98 }}
@@ -109,8 +115,6 @@ const CategoryDropdown: React.FC<{ value: EventCategory; onChange: (v: EventCate
           <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{selected.desc}</p>
         </div>
         <motion.span
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
           className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}
         >▾</motion.span>
       </motion.button>
@@ -118,36 +122,57 @@ const CategoryDropdown: React.FC<{ value: EventCategory; onChange: (v: EventCate
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: 'auto' }}
-            exit={{ opacity: 0, y: -8, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden rounded-2xl mt-1"
-            style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.08)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center"
+            onClick={() => setOpen(false)}
           >
-            {CATEGORIES.map(c => {
-              const isSelected = c.value === value;
-              return (
-                <motion.button
-                  key={c.value}
-                  type="button"
-                  onClick={() => { onChange(c.value); setOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all"
-                  style={isSelected
-                    ? { background: 'rgba(0,255,65,0.08)', color: '#00ff41' }
-                    : { background: 'transparent', color: 'rgba(255,255,255,0.6)' }
-                  }
-                  whileHover={{ background: isSelected ? 'rgba(0,255,65,0.12)' : 'rgba(255,255,255,0.05)' }}
-                >
-                  <span className="text-lg">{c.emoji}</span>
-                  <div className="flex-1">
-                    <p className="text-xs font-bold">{c.label}</p>
-                    <p className="text-[10px]" style={{ color: isSelected ? 'rgba(0,255,65,0.4)' : 'rgba(255,255,255,0.3)' }}>{c.desc}</p>
-                  </div>
-                  {isSelected && <span className="text-xs" style={{ color: '#00ff41' }}>✓</span>}
-                </motion.button>
-              );
-            })}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute inset-0 bg-black/60"
+            />
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-sm max-h-[70vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-5"
+              style={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <p className="font-display font-bold text-white text-lg">Select Category</p>
+                <button onClick={() => setOpen(false)} className="text-white/40 text-lg">✕</button>
+              </div>
+              <div className="space-y-1">
+                {CATEGORIES.map(c => {
+                  const isSelected = c.value === value;
+                  return (
+                    <motion.button
+                      key={c.value}
+                      type="button"
+                      onClick={() => { onChange(c.value); setOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all"
+                      style={isSelected
+                        ? { background: 'rgba(0,255,65,0.08)', color: '#00ff41', border: '1px solid rgba(0,255,65,0.2)' }
+                        : { background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.6)', border: '1px solid transparent' }
+                      }
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span className="text-2xl">{c.emoji}</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold">{c.label}</p>
+                        <p className="text-[10px]" style={{ color: isSelected ? 'rgba(0,255,65,0.4)' : 'rgba(255,255,255,0.3)' }}>{c.desc}</p>
+                      </div>
+                      {isSelected && <span className="text-xs" style={{ color: '#00ff41' }}>✓</span>}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -335,7 +360,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           type="text"
                           value={title}
                           onChange={e => setTitle(e.target.value)}
-                          placeholder={category === 'movie' ? 'e.g. Oppenheimer at IMAX' : category === 'cafe' ? 'e.g. Weekend Coffee Run' : category === 'roaming' ? 'e.g. Evening Stroll' : category === 'cycling' ? 'e.g. Morning Coastal Ride' : 'e.g. Saturday Badminton Session'}
+                          placeholder={category === 'movie' ? 'e.g. Oppenheimer at IMAX' : category === 'cafe' ? 'e.g. Weekend Coffee Run' : category === 'roaming' ? 'e.g. Evening Stroll' : category === 'cycling' ? 'e.g. Morning Coastal Ride' : category === 'jogging' ? 'e.g. Sunrise Jog' : category === 'walking' ? 'e.g. Evening Walk' : 'e.g. Saturday Badminton Session'}
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none transition-all"
                           style={{
                             background: '#161616',
@@ -357,7 +382,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         />
                       </div>
 
-                      {category === 'cycling' && (
+                      {(category === 'cycling' || category === 'jogging' || category === 'walking') && (
                         <RouteFields
                           startPoint={startPoint} onStartChange={setStartPoint}
                           endPoint={endPoint} onEndChange={setEndPoint}
@@ -458,7 +483,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           type="text"
                           value={venue}
                           onChange={e => setVenue(e.target.value)}
-                          placeholder={category === 'movie' ? 'e.g. PVR Cinemas' : category === 'cafe' ? 'e.g. Starbucks Reserve' : category === 'roaming' ? 'e.g. Marine Drive' : category === 'cycling' ? 'e.g. ECR Beach Road' : 'e.g. Sportorium Court 2'}
+                          placeholder={category === 'movie' ? 'e.g. PVR Cinemas' : category === 'cafe' ? 'e.g. Starbucks Reserve' : category === 'roaming' ? 'e.g. Marine Drive' : category === 'cycling' ? 'e.g. ECR Beach Road' : category === 'jogging' ? 'e.g. Marine Drive Promenade' : category === 'walking' ? 'e.g. Beach Road' : 'e.g. Sportorium Court 2'}
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none"
                           style={{
                             background: '#161616',
@@ -534,7 +559,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           type="text"
                           value={title}
                           onChange={e => setTitle(e.target.value)}
-                          placeholder={category === 'movie' ? 'e.g. Oppenheimer at IMAX' : category === 'cafe' ? 'e.g. Weekend Coffee Run' : category === 'roaming' ? 'e.g. Evening Stroll' : category === 'cycling' ? 'e.g. Morning Coastal Ride' : 'e.g. Saturday Badminton Session'}
+                          placeholder={category === 'movie' ? 'e.g. Oppenheimer at IMAX' : category === 'cafe' ? 'e.g. Weekend Coffee Run' : category === 'roaming' ? 'e.g. Evening Stroll' : category === 'cycling' ? 'e.g. Morning Coastal Ride' : category === 'jogging' ? 'e.g. Sunrise Jog' : category === 'walking' ? 'e.g. Evening Walk' : 'e.g. Saturday Badminton Session'}
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none transition-all"
                           style={{
                             background: '#161616',
@@ -550,7 +575,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           type="text"
                           value={venue}
                           onChange={e => setVenue(e.target.value)}
-                          placeholder={category === 'movie' ? 'e.g. PVR Cinemas' : category === 'cafe' ? 'e.g. Starbucks Reserve' : category === 'roaming' ? 'e.g. Marine Drive' : category === 'cycling' ? 'e.g. ECR Beach Road' : 'e.g. Sportorium Court 2'}
+                          placeholder={category === 'movie' ? 'e.g. PVR Cinemas' : category === 'cafe' ? 'e.g. Starbucks Reserve' : category === 'roaming' ? 'e.g. Marine Drive' : category === 'cycling' ? 'e.g. ECR Beach Road' : category === 'jogging' ? 'e.g. Marine Drive Promenade' : category === 'walking' ? 'e.g. Beach Road' : 'e.g. Sportorium Court 2'}
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none"
                           style={{
                             background: '#161616',
@@ -571,7 +596,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         />
                       </div>
 
-                      {category === 'cycling' && (
+                      {(category === 'cycling' || category === 'jogging' || category === 'walking') && (
                         <RouteFields
                           startPoint={startPoint} onStartChange={setStartPoint}
                           endPoint={endPoint} onEndChange={setEndPoint}

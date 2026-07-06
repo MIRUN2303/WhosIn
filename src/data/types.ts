@@ -8,7 +8,7 @@ export type SportType =
   | 'trekking' | 'swimming' | 'movie' | 'cafe' | 'roadtrip'
   | 'gaming' | 'boardgames' | 'custom';
 
-export type EventCategory = 'badminton' | 'movie' | 'cafe' | 'roaming' | 'cycling';
+export type EventCategory = 'badminton' | 'movie' | 'cafe' | 'roaming' | 'cycling' | 'jogging' | 'walking';
 
 export type AttendanceStatus = 'coming' | 'maybe' | 'not_coming' | 'late' | null;
 

@@ -360,10 +360,10 @@ export const EventDetailPage: React.FC = () => {
           </FadeUp>
         )}
 
-        {/* ROUTE INFO (for cycling events) */}
-        {event.category === 'cycling' && (event.status === 'live' || event.status === 'completed' || event.status === 'cancelled') && (
+        {/* ROUTE INFO (for route-based events) */}
+        {(event.category === 'cycling' || event.category === 'jogging' || event.category === 'walking') && (event.status === 'live' || event.status === 'completed' || event.status === 'cancelled') && (
           <FadeUp delay={0.1}>
-            <SectionHeader title="🚴 Route" className="mb-3" />
+            <SectionHeader title={event.category === 'cycling' ? '🚴 Route' : event.category === 'jogging' ? '🏃 Route' : '🚶‍➡️ Route'} className="mb-3" />
             <Card padding="md" variant="dark">
               <div className="grid grid-cols-2 gap-3">
                 {event.startPoint && (
@@ -939,8 +939,8 @@ export const EventsPage: React.FC = () => {
                       {format(parseISO(event.date), 'EEE, MMM d')} · {event.time}
                     </p>
                     <p className="text-white/50 text-xs">📍 {event.venue}</p>
-                    {event.category === 'cycling' && event.distance && (
-                      <p className="text-[#00ff41]/60 text-xs mt-0.5">🚴 {event.distance}</p>
+                    {(event.category === 'cycling' || event.category === 'jogging' || event.category === 'walking') && event.distance && (
+                      <p className="text-[#00ff41]/60 text-xs mt-0.5">{event.category === 'cycling' ? '🚴' : event.category === 'jogging' ? '🏃' : '🚶‍➡️'} {event.distance}</p>
                     )}
                     <div className="flex items-center gap-2 mt-2">
                       <div className="flex -space-x-1.5">
