@@ -14,12 +14,23 @@ export const IntroPage: React.FC = () => {
   }, [navigate]);
 
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
-      style={{
-        backgroundImage: `url('/intro-bg.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}>
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden">
+      {/* Mobile background */}
+      <div className="absolute inset-0 block lg:hidden"
+        style={{
+          backgroundImage: `url('/intro-bg.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
+      {/* Desktop background */}
+      <div className="absolute inset-0 hidden lg:block"
+        style={{
+          backgroundImage: `url('/intro-bg-desktop.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
       {/* Dark overlay */}
       <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.55)' }} />
       {/* Ribbony texture overlay */}
