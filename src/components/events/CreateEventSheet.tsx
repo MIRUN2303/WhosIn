@@ -79,8 +79,8 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
 
           {/* Sheet */}
           <motion.div
-            className="fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto rounded-t-[2.5rem] overflow-hidden"
-            style={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,0.08)', borderBottom: 'none', maxHeight: '92dvh' }}
+            className="fixed bottom-[76px] left-0 right-0 z-50 max-w-lg mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl"
+            style={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,0.08)', maxHeight: 'calc(92dvh - 76px)' }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -91,7 +91,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
               <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
             </div>
 
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(92dvh - 24px)' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(92dvh - 76px - 24px)' }}>
               {/* Header */}
               <div className="flex items-center justify-between px-5 pb-4 pt-1">
                 <div>
