@@ -1,7 +1,8 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
+import { useAppStore } from './store/useAppStore';
 
 import { BottomNav, AppHeader } from './components/layout/Navigation';
 import { HomePage } from './features/home/HomePage';
@@ -11,6 +12,7 @@ import { ProfilePage } from './features/profile/ProfilePage';
 import { GroupsPage, GroupDetailPage } from './features/groups/GroupsPage';
 import { NotificationsPage } from './features/notifications/NotificationsPage';
 import { IntroPage } from './features/intro/IntroPage';
+import { StoriesPage } from './features/stories/StoriesPage';
 
 const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <motion.div
@@ -33,6 +35,12 @@ const PageSkeleton = () => (
 
 const AppContent: React.FC = () => {
   const location = useLocation();
+  const loadFromSupabase = useAppStore(s => s.loadFromSupabase);
+  const loaded = useAppStore(s => s.loaded);
+
+  useEffect(() => {
+    if (!loaded) loadFromSupabase();
+  }, [loaded, loadFromSupabase]);
 
   return (
     <div className="min-h-screen" style={{ background: '#080808' }}>
@@ -58,6 +66,7 @@ const AppContent: React.FC = () => {
               <Route path="/profile" element={<PageWrapper><ProfilePage /></PageWrapper>} />
               <Route path="/groups" element={<PageWrapper><GroupsPage /></PageWrapper>} />
               <Route path="/groups/:id" element={<PageWrapper><GroupDetailPage /></PageWrapper>} />
+              <Route path="/stories" element={<PageWrapper><StoriesPage /></PageWrapper>} />
               <Route path="/notifications" element={<PageWrapper><NotificationsPage /></PageWrapper>} />
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>

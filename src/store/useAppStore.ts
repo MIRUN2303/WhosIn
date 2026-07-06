@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AttendanceStatus, Notification, Event, Group, Story, Friendship, League } from '../data/types';
-import { EVENTS, NOTIFICATIONS, GROUPS, USERS, setCurrentUserId, getUserById, getUserByEmail, getUserByPhone, getUserByProfileCode, generateId } from '../data/mockData';
+import type { Event, Group, Notification, Story, Friendship, League, AttendanceStatus, Match } from '../data/types';
+import { getUserById, generateId } from '../data/mockData';
 import toast from 'react-hot-toast';
+import * as db from '../lib/db';
 
 const uid = () => `e_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 const gid = () => `g_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -53,6 +54,9 @@ interface CreateGroupInput {
 }
 
 interface AppState {
+  loaded: boolean;
+  loadFromSupabase: () => Promise<void>;
+
   isLoggedIn: boolean;
   currentUserId: string | null;
   login: (emailOrPhone: string, password: string) => boolean;
@@ -83,17 +87,17 @@ interface AppState {
   markNotificationRead: (id: string) => void;
   markAllRead: () => void;
   unreadCount: () => number;
-  addNotification: (n: Omit<Notification, 'id' | 'timestamp'>) => void;
+  addNotification: (n: Omit<Notification, 'id' | 'timestamp'> & { userId?: string }) => void;
 
   activeTab: string;
   setActiveTab: (tab: string) => void;
 
   groups: Group[];
+  users: any[];
   createGroup: (input: CreateGroupInput) => string;
   joinGroup: (groupId: string) => void;
   inviteByProfileCode: (groupId: string, profileCode: string) => boolean;
 
-  // Friends & Stories
   stories: Story[];
   friendships: Friendship[];
   sendFriendRequest: (friendId: string) => void;
@@ -110,9 +114,34 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      loaded: false,
       isLoggedIn: true,
       currentUserId: 'u1',
       userProfiles: {},
+      events: [],
+      notifications: [],
+      activeTab: 'home',
+      groups: [],
+      users: [],
+      stories: [],
+      friendships: [],
+
+      loadFromSupabase: async () => {
+        try {
+          const [events, groups, notifications, friendships, stories] = await Promise.all([
+            db.fetchEvents().catch(() => []),
+            db.fetchGroups().catch(() => []),
+            db.fetchNotifications().catch(() => []),
+            db.fetchFriendships().catch(() => []),
+            db.fetchStories().catch(() => []),
+          ]);
+          const users = await db.fetchUsers().catch(() => []);
+          set({ events, groups, notifications, friendships, stories, users, loaded: true });
+        } catch (e) {
+          console.warn('Supabase load failed, using empty state', e);
+          set({ loaded: true });
+        }
+      },
 
       login: (emailOrPhone, password) => {
         const user = emailOrPhone.includes('@')
@@ -128,31 +157,16 @@ export const useAppStore = create<AppState>()(
         if (getUserByEmail(email)) return false;
         const newUser = {
           id: generateId(),
-          name,
-          username: name.toLowerCase().replace(/\s+/g, ''),
-          email,
-          phone,
-          password,
-          profileCode: `${name.split(' ')[0].toUpperCase()}${String(USERS.length + 1).padStart(3, '0')}`,
+          name, username: name.toLowerCase().replace(/\s+/g, ''), email, phone, password,
+          profileCode: `${name.split(' ')[0].toUpperCase()}001`,
           avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${name}&backgroundColor=b6e3f4`,
           coverImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-          bio: '',
-          favouriteSports: [],
-          badges: [],
-          stats: {
-            totalMatches: 0, wins: 0, losses: 0, attendanceRate: 0, currentStreak: 0, longestStreak: 0, winRate: 0,
-            weeklyActivity: [0, 0, 0, 0, 0, 0, 0],
-            monthlyActivity: [],
-            sportBreakdown: [],
-            pointsTotal: 0, mvpCount: 0,
-          },
-          createdGroups: [],
-          joinedGroups: [],
-          joinedAt: new Date().toISOString().split('T')[0],
-          level: 1,
-          xp: 0,
+          bio: '', favouriteSports: [], badges: [],
+          stats: { totalMatches: 0, wins: 0, losses: 0, attendanceRate: 0, currentStreak: 0, longestStreak: 0, winRate: 0, weeklyActivity: [0,0,0,0,0,0,0], monthlyActivity: [], sportBreakdown: [], pointsTotal: 0, mvpCount: 0 },
+          createdGroups: [], joinedGroups: [], joinedAt: new Date().toISOString().split('T')[0], level: 1, xp: 0,
         };
-        USERS.push(newUser);
+        const USERS = get().users;
+        (USERS as any[]).push(newUser);
         setCurrentUserId(newUser.id);
         set({ isLoggedIn: true, currentUserId: newUser.id });
         return true;
@@ -163,87 +177,45 @@ export const useAppStore = create<AppState>()(
         set({ isLoggedIn: false, currentUserId: null });
       },
 
-      events: EVENTS,
-      notifications: NOTIFICATIONS,
-      activeTab: 'home',
-      groups: GROUPS,
-      stories: [],
-      friendships: [],
-
-      updateAttendance: (eventId, userId, status) => {
-        set(state => ({
-          events: state.events.map(event => {
-            if (event.id !== eventId) return event;
-            const existing = event.attendance.find(a => a.userId === userId);
+      // ---- EVENTS ----
+      updateAttendance: async (eventId, userId, status) => {
+        set(s => ({
+          events: s.events.map(ev => {
+            if (ev.id !== eventId) return ev;
+            const existing = ev.attendance.find(a => a.userId === userId);
+            const updatedAt = new Date().toISOString();
             if (existing) {
-              return {
-                ...event,
-                attendance: event.attendance.map(a =>
-                  a.userId === userId
-                    ? { ...a, status, updatedAt: new Date().toISOString() }
-                    : a
-                ),
-              };
-            } else {
-              return {
-                ...event,
-                attendance: [
-                  ...event.attendance,
-                  { userId, status, updatedAt: new Date().toISOString() },
-                ],
-              };
+              return { ...ev, attendance: ev.attendance.map(a => a.userId === userId ? { ...a, status, updatedAt } : a) };
             }
+            return { ...ev, attendance: [...ev.attendance, { userId, status, updatedAt }] };
           }),
         }));
+        try { await db.upsertAttendance(eventId, userId, status || 'not_coming'); }
+        catch (e) { console.warn('Failed to sync attendance', e); }
       },
 
       createEvent: (input) => {
         const newId = uid();
         const currentUserId = get().currentUserId || '';
         const now = new Date().toISOString();
-        const sport = (input.sport || 'custom') as any;
-
         const newEvent: Event = {
-          id: newId,
-          title: input.title,
-          sport,
-          groupId: input.groupId,
-          date: input.date,
-          time: input.time,
-          endTime: input.endTime || '',
-          venue: input.venue,
-          venueAddress: '',
-          description: input.description || '',
-          coverImage: input.coverImage || '',
-          organizer: currentUserId,
-          maxSlots: input.maxSlots || 12,
+          id: newId, title: input.title, sport: input.sport as any, groupId: input.groupId,
+          date: input.date, time: input.time, endTime: input.endTime || '',
+          venue: input.venue, venueAddress: '', description: input.description || '',
+          coverImage: input.coverImage || '', organizer: currentUserId, maxSlots: input.maxSlots || 12,
           weather: { condition: 'TBD', temp: 28, icon: '☀️', humidity: 60, wind: 10 },
-          attendance: [
-            { userId: currentUserId, status: 'coming', updatedAt: now },
-          ],
-          leagues: [],
-          status: 'upcoming',
-          isRecurring: input.isRecurring || false,
-          recurringPattern: input.recurringPattern,
-          announcements: [],
-          gallery: [],
-          tags: [],
+          attendance: [{ userId: currentUserId, status: 'coming', updatedAt: now }],
+          leagues: [], status: 'upcoming', isRecurring: input.isRecurring || false,
+          recurringPattern: input.recurringPattern, announcements: [], gallery: [], tags: [],
         };
-
-        set(state => ({
-          events: [...state.events, newEvent],
-        }));
-
+        set(s => ({ events: [...s.events, newEvent] }));
+        db.createEventInDb(newEvent).catch(e => console.warn('Failed to save event', e));
         const grp = get().groups.find(g => g.id === input.groupId);
         get().addNotification({
-          type: 'event',
-          title: `New Event: ${input.title}`,
+          type: 'event', title: `New Event: ${input.title}`,
           body: `Created in ${grp?.name || 'your group'}. Invite your crew!`,
-          read: false,
-          actionUrl: `/events/${newId}`,
-          avatar: '📅',
+          read: false, actionUrl: `/events/${newId}`, avatar: '📅',
         });
-
         return newId;
       },
 
@@ -255,47 +227,24 @@ export const useAppStore = create<AppState>()(
         const nowTime = now.toISOString().split('T')[1]?.slice(0, 5) || '19:00';
         const end = new Date(now.getTime() + 24 * 60 * 60 * 1000);
         const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
-
         const newEvent: Event = {
-          id: newId,
-          title: input.title || `Live Match @ ${input.venue}`,
-          sport: 'badminton' as any,
-          groupId: input.groupId,
-          date: today,
-          time: nowTime,
-          endTime,
-          venue: input.venue,
-          venueAddress: '',
-          description: input.description || '',
-          coverImage: '',
-          organizer: currentUserId,
-          maxSlots: 12,
+          id: newId, title: input.title || `Live Match @ ${input.venue}`,
+          sport: 'badminton' as any, groupId: input.groupId,
+          date: today, time: nowTime, endTime, venue: input.venue,
+          venueAddress: '', description: input.description || '', coverImage: '',
+          organizer: currentUserId, maxSlots: 12,
           weather: { condition: 'TBD', temp: 28, icon: '☀️', humidity: 60, wind: 10 },
-          attendance: [
-            { userId: currentUserId, status: 'coming', updatedAt: now.toISOString() },
-          ],
-          leagues: [],
-          status: 'live',
-          isRecurring: false,
-          announcements: [],
-          gallery: [],
-          tags: [],
+          attendance: [{ userId: currentUserId, status: 'coming', updatedAt: now.toISOString() }],
+          leagues: [], status: 'live', isRecurring: false, announcements: [], gallery: [], tags: [],
         };
-
-        set(state => ({
-          events: [...state.events, newEvent],
-        }));
-
+        set(s => ({ events: [...s.events, newEvent] }));
+        db.createEventInDb(newEvent).catch(e => console.warn('Failed to save live event', e));
         const grp = get().groups.find(g => g.id === input.groupId);
         get().addNotification({
-          type: 'event',
-          title: `🔥 Live: ${input.title}`,
+          type: 'event', title: `🔥 Live: ${input.title}`,
           body: `Happening now in ${grp?.name || 'your group'}!`,
-          read: false,
-          actionUrl: `/events/${newId}`,
-          avatar: '🔥',
+          read: false, actionUrl: `/events/${newId}`, avatar: '🔥',
         });
-
         return newId;
       },
 
@@ -304,51 +253,38 @@ export const useAppStore = create<AppState>()(
         const nowTime = now.toISOString().split('T')[1]?.slice(0, 5) || '19:00';
         const end = new Date(now.getTime() + 24 * 60 * 60 * 1000);
         const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
-        set(state => ({
-          events: state.events.map(e =>
+        set(s => ({
+          events: s.events.map(e =>
             e.id === eventId && e.status === 'upcoming'
               ? { ...e, status: 'live' as const, time: nowTime, endTime, date: now.toISOString().split('T')[0] }
               : e
           ),
         }));
+        db.updateEventInDb(eventId, { status: 'live', time: nowTime, end_time: endTime, date: now.toISOString().split('T')[0] })
+          .catch(e => console.warn('Failed to start event', e));
       },
 
       pauseEvent: (eventId) => {
-        set(state => ({
-          events: state.events.map(e =>
-            e.id === eventId && e.status === 'live'
-              ? { ...e, status: 'paused' as const }
-              : e
-          ),
+        set(s => ({
+          events: s.events.map(e => e.id === eventId && e.status === 'live' ? { ...e, status: 'paused' as const } : e),
         }));
+        db.updateEventInDb(eventId, { status: 'paused' }).catch(e => console.warn('Failed to pause event', e));
       },
 
       resumeEvent: (eventId) => {
-        set(state => ({
-          events: state.events.map(e =>
-            e.id === eventId && e.status === 'paused'
-              ? { ...e, status: 'live' as const }
-              : e
-          ),
+        set(s => ({
+          events: s.events.map(e => e.id === eventId && e.status === 'paused' ? { ...e, status: 'live' as const } : e),
         }));
+        db.updateEventInDb(eventId, { status: 'live' }).catch(e => console.warn('Failed to resume event', e));
       },
 
       createLeague: (input) => {
         const lid = `l_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-        const league = {
-          id: lid,
-          name: input.name,
-          players: [],
-          teams: [],
-          matches: [],
-          status: 'pending' as const,
-          format: input.format,
-        } as League;
-        set(state => ({
-          events: state.events.map(e =>
-            e.id === input.eventId ? { ...e, leagues: [...e.leagues, league] } : e
-          ),
+        const league = { id: lid, name: input.name, players: [], teams: [], matches: [], status: 'pending' as const, format: input.format } as League;
+        set(s => ({
+          events: s.events.map(e => e.id === input.eventId ? { ...e, leagues: [...e.leagues, league] } : e),
         }));
+        db.createLeagueInDb(league, input.eventId).catch(e => console.warn('Failed to create league', e));
         return lid;
       },
 
@@ -358,62 +294,55 @@ export const useAppStore = create<AppState>()(
         const team2Id = `t_${newMid}_2`;
         const winnerId = input.score1 > input.score2 ? team1Id : (input.score2 > input.score1 ? team2Id : null);
         const teamColors = ['#00ff41', '#7c3aed'];
-        set(state => ({
-          events: state.events.map(e => ({
+        const newTeams: any[] = [
+          { id: team1Id, name: 'Side 1', playerIds: input.side1PlayerIds, color: teamColors[0] },
+          { id: team2Id, name: 'Side 2', playerIds: input.side2PlayerIds, color: teamColors[1] },
+        ];
+        const newMatch: Match = {
+          id: newMid, name: input.name || '', isFinal: input.isFinal || false,
+          team1Id, team2Id, score1: input.score1, score2: input.score2, winnerId,
+          duration: 0, notes: '', completedAt: winnerId ? new Date().toISOString() : null,
+        };
+        set(s => ({
+          events: s.events.map(e => ({
             ...e,
             leagues: e.leagues.map(l =>
               l.id === input.leagueId
                 ? {
                     ...l,
-                    teams: [
-                      ...l.teams.filter(t => t.id !== team1Id && t.id !== team2Id),
-                      { id: team1Id, leagueId: input.leagueId, name: 'Side 1', playerIds: input.side1PlayerIds, color: teamColors[0] },
-                      { id: team2Id, leagueId: input.leagueId, name: 'Side 2', playerIds: input.side2PlayerIds, color: teamColors[1] },
-                    ],
-                    matches: [...l.matches, {
-                      id: newMid,
-                      leagueId: input.leagueId,
-                      name: input.name || '',
-                      isFinal: input.isFinal || false,
-                      team1Id,
-                      team2Id,
-                      score1: input.score1,
-                      score2: input.score2,
-                      winnerId,
-                      duration: 0,
-                      notes: '',
-                      completedAt: winnerId ? new Date().toISOString() : null,
-                    }],
+                    teams: [...l.teams.filter(t => t.id !== team1Id && t.id !== team2Id), ...newTeams.map(t => ({ ...t, leagueId: input.leagueId }))],
+                    matches: [...l.matches, newMatch],
                   }
                 : l
             ),
           })),
         }));
+        db.addMatchToDb(
+          newMatch,
+          input.leagueId,
+          newTeams
+        ).catch(e => console.warn('Failed to add match', e));
         return newMid;
       },
 
       updateMatchScore: (eventId, leagueId, matchId, score1, score2, winnerId) => {
-        set(state => ({
-          events: state.events.map(e =>
-            e.id === eventId
-              ? {
-                  ...e,
-                  leagues: e.leagues.map(l =>
-                    l.id === leagueId
-                      ? {
-                          ...l,
-                          matches: l.matches.map(m =>
-                            m.id === matchId
-                              ? { ...m, score1, score2, winnerId, completedAt: winnerId ? new Date().toISOString() : null }
-                              : m
-                          ),
-                        }
-                      : l
+        set(s => ({
+          events: s.events.map(e =>
+            e.id === eventId ? {
+              ...e,
+              leagues: e.leagues.map(l =>
+                l.id === leagueId ? {
+                  ...l,
+                  matches: l.matches.map(m =>
+                    m.id === matchId ? { ...m, score1, score2, winnerId, completedAt: winnerId ? new Date().toISOString() : null } : m
                   ),
-                }
-              : e
+                } : l
+              ),
+            } : e
           ),
         }));
+        db.updateMatchInDb(matchId, { score1, score2, winner_id: winnerId, completed_at: winnerId ? new Date().toISOString() : null })
+          .catch(e => console.warn('Failed to update match score', e));
       },
 
       completeEvent: (eventId) => {
@@ -457,73 +386,74 @@ export const useAppStore = create<AppState>()(
           })
           .sort((a, b) => b.wins - a.wins || b.matchesPlayed - a.matchesPlayed);
 
+        const users = get().users;
         const mvps: any[] = Object.entries(playerWins)
           .map(([userId, d]) => {
-            const u = getUserById(userId);
-            return { userId, playerName: u?.name.split(' ')[0] || userId, wins: d.wins, matchesPlayed: d.matches };
+            const u = users.find((u: any) => u.id === userId) || getUserById(userId);
+            return { userId, playerName: u?.name?.split(' ')[0] || userId, wins: d.wins, matchesPlayed: d.matches };
           })
           .sort((a, b) => b.wins - a.wins || b.matchesPlayed - a.matchesPlayed)
           .slice(0, 3);
 
-        set(state => ({
-          events: state.events.map(e =>
+        set(s => ({
+          events: s.events.map(e =>
             e.id === eventId && e.status === 'live'
               ? { ...e, status: 'completed' as const, rankings, mvps }
               : e
           ),
         }));
+        db.updateEventInDb(eventId, { status: 'completed', rankings, mvps })
+          .catch(e => console.warn('Failed to complete event', e));
       },
 
       deleteMatch: (eventId, leagueId, matchId) => {
-        set(state => ({
-          events: state.events.map(e =>
-            e.id === eventId
-              ? {
-                  ...e,
-                  leagues: e.leagues.map(l =>
-                    l.id === leagueId
-                      ? { ...l, matches: l.matches.filter(m => m.id !== matchId) }
-                      : l
-                  ),
-                }
-              : e
+        set(s => ({
+          events: s.events.map(e =>
+            e.id === eventId ? {
+              ...e,
+              leagues: e.leagues.map(l =>
+                l.id === leagueId ? { ...l, matches: l.matches.filter(m => m.id !== matchId) } : l
+              ),
+            } : e
           ),
         }));
+        db.deleteMatchFromDb(matchId).catch(e => console.warn('Failed to delete match', e));
       },
 
       deleteLeague: (eventId, leagueId) => {
-        set(state => ({
-          events: state.events.map(e =>
-            e.id === eventId
-              ? { ...e, leagues: e.leagues.filter(l => l.id !== leagueId) }
-              : e
+        set(s => ({
+          events: s.events.map(e =>
+            e.id === eventId ? { ...e, leagues: e.leagues.filter(l => l.id !== leagueId) } : e
           ),
         }));
+        db.deleteLeagueFromDb(leagueId).catch(e => console.warn('Failed to delete league', e));
       },
 
       editEvent: (eventId, updates) => {
-        set(state => ({
-          events: state.events.map(e =>
-            e.id === eventId ? { ...e, ...updates } : e
-          ),
+        set(s => ({
+          events: s.events.map(e => e.id === eventId ? { ...e, ...updates } : e),
         }));
+        db.updateEventInDb(eventId, {
+          ...(updates.title !== undefined && { title: updates.title }),
+          ...(updates.date !== undefined && { date: updates.date }),
+          ...(updates.time !== undefined && { time: updates.time }),
+          ...(updates.endTime !== undefined && { end_time: updates.endTime }),
+          ...(updates.venue !== undefined && { venue: updates.venue }),
+          ...(updates.description !== undefined && { description: updates.description }),
+        }).catch(e => console.warn('Failed to edit event', e));
       },
 
       getGroupEvents: (groupId) => {
-        return get()
-          .events
-          .filter(e => e.groupId === groupId)
-          .sort((a, b) => {
-            if (a.status === 'upcoming' && b.status !== 'upcoming') return -1;
-            if (b.status === 'upcoming' && a.status !== 'upcoming') return 1;
-            return a.date.localeCompare(b.date);
-          });
+        return get().events.filter(e => e.groupId === groupId).sort((a, b) => {
+          if (a.status === 'upcoming' && b.status !== 'upcoming') return -1;
+          if (b.status === 'upcoming' && a.status !== 'upcoming') return 1;
+          return a.date.localeCompare(b.date);
+        });
       },
 
       getNextGroupEvent: (groupId) => {
         const today = new Date().toISOString().split('T')[0];
-        return get()
-          .events
+        return get().events
           .filter(e => e.groupId === groupId && (e.status === 'upcoming' || e.status === 'live') && e.date >= today)
           .sort((a, b) => {
             if (a.status === 'live' && b.status !== 'live') return -1;
@@ -535,48 +465,40 @@ export const useAppStore = create<AppState>()(
       getMyGroupsNextEvents: () => {
         const state = get();
         const today = new Date().toISOString().split('T')[0];
-        const user = getUserById(state.currentUserId || '');
-        const myGroupIds = user ? [...user.createdGroups, ...user.joinedGroups] : [];
+        const user = state.users.find((u: any) => u.id === state.currentUserId) || getUserById(state.currentUserId || '');
+        const myGroupIds = user ? [...(user.createdGroups || []), ...(user.joinedGroups || [])] : [];
 
-        return myGroupIds
-          .map(groupId => {
-            const event = state.events
-              .filter(e => e.groupId === groupId && (e.status === 'upcoming' || e.status === 'live') && e.date >= today)
-              .sort((a, b) => {
-                if (a.status === 'live' && b.status !== 'live') return -1;
-                if (b.status === 'live' && a.status !== 'live') return 1;
-                return a.date.localeCompare(b.date);
-              })[0];
-            return event ? { groupId, event } : null;
-          })
-          .filter(Boolean) as { groupId: string; event: Event }[];
+        return myGroupIds.map(groupId => {
+          const event = state.events
+            .filter(e => e.groupId === groupId && (e.status === 'upcoming' || e.status === 'live') && e.date >= today)
+            .sort((a, b) => {
+              if (a.status === 'live' && b.status !== 'live') return -1;
+              if (b.status === 'live' && a.status !== 'live') return 1;
+              return a.date.localeCompare(b.date);
+            })[0];
+          return event ? { groupId, event } : null;
+        }).filter(Boolean) as { groupId: string; event: Event }[];
       },
 
       markNotificationRead: (id) => {
-        set(state => ({
-          notifications: state.notifications.map(n =>
-            n.id === id ? { ...n, read: true } : n
-          ),
-        }));
+        set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }));
+        db.markNotificationReadInDb(id).catch(e => console.warn('Failed to mark read', e));
       },
 
       markAllRead: () => {
-        set(state => ({
-          notifications: state.notifications.map(n => ({ ...n, read: true })),
-        }));
+        set(s => ({ notifications: s.notifications.map(n => ({ ...n, read: true })) }));
+        db.markAllNotificationsReadInDb().catch(e => console.warn('Failed to mark all read', e));
       },
 
       unreadCount: () => get().notifications.filter(n => !n.read).length,
 
       addNotification: (n) => {
         const newNotif: Notification = {
-          ...n,
-          id: `notif_${Date.now()}`,
+          ...n, id: `notif_${Date.now()}`,
           timestamp: new Date().toISOString(),
-        };
-        set(state => ({
-          notifications: [newNotif, ...state.notifications],
-        }));
+        } as Notification;
+        set(s => ({ notifications: [newNotif, ...s.notifications] }));
+        db.createNotificationInDb(newNotif as any).catch(e => console.warn('Failed to save notification', e));
       },
 
       setActiveTab: (tab) => set({ activeTab: tab }),
@@ -584,7 +506,7 @@ export const useAppStore = create<AppState>()(
       createGroup: (input) => {
         const currentUserId = get().currentUserId;
         if (!currentUserId) return '';
-        const user = getUserById(currentUserId);
+        const user = get().users.find((u: any) => u.id === currentUserId) || getUserById(currentUserId);
         if (!user || user.createdGroups.length >= 3) {
           toast.error('You can create at most 3 groups');
           return '';
@@ -592,31 +514,21 @@ export const useAppStore = create<AppState>()(
 
         const newId = gid();
         const newGroup: Group = {
-          id: newId,
-          name: input.name,
-          logo: '🎯',
+          id: newId, name: input.name, logo: '🎯',
           banner: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80',
-          description: input.description,
-          memberCount: 1,
-          members: [{
-            userId: currentUserId,
-            role: 'creator',
-            joinedAt: new Date().toISOString().split('T')[0],
-            stats: { matchesPlayed: 0, wins: 0, losses: 0, winRate: 0, attendanceRate: 0, currentStreak: 0, points: 0 },
-          }],
-          createdAt: new Date().toISOString().split('T')[0],
-          rules: input.rules,
-          isPrivate: input.isPrivate,
-          tags: [],
-          upcomingEvents: 0,
-          totalEvents: 0,
+          description: input.description, memberCount: 1,
+          members: [{ userId: currentUserId, role: 'creator', joinedAt: new Date().toISOString().split('T')[0], stats: { matchesPlayed: 0, wins: 0, losses: 0, winRate: 0, attendanceRate: 0, currentStreak: 0, points: 0 } }],
+          createdAt: new Date().toISOString().split('T')[0], rules: input.rules,
+          isPrivate: input.isPrivate, tags: [], upcomingEvents: 0, totalEvents: 0,
         };
 
         user.createdGroups = [...user.createdGroups, newId];
 
-        set(state => ({
-          groups: [...state.groups, newGroup],
-        }));
+        set(s => ({ groups: [...s.groups, newGroup] }));
+
+        db.createGroupInDb(newGroup).catch(e => console.warn('Failed to save group', e));
+        db.addGroupMember({ group_id: newId, user_id: currentUserId, role: 'creator', joined_at: newGroup.createdAt, matches_played: 0, wins: 0, losses: 0, win_rate: 0, attendance_rate: 0, current_streak: 0, points: 0 })
+          .catch(e => console.warn('Failed to add group member', e));
 
         toast.success(`Group "${input.name}" created!`);
         return newId;
@@ -625,7 +537,7 @@ export const useAppStore = create<AppState>()(
       joinGroup: (groupId) => {
         const currentUserId = get().currentUserId;
         if (!currentUserId) return;
-        const user = getUserById(currentUserId);
+        const user = get().users.find((u: any) => u.id === currentUserId) || getUserById(currentUserId);
         const group = get().groups.find(g => g.id === groupId);
         if (!user || !group) return;
         if (user.joinedGroups.length >= 3) {
@@ -640,15 +552,15 @@ export const useAppStore = create<AppState>()(
         user.joinedGroups = [...user.joinedGroups, groupId];
         group.memberCount++;
         group.members.push({
-          userId: currentUserId,
-          role: 'member',
-          joinedAt: new Date().toISOString().split('T')[0],
+          userId: currentUserId, role: 'member', joinedAt: new Date().toISOString().split('T')[0],
           stats: { matchesPlayed: 0, wins: 0, losses: 0, winRate: 0, attendanceRate: 0, currentStreak: 0, points: 0 },
         });
 
-        set(state => ({
-          groups: state.groups.map(g => g.id === groupId ? group : g),
-        }));
+        set(s => ({ groups: s.groups.map(g => g.id === groupId ? group : g) }));
+
+        db.updateGroup(groupId, { member_count: group.memberCount }).catch(e => console.warn('Failed to update group', e));
+        db.addGroupMember({ group_id: groupId, user_id: currentUserId, role: 'member', joined_at: new Date().toISOString().split('T')[0], matches_played: 0, wins: 0, losses: 0, win_rate: 0, attendance_rate: 0, current_streak: 0, points: 0 })
+          .catch(e => console.warn('Failed to add group member', e));
 
         toast.success(`Joined "${group.name}"!`);
       },
@@ -656,68 +568,56 @@ export const useAppStore = create<AppState>()(
       inviteByProfileCode: (groupId, profileCode) => {
         const currentUserId = get().currentUserId;
         if (!currentUserId) return false;
-        const user = getUserById(currentUserId);
-        const invitedUser = getUserByProfileCode(profileCode);
+        const user = get().users.find((u: any) => u.id === currentUserId) || getUserById(currentUserId);
+        const invitedUser = get().users.find((u: any) => u.profileCode === profileCode);
         const group = get().groups.find(g => g.id === groupId);
         if (!user || !invitedUser || !group) {
           toast.error('Invalid profile code');
           return false;
         }
-        if (invitedUser.id === currentUserId) {
-          toast.error("Can't invite yourself");
-          return false;
-        }
-        if (invitedUser.joinedGroups.length >= 3) {
-          toast.error('User has reached their join limit (3)');
-          return false;
-        }
-        if (invitedUser.joinedGroups.includes(groupId) || invitedUser.createdGroups.includes(groupId)) {
-          toast.error('User is already a member');
-          return false;
-        }
+        if (invitedUser.id === currentUserId) { toast.error("Can't invite yourself"); return false; }
+        if (invitedUser.joinedGroups.length >= 3) { toast.error('User has reached their join limit (3)'); return false; }
+        if (invitedUser.joinedGroups.includes(groupId) || invitedUser.createdGroups.includes(groupId)) { toast.error('User is already a member'); return false; }
 
         invitedUser.joinedGroups = [...invitedUser.joinedGroups, groupId];
         group.memberCount++;
         group.members.push({
-          userId: invitedUser.id,
-          role: 'member',
-          joinedAt: new Date().toISOString().split('T')[0],
+          userId: invitedUser.id, role: 'member', joinedAt: new Date().toISOString().split('T')[0],
           stats: { matchesPlayed: 0, wins: 0, losses: 0, winRate: 0, attendanceRate: 0, currentStreak: 0, points: 0 },
         });
 
-        set(state => ({
-          groups: state.groups.map(g => g.id === groupId ? group : g),
-        }));
+        set(s => ({ groups: s.groups.map(g => g.id === groupId ? group : g) }));
+
+        db.updateGroup(groupId, { member_count: group.memberCount }).catch(e => console.warn('Failed to update group', e));
+        db.addGroupMember({ group_id: groupId, user_id: invitedUser.id, role: 'member', joined_at: new Date().toISOString().split('T')[0], matches_played: 0, wins: 0, losses: 0, win_rate: 0, attendance_rate: 0, current_streak: 0, points: 0 })
+          .catch(e => console.warn('Failed to add group member', e));
 
         toast.success(`Invited ${invitedUser.name} to the group!`);
         return true;
       },
 
-      // Friends
+      // ---- FRIENDS ----
       sendFriendRequest: (friendId) => {
         const id = `fs_${Date.now()}`;
         const currentUserId = get().currentUserId;
         if (!currentUserId) return;
-        set(state => ({
-          friendships: [
-            ...state.friendships,
-            { id, userId: currentUserId, friendId, status: 'pending', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-          ],
-        }));
+        const friendship: Friendship = { id, userId: currentUserId, friendId, status: 'pending', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+        set(s => ({ friendships: [...s.friendships, friendship] }));
+        db.createFriendshipInDb(friendship).catch(e => console.warn('Failed to save friendship', e));
         toast.success('Friend request sent!');
       },
 
       acceptFriendRequest: (friendshipId) => {
-        set(state => ({
-          friendships: state.friendships.map(f =>
-            f.id === friendshipId ? { ...f, status: 'accepted' as const, updatedAt: new Date().toISOString() } : f
-          ),
+        set(s => ({
+          friendships: s.friendships.map(f => f.id === friendshipId ? { ...f, status: 'accepted' as const, updatedAt: new Date().toISOString() } : f),
         }));
+        db.updateFriendshipInDb(friendshipId, { status: 'accepted', updated_at: new Date().toISOString() })
+          .catch(e => console.warn('Failed to accept friendship', e));
         toast.success('Friend request accepted!');
       },
 
-      // Stories
-      uploadStory: (imageUrl, caption) => {
+      // ---- STORIES ----
+      uploadStory: async (imageUrl, caption) => {
         const currentUserId = get().currentUserId;
         if (!currentUserId) return;
         const todayStr = new Date().toISOString().split('T')[0];
@@ -726,12 +626,13 @@ export const useAppStore = create<AppState>()(
         const id = `st_${Date.now()}`;
         const now = new Date();
         const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        set(state => ({
-          stories: [
-            ...state.stories,
-            { id, userId: currentUserId, imageUrl, caption: caption || '', createdAt: now.toISOString(), expiresAt: expires.toISOString() },
-          ],
-        }));
+        const story: Story = { id, userId: currentUserId, imageUrl, caption: caption || '', createdAt: now.toISOString(), expiresAt: expires.toISOString() };
+        set(s => ({ stories: [...s.stories, story] }));
+        try {
+          await db.createStoryInDb(story);
+        } catch (e) {
+          console.warn('Failed to save story to DB', e);
+        }
         toast.success('Story uploaded!');
       },
 
@@ -747,52 +648,53 @@ export const useAppStore = create<AppState>()(
         const friendIds = get().friendships
           .filter(f => (f.userId === currentUserId || f.friendId === currentUserId) && f.status === 'accepted')
           .map(f => f.userId === currentUserId ? f.friendId : f.userId);
+        const allUsers = get().users;
         const allUserIds = [...new Set([...friendIds, currentUserId])];
         return allUserIds.map(uid => {
-          const user = getUserById(uid);
-          const activeStories = get().stories.filter(s => s.userId === uid && new Date(s.expiresAt).getTime() > now).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+          const user = allUsers.find((u: any) => u.id === uid) || getUserById(uid);
+          const activeStories = get().stories
+            .filter(s => s.userId === uid && new Date(s.expiresAt).getTime() > now)
+            .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
           return { user, stories: activeStories };
         }).filter(x => x.user && x.stories.length > 0);
       },
 
-      // Profile
       updateProfile: (userId, data) => {
-        set(state => ({
-          userProfiles: {
-            ...state.userProfiles,
-            [userId]: { ...state.userProfiles[userId], ...data },
-          },
+        set(s => ({
+          userProfiles: { ...s.userProfiles, [userId]: { ...s.userProfiles[userId], ...data } },
         }));
       },
 
-      // Event Gallery
       uploadEventImage: (eventId, imageUrl) => {
-        set(state => ({
-          events: state.events.map(e =>
+        set(s => ({
+          events: s.events.map(e =>
             e.id === eventId && e.gallery.length < 10
               ? { ...e, gallery: [...e.gallery, imageUrl] }
               : e
           ),
         }));
+        const event = get().events.find(e => e.id === eventId);
+        if (event) {
+          db.updateEventInDb(eventId, { gallery: event.gallery }).catch(e => console.warn('Failed to update gallery', e));
+        }
       },
     }),
     {
       name: 'whosin-store',
-      version: 1,
+      version: 2,
       migrate: (persisted: any) => ({
         ...persisted,
         isLoggedIn: true,
         currentUserId: 'u1',
+        loaded: true,
       }),
       partialize: (state) => ({
-        events: state.events,
-        notifications: state.notifications,
         activeTab: state.activeTab,
-        groups: state.groups,
-        stories: state.stories,
-        friendships: state.friendships,
         userProfiles: state.userProfiles,
       }),
     }
   )
 );
+
+// Required for mock login backward compat
+import { getUserByEmail, getUserByPhone, setCurrentUserId } from '../data/mockData';

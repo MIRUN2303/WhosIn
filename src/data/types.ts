@@ -202,6 +202,7 @@ export interface Notification {
   body: string;
   timestamp: string;
   read: boolean;
+  userId?: string;
   actionUrl?: string;
   avatar?: string;
 }

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../../store/useAppStore';
-import { USERS } from '../../data/mockData';
 import { Avatar } from '../../components/ui';
 import { FadeUp } from '../../components/motion';
 
@@ -19,12 +18,14 @@ export const StoriesPage: React.FC = () => {
   const friendsStories = getFriendsWithStories();
   const myStories = friendsStories.find(fs => fs.user?.id === currentUserId)?.stories || [];
 
-  const currentUser = USERS.find(u => u.id === currentUserId);
+  const allUsers = useAppStore(s => s.users);
+
+  const currentUser = allUsers.find((u: any) => u.id === currentUserId);
 
   const friendIds = friendships
     .filter(f => (f.userId === currentUserId || f.friendId === currentUserId) && f.status === 'accepted')
     .map(f => f.userId === currentUserId ? f.friendId : f.userId);
-  const friendUsers = USERS.filter(u => friendIds.includes(u.id));
+  const friendUsers = allUsers.filter((u: any) => friendIds.includes(u.id));
 
   const handleStoryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -244,6 +245,7 @@ const StoryViewerPopup: React.FC<{ user: any; stories: any[]; initialIdx: number
 // STORY UPLOAD SHEET
 // =============================================
 const StoryUploadSheet: React.FC<{ onUpload: () => void; onClose: () => void }> = ({ onUpload, onClose }) => {
+  const cameraRef = React.useRef<HTMLInputElement>(null);
   return (
     <AnimatePresence>
       <motion.div
@@ -263,8 +265,15 @@ const StoryUploadSheet: React.FC<{ onUpload: () => void; onClose: () => void }> 
           <button onClick={onUpload}
             className="w-full py-4 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-transform active:scale-95"
             style={{ background: '#00ff41', color: '#080808' }}>
-            📷 Take Photo / Upload
+            📁 Upload from Gallery
           </button>
+          <button onClick={() => cameraRef.current?.click()}
+            className="w-full py-4 mt-2 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-transform active:scale-95"
+            style={{ background: 'rgba(0,255,65,0.1)', color: '#00ff41', border: '1px solid rgba(0,255,65,0.25)' }}>
+            📷 Take Photo
+          </button>
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
+            onChange={e => { if (e.target.files?.[0]) onUpload(); }} />
           <button onClick={onClose}
             className="w-full py-3 mt-2 rounded-2xl text-sm font-semibold"
             style={{ color: 'rgba(255,255,255,0.4)' }}>

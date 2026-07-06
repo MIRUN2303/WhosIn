@@ -27,13 +27,13 @@ INSERT INTO group_members (group_id, user_id, role, joined_at, matches_played, w
 ('g2', 'u5', 'member', '2024-06-15', 10, 6, 4, 60, 75, 2, 430);
 
 -- EVENTS
-INSERT INTO events (id, title, sport, group_id, date, time, end_time, venue, venue_address, description, cover_image, organizer, max_slots, weather_condition, weather_temp, weather_icon, weather_humidity, weather_wind, status, is_recurring, gallery, tags) VALUES
-('e1', 'Saturday Smash Session', 'badminton', 'g1', '2025-07-12', '16:00', '19:00', 'Sportorium Court 2', 'Sports Complex, Level 3', 'Weekly Saturday doubles session. Bring your A-game! We usually play for 2-3 hours with rotating partners.', 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80', 'u1', 8, 'Sunny', 28, '☀️', 60, 12, 'upcoming', true, '{}', '{competitive,doubles}'),
-('e2', 'Friendly Mixed Doubles', 'badminton', 'g1', '2025-07-19', '17:00', '20:00', 'Sportorium Court 1', 'Sports Complex, Level 3', 'Casual mixed doubles session. All skill levels welcome! We rotate partners every game.', 'https://images.unsplash.com/photo-1613919113640-257e0a7ebc92?w=800&q=80', 'u3', 12, 'Partly Cloudy', 26, '⛅', 55, 15, 'upcoming', false, '{}', '{friendly,mixed}'),
-('e3', 'Tournament Prep', 'badminton', 'g1', '2025-06-28', '15:00', '19:00', 'Sportorium Court 3', 'Sports Complex, Level 3', 'Intense practice session for upcoming inter-club tournament. Advanced players preferred.', 'https://images.unsplash.com/photo-1586126942774-4b5e3e6a9385?w=800&q=80', 'u2', 8, 'Cool & Clear', 24, '🌤️', 45, 8, 'completed', false, '{https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=200&q=80}', '{tournament,advanced}'),
-('e4', 'Cricket at Central Park', 'cricket', 'g2', '2025-07-20', '07:00', '11:00', 'Central Park Ground', 'Central Park, Near Gate 3', 'Early morning cricket match. 8 overs per side. Bring your own kit if you have it.', 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&q=80', 'u2', 10, 'Sunny', 30, '☀️', 50, 5, 'upcoming', false, '{}', '{competitive,turf}'),
-('e5', 'Badminton Night', 'badminton', 'g2', '2025-07-15', '20:00', '23:00', 'Sportorium Court 4', 'Sports Complex, Level 2', 'Night session! Good vibes, great rallies. Let us know if you need a racket.', 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=80', 'u2', 8, 'Clear', 27, '🌙', 55, 8, 'upcoming', false, '{}', '{night,casual}'),
-('e6', 'Badminton Showdown', 'badminton', 'g1', '2025-06-22', '14:00', '17:00', 'Sportorium Court 2', 'Sports Complex, Level 3', 'Friendly competition with prizes!', 'https://images.unsplash.com/photo-1613919113640-257e0a7ebc92?w=800&q=80', 'u1', 8, 'Cloudy', 25, '☁️', 65, 18, 'completed', false, '{}', '{competition}');
+INSERT INTO events (id, title, sport, group_id, date, time, end_time, venue, venue_address, description, cover_image, organizer, max_slots, weather_condition, weather_temp, weather_icon, weather_humidity, weather_wind, status, is_recurring, gallery, tags, rankings, mvps) VALUES
+('e1', 'Saturday Smash Session', 'badminton', 'g1', '2025-07-12', '16:00', '19:00', 'Sportorium Court 2', 'Sports Complex, Level 3', 'Weekly Saturday doubles session. Bring your A-game! We usually play for 2-3 hours with rotating partners.', 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80', 'u1', 8, 'Sunny', 28, '☀️', 60, 12, 'upcoming', true, '{}', '{competitive,doubles}', '[]', '[]'),
+('e2', 'Friendly Mixed Doubles', 'badminton', 'g1', '2025-07-19', '17:00', '20:00', 'Sportorium Court 1', 'Sports Complex, Level 3', 'Casual mixed doubles session. All skill levels welcome! We rotate partners every game.', 'https://images.unsplash.com/photo-1613919113640-257e0a7ebc92?w=800&q=80', 'u3', 12, 'Partly Cloudy', 26, '⛅', 55, 15, 'upcoming', false, '{}', '{friendly,mixed}', '[]', '[]'),
+('e3', 'Tournament Prep', 'badminton', 'g1', '2025-06-28', '15:00', '19:00', 'Sportorium Court 3', 'Sports Complex, Level 3', 'Intense practice session for upcoming inter-club tournament. Advanced players preferred.', 'https://images.unsplash.com/photo-1586126942774-4b5e3e6a9385?w=800&q=80', 'u2', 8, 'Cool & Clear', 24, '🌤️', 45, 8, 'completed', false, '{https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=200&q=80}', '{tournament,advanced}', '[{"teamId":"t1","teamName":"Team A","wins":2,"rank":1}]', '[{"userId":"u1","name":"Mirun Raj","wins":2,"rank":1},{"userId":"u2","name":"Sneha Patel","wins":2,"rank":2},{"userId":"u3","name":"Arjun Nair","wins":0,"rank":3}]'),
+('e4', 'Cricket at Central Park', 'cricket', 'g2', '2025-07-20', '07:00', '11:00', 'Central Park Ground', 'Central Park, Near Gate 3', 'Early morning cricket match. 8 overs per side. Bring your own kit if you have it.', 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&q=80', 'u2', 10, 'Sunny', 30, '☀️', 50, 5, 'upcoming', false, '{}', '{competitive,turf}', '[]', '[]'),
+('e5', 'Badminton Night', 'badminton', 'g2', '2025-07-15', '20:00', '23:00', 'Sportorium Court 4', 'Sports Complex, Level 2', 'Night session! Good vibes, great rallies. Let us know if you need a racket.', 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=80', 'u2', 8, 'Clear', 27, '🌙', 55, 8, 'upcoming', false, '{}', '{night,casual}', '[]', '[]'),
+('e6', 'Badminton Showdown', 'badminton', 'g1', '2025-06-22', '14:00', '17:00', 'Sportorium Court 2', 'Sports Complex, Level 3', 'Friendly competition with prizes!', 'https://images.unsplash.com/photo-1613919113640-257e0a7ebc92?w=800&q=80', 'u1', 8, 'Cloudy', 25, '☁️', 65, 18, 'completed', false, '{}', '{competition}', '[{"teamId":"t4","teamName":"Pair 1","wins":2,"rank":1}]', '[{"userId":"u1","name":"Mirun Raj","wins":2,"rank":1},{"userId":"u2","name":"Sneha Patel","wins":2,"rank":2},{"userId":"u5","name":"Rahul Kapoor","wins":0,"rank":3}]');
 
 -- ATTENDANCE
 INSERT INTO attendance (event_id, user_id, status, updated_at) VALUES
@@ -60,9 +60,9 @@ INSERT INTO attendance (event_id, user_id, status, updated_at) VALUES
 ('e1', 'u5', 'coming', '2025-07-02T10:00:00Z');
 
 -- LEAGUES
-INSERT INTO leagues (id, event_id, name, players, status) VALUES
-('l1', 'e3', 'Knockout Round', '{u1,u2,u3,u4,u5}', 'completed'),
-('l2', 'e6', 'Round Robin', '{u1,u2,u3,u4,u5}', 'completed');
+INSERT INTO leagues (id, event_id, name, format, players, status) VALUES
+('l1', 'e3', 'Knockout Round', 'doubles', '{u1,u2,u3,u4,u5}', 'completed'),
+('l2', 'e6', 'Round Robin', 'doubles', '{u1,u2,u3,u4,u5}', 'completed');
 
 -- TEAMS
 INSERT INTO teams (id, league_id, name, player_ids, color) VALUES
@@ -74,11 +74,11 @@ INSERT INTO teams (id, league_id, name, player_ids, color) VALUES
 ('t6', 'l2', 'Pair 3', '{u4}', '#f59e0b');
 
 -- MATCHES
-INSERT INTO matches (id, league_id, team1_id, team2_id, score1, score2, winner_id, duration, notes, completed_at) VALUES
-('m1', 'l1', 't1', 't2', 21, 15, 't1', 25, 'Semi Final 1', '2025-06-28T16:00:00Z'),
-('m2', 'l1', 't1', 't3', 21, 18, 't1', 28, 'Final', '2025-06-28T17:00:00Z'),
-('m3', 'l2', 't4', 't5', 21, 12, 't4', 20, 'Match 1', '2025-06-22T14:30:00Z'),
-('m4', 'l2', 't4', 't6', 21, 8, 't4', 18, 'Match 2', '2025-06-22T15:30:00Z');
+INSERT INTO matches (id, league_id, name, is_final, team1_id, team2_id, score1, score2, winner_id, duration, notes, completed_at) VALUES
+('m1', 'l1', 'Semi Final 1', false, 't1', 't2', 21, 15, 't1', 25, 'Great match!', '2025-06-28T16:00:00Z'),
+('m2', 'l1', 'Final', true, 't1', 't3', 21, 18, 't1', 28, 'Championship match', '2025-06-28T17:00:00Z'),
+('m3', 'l2', 'Match 1', false, 't4', 't5', 21, 12, 't4', 20, 'Opening round', '2025-06-22T14:30:00Z'),
+('m4', 'l2', 'Match 2', true, 't4', 't6', 21, 8, 't4', 18, 'Final match', '2025-06-22T15:30:00Z');
 
 -- FRIENDSHIPS
 INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at) VALUES
