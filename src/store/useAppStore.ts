@@ -246,11 +246,11 @@ export const useAppStore = create<AppState>()(
       createLiveEvent: (input) => {
         const newId = uid();
         const currentUserId = get().currentUserId || '';
-        const now = new Date().toISOString();
-        const today = now.split('T')[0];
-        const nowTime = now.split('T')[1]?.slice(0, 5) || '19:00';
-        const endH = Math.min(parseInt(nowTime.split(':')[0]) + 3, 23);
-        const endTime = `${String(endH).padStart(2, '0')}:${nowTime.split(':')[1] || '00'}`;
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const nowTime = now.toISOString().split('T')[1]?.slice(0, 5) || '19:00';
+        const end = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
 
         const newEvent: Event = {
           id: newId,
@@ -268,7 +268,7 @@ export const useAppStore = create<AppState>()(
           maxSlots: 12,
           weather: { condition: 'TBD', temp: 28, icon: '☀️', humidity: 60, wind: 10 },
           attendance: [
-            { userId: currentUserId, status: 'coming', updatedAt: now },
+            { userId: currentUserId, status: 'coming', updatedAt: now.toISOString() },
           ],
           leagues: [],
           status: 'live',
@@ -296,10 +296,14 @@ export const useAppStore = create<AppState>()(
       },
 
       startEvent: (eventId) => {
+        const now = new Date();
+        const nowTime = now.toISOString().split('T')[1]?.slice(0, 5) || '19:00';
+        const end = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
         set(state => ({
           events: state.events.map(e =>
             e.id === eventId && e.status === 'upcoming'
-              ? { ...e, status: 'live' as const }
+              ? { ...e, status: 'live' as const, time: nowTime, endTime, date: now.toISOString().split('T')[0] }
               : e
           ),
         }));

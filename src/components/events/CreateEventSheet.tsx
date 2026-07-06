@@ -105,11 +105,6 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                   style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>✕</button>
               </div>
 
-              {/* Live event shortcut */}
-              <div className="px-5 mb-4">
-                <CreateLiveEventButton groupId={groupId} onClose={resetAndClose} />
-              </div>
-
               {/* Step indicator */}
               <div className="flex items-center gap-2 px-5 mb-5">
                 {['details', 'schedule'].map((s, i) => (
@@ -314,46 +309,5 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
         </>
       )}
     </AnimatePresence>
-  );
-};
-
-// =============================================
-// CREATE LIVE EVENT BUTTON
-// =============================================
-const CreateLiveEventButton: React.FC<{ groupId: string; onClose: () => void }> = ({ groupId, onClose }) => {
-  const navigate = useNavigate();
-  const createLiveEvent = useAppStore(s => s.createLiveEvent);
-  const groups = useAppStore(s => s.groups);
-  const currentUserId = useAppStore(s => s.currentUserId);
-  const [venue, setVenue] = useState('');
-
-  const group = groups.find(g => g.id === groupId);
-  const canCreate = group && group.members.some(m => m.userId === currentUserId && (m.role === 'creator' || m.role === 'admin'));
-
-  if (!canCreate) return null;
-
-  const handleStart = () => {
-    if (!venue.trim()) return;
-    const id = createLiveEvent({ groupId, venue: venue.trim() });
-    onClose();
-    navigate(`/events/${id}`);
-  };
-
-  return (
-    <div className="rounded-2xl p-4" style={{ background: 'rgba(0,255,65,0.06)', border: '1px solid rgba(0,255,65,0.15)' }}>
-      <p className="font-display font-bold text-sm text-white mb-2">🔥 Start a Live Event</p>
-      <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Begins right now in your group</p>
-      <div className="flex gap-2">
-        <input value={venue} onChange={e => setVenue(e.target.value)}
-          placeholder="Venue / court name"
-          className="flex-1 bg-transparent border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#00ff41]/40"
-        />
-        <button onClick={handleStart} disabled={!venue.trim()}
-          className="px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-40 transition-all active:scale-95"
-          style={{ background: '#00ff41', color: '#080808' }}>
-          Go Live
-        </button>
-      </div>
-    </div>
   );
 };

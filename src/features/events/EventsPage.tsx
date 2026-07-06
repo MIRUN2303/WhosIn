@@ -415,7 +415,7 @@ export const EventDetailPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isEventAdmin && (
+                      {isEventAdmin && event.status !== 'completed' && (
                         <button onClick={() => deleteLeague(event.id, league.id)}
                           className="text-[10px] text-red-400/50 hover:text-red-400 transition-colors">Delete League</button>
                       )}
