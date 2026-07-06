@@ -3,6 +3,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { Button } from '../ui';
+import type { EventCategory } from '../../data/types';
+
+const CATEGORIES: { value: EventCategory; label: string; emoji: string; desc: string }[] = [
+  { value: 'badminton', label: 'Badminton', emoji: '🏸', desc: 'Leagues, matches & scoring' },
+  { value: 'movie', label: 'Movie Out', emoji: '🎬', desc: 'Attendance & summary' },
+  { value: 'cafe', label: 'Cafe Out', emoji: '☕', desc: 'Attendance & summary' },
+  { value: 'roaming', label: 'Roaming', emoji: '🚶', desc: 'Attendance & summary' },
+];
+
+const CATEGORY_MAP: Record<EventCategory, string> = {
+  badminton: '🏸',
+  movie: '🎬',
+  cafe: '☕',
+  roaming: '🚶',
+};
+
+const CATEGORY_BANNERS: Record<EventCategory, string> = {
+  badminton: '/1.jpg',
+  movie: '/2.jpg',
+  cafe: '/3.jpg',
+  roaming: '/4.jpg',
+};
 
 interface CreateEventSheetProps {
   isOpen: boolean;
@@ -26,6 +48,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
   );
 
   const [groupId, setGroupId] = useState(preselectedGroupId || myGroups[0]?.id || '');
+  const [category, setCategory] = useState<EventCategory>('badminton');
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(preselectedDate || new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('19:00');
@@ -52,7 +75,8 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
     await new Promise(r => setTimeout(r, 400));
     const effectiveTime = useCustomTime ? time : '00:00';
     const effectiveEnd = useCustomTime ? endTime : '24:00';
-    const newId = createEvent({ groupId, title, sport: 'badminton', date, time: effectiveTime, endTime: effectiveEnd, venue, description, isRecurring });
+    const banner = CATEGORY_BANNERS[category];
+    const newId = createEvent({ groupId, title, category, sport: 'badminton', date, time: effectiveTime, endTime: effectiveEnd, venue, description, coverImage: banner, isRecurring });
     setLoading(false);
     onClose();
     if (newId) navigate(`/events/${newId}`);
@@ -62,7 +86,8 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
     if (!canSubmitLive) return;
     setLoading(true);
     await new Promise(r => setTimeout(r, 400));
-    const newId = createLiveEvent({ groupId, title, venue, description });
+    const banner = CATEGORY_BANNERS[category];
+    const newId = createLiveEvent({ groupId, title, venue, description, coverImage: banner, category });
     setLoading(false);
     onClose();
     if (newId) navigate(`/events/${newId}`);
@@ -70,6 +95,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
 
   const resetAndClose = () => {
     setStep('details');
+    setCategory('badminton');
     setTitle('');
     setVenue('');
     setDescription('');
@@ -105,7 +131,6 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
             </div>
 
             <div className="overflow-y-auto" style={{ maxHeight: 'calc(92dvh - 76px - 24px)' }}>
-              {/* Header */}
               <div className="flex items-center justify-between px-5 pb-4 pt-1">
                 <div>
                   <h2 className="font-display font-black text-xl text-white">
@@ -120,7 +145,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                   style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>✕</button>
               </div>
 
-              {/* ===== STEP INDICATOR (schedule mode only) ===== */}
+              {/* Step indicator (schedule mode only) */}
               {mode === 'schedule' && (
                 <div className="flex items-center gap-2 px-5 mb-5">
                   {['details', 'schedule'].map((s, i) => (
@@ -170,13 +195,37 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           </div>
                         </div>
                       )}
+
+                      <div>
+                        <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>CATEGORY</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {CATEGORIES.map(c => (
+                            <motion.button key={c.value}
+                              onClick={() => setCategory(c.value)}
+                              className="flex items-center gap-2 px-3 py-3 rounded-2xl text-sm font-semibold transition-all border"
+                              style={category === c.value
+                                ? { background: 'rgba(0,255,65,0.1)', borderColor: '#00ff41', color: '#00ff41' }
+                                : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
+                              }
+                              whileTap={{ scale: 0.97 }}
+                            >
+                              <span className="text-xl">{c.emoji}</span>
+                              <div className="text-left">
+                                <p className="text-xs font-bold">{c.label}</p>
+                                <p className="text-[10px] opacity-60">{c.desc}</p>
+                              </div>
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
                       <div>
                         <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>EVENT TITLE *</label>
                         <input
                           type="text"
                           value={title}
                           onChange={e => setTitle(e.target.value)}
-                          placeholder="e.g. Saturday Badminton Session"
+                          placeholder={category === 'movie' ? 'e.g. Oppenheimer at IMAX' : category === 'cafe' ? 'e.g. Weekend Coffee Run' : category === 'roaming' ? 'e.g. Evening Stroll' : 'e.g. Saturday Badminton Session'}
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none transition-all"
                           style={{
                             background: '#161616',
@@ -185,17 +234,19 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           autoFocus
                         />
                       </div>
+
                       <div>
                         <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>DESCRIPTION (optional)</label>
                         <textarea
                           value={description}
                           onChange={e => setDescription(e.target.value)}
-                          placeholder="What's special about this event?"
+                          placeholder="What's this about?"
                           rows={3}
                           className="w-full rounded-2xl px-4 py-3 text-sm text-white resize-none outline-none"
                           style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.08)' }}
                         />
                       </div>
+
                       <Button
                         variant="lime" fullWidth size="lg"
                         disabled={!canProceed}
@@ -213,10 +264,10 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                       className="space-y-4">
                       <div className="flex items-center gap-2 p-3 rounded-2xl"
                         style={{ background: 'rgba(0,255,65,0.06)', border: '1px solid rgba(0,255,65,0.2)' }}>
-                        <span className="text-2xl">🏸</span>
+                        <span className="text-2xl">{CATEGORY_MAP[category]}</span>
                         <div>
                           <p className="font-bold text-white text-sm">{title}</p>
-                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{selectedGroup?.name} · Badminton</p>
+                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{selectedGroup?.name} · {category.charAt(0).toUpperCase() + category.slice(1)}</p>
                         </div>
                       </div>
 
@@ -236,7 +287,6 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         />
                       </div>
 
-                      {/* Custom time toggle */}
                       <div className="flex items-center justify-between p-4 rounded-2xl"
                         style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.06)' }}>
                         <div>
@@ -257,7 +307,6 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         </motion.button>
                       </div>
 
-                      {/* Time pickers (only when custom time is enabled) */}
                       {useCustomTime && (
                         <div className="grid grid-cols-2 gap-3">
                           <div>
@@ -289,7 +338,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           type="text"
                           value={venue}
                           onChange={e => setVenue(e.target.value)}
-                          placeholder="e.g. Sportorium Court 2"
+                          placeholder={category === 'movie' ? 'e.g. PVR Cinemas' : category === 'cafe' ? 'e.g. Starbucks Reserve' : category === 'roaming' ? 'e.g. Marine Drive' : 'e.g. Sportorium Court 2'}
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none"
                           style={{
                             background: '#161616',
@@ -358,12 +407,35 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                       )}
 
                       <div>
+                        <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>CATEGORY</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {CATEGORIES.map(c => (
+                            <motion.button key={c.value}
+                              onClick={() => setCategory(c.value)}
+                              className="flex items-center gap-2 px-3 py-3 rounded-2xl text-sm font-semibold transition-all border"
+                              style={category === c.value
+                                ? { background: 'rgba(0,255,65,0.1)', borderColor: '#00ff41', color: '#00ff41' }
+                                : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
+                              }
+                              whileTap={{ scale: 0.97 }}
+                            >
+                              <span className="text-xl">{c.emoji}</span>
+                              <div className="text-left">
+                                <p className="text-xs font-bold">{c.label}</p>
+                                <p className="text-[10px] opacity-60">{c.desc}</p>
+                              </div>
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
                         <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>EVENT TITLE *</label>
                         <input
                           type="text"
                           value={title}
                           onChange={e => setTitle(e.target.value)}
-                          placeholder="e.g. Saturday Badminton Session"
+                          placeholder={category === 'movie' ? 'e.g. Oppenheimer at IMAX' : category === 'cafe' ? 'e.g. Weekend Coffee Run' : category === 'roaming' ? 'e.g. Evening Stroll' : 'e.g. Saturday Badminton Session'}
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none transition-all"
                           style={{
                             background: '#161616',
@@ -379,7 +451,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           type="text"
                           value={venue}
                           onChange={e => setVenue(e.target.value)}
-                          placeholder="e.g. Sportorium Court 2"
+                          placeholder={category === 'movie' ? 'e.g. PVR Cinemas' : category === 'cafe' ? 'e.g. Starbucks Reserve' : category === 'roaming' ? 'e.g. Marine Drive' : 'e.g. Sportorium Court 2'}
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none"
                           style={{
                             background: '#161616',
@@ -393,7 +465,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         <textarea
                           value={description}
                           onChange={e => setDescription(e.target.value)}
-                          placeholder="What's this live match about?"
+                          placeholder="What's this about?"
                           rows={3}
                           className="w-full rounded-2xl px-4 py-3 text-sm text-white resize-none outline-none"
                           style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.08)' }}

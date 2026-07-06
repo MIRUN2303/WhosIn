@@ -8,6 +8,8 @@ export type SportType =
   | 'trekking' | 'swimming' | 'movie' | 'cafe' | 'roadtrip'
   | 'gaming' | 'boardgames' | 'custom';
 
+export type EventCategory = 'badminton' | 'movie' | 'cafe' | 'roaming';
+
 export type AttendanceStatus = 'coming' | 'maybe' | 'not_coming' | 'late' | null;
 
 export type GroupRole = 'creator' | 'admin' | 'member';
@@ -90,6 +92,7 @@ export interface Event {
   id: string;
   title: string;
   sport: SportType;
+  category: EventCategory;
   groupId: string;
   date: string;
   time: string;
@@ -97,6 +100,7 @@ export interface Event {
   venue: string;
   venueAddress: string;
   description: string;
+  summary: string;
   coverImage: string;
   organizer: string;
   maxSlots: number;

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Event, Group, Notification, Story, Friendship, League, AttendanceStatus, Match } from '../data/types';
+import type { Event, Group, Notification, Story, Friendship, League, AttendanceStatus, Match, EventCategory } from '../data/types';
 import { getUserById, generateId } from '../data/mockData';
 import toast from 'react-hot-toast';
 import * as db from '../lib/db';
@@ -28,6 +28,7 @@ interface CreateEventInput {
   groupId: string;
   title: string;
   sport: string;
+  category?: string;
   date: string;
   time: string;
   endTime?: string;
@@ -41,9 +42,11 @@ interface CreateEventInput {
 
 interface CreateLiveEventInput {
   groupId: string;
-  venue: string;
   title?: string;
+  venue: string;
   description?: string;
+  category?: string;
+  coverImage?: string;
 }
 
 interface CreateGroupInput {
@@ -78,6 +81,7 @@ interface AppState {
   deleteMatch: (eventId: string, leagueId: string, matchId: string) => void;
   deleteLeague: (eventId: string, leagueId: string) => void;
   editEvent: (eventId: string, updates: Partial<Pick<Event, 'title' | 'date' | 'time' | 'endTime' | 'venue' | 'description'>>) => void;
+  updateEventSummary: (eventId: string, summary: string) => void;
   completeEvent: (eventId: string) => void;
 
   getGroupEvents: (groupId: string) => Event[];
@@ -198,11 +202,12 @@ export const useAppStore = create<AppState>()(
         const newId = uid();
         const currentUserId = get().currentUserId || '';
         const now = new Date().toISOString();
+        const cat = (input.category || 'badminton') as EventCategory;
         const newEvent: Event = {
-          id: newId, title: input.title, sport: input.sport as any, groupId: input.groupId,
+          id: newId, title: input.title, sport: input.sport as any, category: cat, groupId: input.groupId,
           date: input.date, time: input.time, endTime: input.endTime || '',
           venue: input.venue, venueAddress: '', description: input.description || '',
-          coverImage: input.coverImage || '', organizer: currentUserId, maxSlots: input.maxSlots || 12,
+          summary: '', coverImage: input.coverImage || '', organizer: currentUserId, maxSlots: input.maxSlots || 12,
           weather: { condition: 'TBD', temp: 28, icon: '☀️', humidity: 60, wind: 10 },
           attendance: [{ userId: currentUserId, status: 'coming', updatedAt: now }],
           leagues: [], status: 'upcoming', isRecurring: input.isRecurring || false,
@@ -227,11 +232,13 @@ export const useAppStore = create<AppState>()(
         const nowTime = now.toISOString().split('T')[1]?.slice(0, 5) || '19:00';
         const end = new Date(now.getTime() + 24 * 60 * 60 * 1000);
         const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
+        const cat = (input.category || 'badminton') as EventCategory;
+        const defaultTitle = cat === 'badminton' ? 'Live Match' : cat === 'movie' ? 'Movie Night' : cat === 'cafe' ? 'Cafe Session' : 'Roaming';
         const newEvent: Event = {
-          id: newId, title: input.title || `Live Match @ ${input.venue}`,
-          sport: 'badminton' as any, groupId: input.groupId,
+          id: newId, title: input.title || defaultTitle + ' @ ' + input.venue,
+          sport: 'badminton' as any, category: cat, groupId: input.groupId,
           date: today, time: nowTime, endTime, venue: input.venue,
-          venueAddress: '', description: input.description || '', coverImage: '',
+          venueAddress: '', description: input.description || '', summary: '', coverImage: input.coverImage || '',
           organizer: currentUserId, maxSlots: 12,
           weather: { condition: 'TBD', temp: 28, icon: '☀️', humidity: 60, wind: 10 },
           attendance: [{ userId: currentUserId, status: 'coming', updatedAt: now.toISOString() }],
@@ -441,6 +448,13 @@ export const useAppStore = create<AppState>()(
           ...(updates.venue !== undefined && { venue: updates.venue }),
           ...(updates.description !== undefined && { description: updates.description }),
         }).catch(e => console.warn('Failed to edit event', e));
+      },
+
+      updateEventSummary: (eventId, summary) => {
+        set(s => ({
+          events: s.events.map(e => e.id === eventId ? { ...e, summary } : e),
+        }));
+        db.updateEventInDb(eventId, { summary }).catch(e => console.warn('Failed to update summary', e));
       },
 
       getGroupEvents: (groupId) => {

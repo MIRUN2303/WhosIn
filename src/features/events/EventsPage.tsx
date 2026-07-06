@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
@@ -33,6 +33,7 @@ export const EventDetailPage: React.FC = () => {
   const deleteMatch = useAppStore(s => s.deleteMatch);
   const deleteLeague = useAppStore(s => s.deleteLeague);
   const editEvent = useAppStore(s => s.editEvent);
+  const updateEventSummary = useAppStore(s => s.updateEventSummary);
   const [galleryIdx, setGalleryIdx] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -43,6 +44,7 @@ export const EventDetailPage: React.FC = () => {
   const [matchForm, setMatchForm] = useState<{ leagueId: string; side1: string[]; side2: string[]; score1: string; score2: string; name: string; isFinal: boolean } | null>(null);
   const [showEditDetails, setShowEditDetails] = useState(false);
   const [editFields, setEditFields] = useState({ title: '', date: '', time: '', endTime: '', venue: '', description: '' });
+  const [summaryText, setSummaryText] = useState(event?.summary || '');
   const [confirmAction, setConfirmAction] = useState<{ label: string; onConfirm: () => void } | null>(null);
   const [captchaInput, setCaptchaInput] = useState('');
   const [captchaWord, setCaptchaWord] = useState('');
@@ -70,6 +72,11 @@ export const EventDetailPage: React.FC = () => {
     groupMember?.role === 'admin'
   );
   const isEditable = isEventAdmin && (event.status === 'upcoming' || event.status === 'live' || event.status === 'paused');
+
+  useEffect(() => {
+    setSummaryText(event.summary || '');
+  }, [event.id]);
+
   if (!event) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
@@ -310,7 +317,7 @@ export const EventDetailPage: React.FC = () => {
                 </motion.div>
               )}
 
-              {event.status === 'live' && (
+              {event.status === 'live' && event.category === 'badminton' && (
                 <Button variant="glass" size="sm" className="w-full"
                   onClick={() => setShowLeagueSetup(v => !v)}>
                   {showLeagueSetup ? 'Cancel' : (event.leagues.length > 0 ? '+ New League' : 'Setup League')}
@@ -345,14 +352,51 @@ export const EventDetailPage: React.FC = () => {
           </FadeUp>
         )}
 
-        {/* LEAGUES / SCORES */}
-        {(event.status === 'live' || event.status === 'completed') && (
+        {/* SUMMARY (for non-badminton events) */}
+        {event.category !== 'badminton' && (event.status === 'live' || event.status === 'completed') && (
+          <FadeUp delay={0.15}>
+            <SectionHeader
+              title="📝 Summary"
+              action={
+                isEventAdmin && event.status !== 'completed' && (
+                  <span className="text-xs text-white/30">Editable</span>
+                )
+              }
+              className="mb-3"
+            />
+            <Card padding="md" variant="dark">
+              {isEventAdmin && event.status !== 'completed' ? (
+                <textarea
+                  value={summaryText}
+                  onChange={e => setSummaryText(e.target.value)}
+                  placeholder="Write a summary about how the session went..."
+                  rows={5}
+                  className="w-full rounded-2xl px-4 py-3 text-sm text-white resize-none outline-none"
+                  style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.08)' }}
+                />
+              ) : (
+                <p className="text-white/70 text-sm whitespace-pre-wrap leading-relaxed">
+                  {event.summary || 'No summary written yet.'}
+                </p>
+              )}
+              {isEventAdmin && event.status !== 'completed' && (
+                <div className="flex justify-end mt-3">
+                  <Button variant="lime" size="sm" onClick={() => updateEventSummary(event.id, summaryText)}>
+                    Save Summary
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </FadeUp>
+        )}
+
+        {/* BADMINTON: LEAGUES / SCORES */}
+        {event.category === 'badminton' && (event.status === 'live' || event.status === 'completed') && (
         <FadeUp delay={0.15}>
           {/* COMPLETED SUMMARY */}
           {event.status === 'completed' && event.rankings && (
             <div className="space-y-3 mb-4">
               <SectionHeader title="🏆 Event Results" className="mb-3" />
-              {/* Best Team */}
               <Card padding="md" variant="dark">
                 <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Best Team</p>
                 {event.rankings.length > 0 && (
@@ -373,7 +417,6 @@ export const EventDetailPage: React.FC = () => {
                   </div>
                 )}
               </Card>
-              {/* MVP */}
               {event.mvps && event.mvps.length > 0 && (
                 <Card padding="md" variant="dark">
                   <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">MVP — Top Players</p>
