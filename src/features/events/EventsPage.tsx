@@ -7,6 +7,7 @@ import { SPORT_CONFIG, getUserById, getGroupById } from '../../data/mockData';
 import { Card, Avatar, Badge, Button, SportOrb, SectionHeader, Chip } from '../../components/ui';
 import { StaggerList, StaggerItem, FadeUp } from '../../components/motion';
 import { ImageLightbox } from '../../components/media/ImageLightbox';
+import { CreateEventSheet } from '../../components/events/CreateEventSheet';
 import type { AttendanceStatus } from '../../data/types';
 
 const ATTENDANCE_OPTIONS: { status: AttendanceStatus; label: string; emoji: string; color: string }[] = [
@@ -678,6 +679,7 @@ export const EventsPage: React.FC = () => {
   const events = useAppStore(s => s.events);
   const currentUserId = useAppStore(s => s.currentUserId);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('upcoming');
+  const [showCreate, setShowCreate] = useState(false);
 
   const user = currentUserId ? getUserById(currentUserId) : null;
   const myGroupIds = user ? [...user.createdGroups, ...user.joinedGroups] : [];
@@ -690,8 +692,20 @@ export const EventsPage: React.FC = () => {
   return (
     <div className="pb-24 max-w-lg mx-auto px-4 pt-4 space-y-4">
       <FadeUp>
-        <h1 className="font-display font-black text-2xl text-white">Events</h1>
-        <p className="text-white/50 text-sm">All upcoming and past sessions</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="font-display font-black text-2xl text-white">Events</h1>
+            <p className="text-white/50 text-sm">All upcoming and past sessions</p>
+          </div>
+          <motion.button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+            style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.25)', color: '#00ff41' }}
+            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+          >
+            ⚡ Live
+          </motion.button>
+        </div>
       </FadeUp>
 
       <FadeUp delay={0.05}>
@@ -747,6 +761,8 @@ export const EventsPage: React.FC = () => {
           );
         })}
       </StaggerList>
+
+      <CreateEventSheet isOpen={showCreate} onClose={() => setShowCreate(false)} initialMode="live" />
     </div>
   );
 };

@@ -400,7 +400,7 @@ export const HomePage: React.FC = () => {
       </FadeUp>
 
       {/* Create Event Sheet */}
-      <CreateEventSheet isOpen={showCreate} onClose={() => setShowCreate(false)} />
+      <CreateEventSheet isOpen={showCreate} onClose={() => setShowCreate(false)} initialMode="live" />
     </div>
   );
  };

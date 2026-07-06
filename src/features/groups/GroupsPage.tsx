@@ -312,6 +312,7 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
         onClose={() => setShowCreate(false)}
         preselectedGroupId={groupId}
         preselectedDate={selectedDay ? `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}` : undefined}
+        initialMode="schedule"
       />
     </div>
   );
@@ -691,7 +692,7 @@ export const GroupDetailPage: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      <CreateEventSheet isOpen={showCreate} onClose={() => setShowCreate(false)} preselectedGroupId={group.id} />
+      <CreateEventSheet isOpen={showCreate} onClose={() => setShowCreate(false)} preselectedGroupId={group.id} initialMode="live" />
     </div>
   );
 };
