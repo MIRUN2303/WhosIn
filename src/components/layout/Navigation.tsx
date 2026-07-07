@@ -161,6 +161,7 @@ export const AppHeader: React.FC<{
 }> = ({ title, subtitle, rightAction }) => {
   const location = useLocation();
   const notifCount = useAppStore(s => s.unreadCount());
+  const isLoggedIn = useAppStore(s => s.isLoggedIn);
   if (location.pathname === '/' || location.pathname === '/landing' || location.pathname === '/login' || location.pathname === '/signup') return null;
 
   return (
@@ -187,15 +188,24 @@ export const AppHeader: React.FC<{
         </div>
         <div className="flex items-center gap-2">
           {rightAction}
-          <NavLink to="/notifications"
-            className="relative w-9 h-9 flex items-center justify-center rounded-xl tap-scale"
-            style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)' }}
-          >
-            <IconBell size={18} className="text-white/50" />
-            {notifCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full pulse-green" />
-            )}
-          </NavLink>
+          {isLoggedIn ? (
+            <NavLink to="/notifications"
+              className="relative w-9 h-9 flex items-center justify-center rounded-xl tap-scale"
+              style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)' }}
+            >
+              <IconBell size={18} className="text-white/50" />
+              {notifCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full pulse-green" />
+              )}
+            </NavLink>
+          ) : (
+            <NavLink to="/login"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all"
+              style={{ background: 'var(--green)', color: 'black' }}
+            >
+              Sign In
+            </NavLink>
+          )}
         </div>
       </div>
     </header>

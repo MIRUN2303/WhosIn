@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { format, differenceInSeconds, parseISO } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
@@ -222,20 +222,75 @@ const GroupEventCard: React.FC<{
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const currentUserId = useAppStore(s => s.currentUserId);
+  const isLoggedIn = useAppStore(s => s.isLoggedIn);
   const getMyGroupsNextEvents = useAppStore(s => s.getMyGroupsNextEvents);
   const [showCreate, setShowCreate] = useState(false);
 
   const currentUser = USERS.find(u => u.id === currentUserId);
-  if (!currentUser) return <div className="min-h-screen flex items-center justify-center"><p className="text-white/50">Loading...</p></div>;
-  const myGroupEvents = getMyGroupsNextEvents();
-  const heroEntry = myGroupEvents[0];
 
   const hour = new Date().getHours();
   const greetingIcon = hour < 12 ? 'sunrise' : hour < 17 ? 'sun' : 'moon';
   const greetingText = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
-  return (
-    <div className="page-container !pb-24 space-y-5">
+  if (!isLoggedIn || !currentUser) {
+    return (
+      <div className="page-container !pb-24 space-y-5">
+        <FadeUp>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}><Iconic name={greetingIcon} size={16} /> {greetingText}</p>
+              <h1 className="font-display font-black text-2xl text-white" style={{ letterSpacing: '-0.01em' }}>Welcome</h1>
+            </div>
+          </div>
+        </FadeUp>
+
+        <FadeUp delay={0.06}>
+          <div className="rounded-[2rem] overflow-hidden relative"
+            style={{ background: 'linear-gradient(145deg, #1a1000 0%, #0f0a00 60%, #0a0800 100%)', border: '1px solid rgba(var(--green-rgb),0.15)' }}>
+            <div className="absolute inset-0 opacity-10">
+              <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" alt="" className="w-full h-full object-cover" />
+            </div>
+            <div className="relative p-6 text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
+                style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.2)' }}>
+                <Iconic name="badminton" size={32} />
+              </div>
+              <div>
+                <h2 className="font-display font-black text-2xl text-white">Join the Game</h2>
+                <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Sign in to create groups, organize events, and track your stats.</p>
+              </div>
+              <div className="flex gap-3 justify-center">
+                <Link to="/login" className="flex-1 max-w-[140px] py-3 rounded-2xl font-black text-sm text-center transition-all"
+                  style={{ background: 'var(--green)', color: 'black' }}
+                >Sign In</Link>
+                <Link to="/signup" className="flex-1 max-w-[140px] py-3 rounded-2xl font-black text-sm text-center transition-all"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                >Get Started</Link>
+              </div>
+            </div>
+          </div>
+        </FadeUp>
+
+        <FadeUp delay={0.12}>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { emoji: '🏸', label: 'Badminton', desc: 'Find players near you' },
+              { emoji: '🏏', label: 'Cricket', desc: 'Organize matches' },
+              { emoji: '⚽', label: 'Football', desc: 'Join local games' },
+              { emoji: '🏀', label: 'Basketball', desc: 'Connect with teams' },
+            ].map((sport, i) => (
+              <div key={i} className="rounded-2xl p-4 flex flex-col items-center text-center gap-2"
+                style={{ background: '#111', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span className="text-3xl">{sport.emoji}</span>
+                <p className="font-bold text-white text-sm">{sport.label}</p>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>{sport.desc}</p>
+              </div>
+            ))}
+          </div>
+        </FadeUp>
+      </div>
+    );
+  }
 
       {/* Greeting */}
       <FadeUp>

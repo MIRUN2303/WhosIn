@@ -105,11 +105,11 @@ const AppContent: React.FC = () => {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/complete-profile" element={<CompleteProfilePage />} />
-              <Route path="/home" element={<AuthGuard><PageWrapper><HomePage /></PageWrapper></AuthGuard>} />
+              <Route path="/home" element={<PageWrapper><HomePage /></PageWrapper>} />
               <Route path="/events" element={<AuthGuard><PageWrapper><EventsPage /></PageWrapper></AuthGuard>} />
               <Route path="/events/:id" element={<AuthGuard><PageWrapper><EventDetailPage /></PageWrapper></AuthGuard>} />
               <Route path="/calendar" element={<AuthGuard><PageWrapper><CalendarPage /></PageWrapper></AuthGuard>} />
-              <Route path="/profile" element={<AuthGuard><PageWrapper><ProfilePage /></PageWrapper></AuthGuard>} />
+              <Route path="/profile" element={<PageWrapper><ProfilePage /></PageWrapper>} />
               <Route path="/groups" element={<AuthGuard><PageWrapper><GroupsPage /></PageWrapper></AuthGuard>} />
               <Route path="/groups/:id" element={<AuthGuard><PageWrapper><GroupDetailPage /></PageWrapper></AuthGuard>} />
               <Route path="/stories" element={<AuthGuard><PageWrapper><StoriesPage /></PageWrapper></AuthGuard>} />
