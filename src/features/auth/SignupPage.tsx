@@ -40,7 +40,7 @@ export const SignupPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden" style={{ background: '#080808' }}>
+    <div className="h-screen flex items-center justify-center px-4 relative overflow-hidden" style={{ background: '#080808' }}>
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[-120px] left-[-60px] w-[400px] h-[400px] rounded-full blur-[140px]" style={{ background: 'radial-gradient(circle, rgba(var(--green-rgb),0.06), transparent)' }} />
         <div className="absolute bottom-[-80px] right-[-40px] w-[300px] h-[300px] rounded-full blur-[120px]" style={{ background: 'radial-gradient(circle, rgba(var(--amber-rgb),0.05), transparent)' }} />
