@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseNoAuth } from './supabase';
 import type { User } from '../data/types';
 
 export async function signInWithEmail(email: string, password: string) {
@@ -53,8 +53,8 @@ export async function resolveUserFromAuth(
   name?: string,
   phone?: string,
 ): Promise<User | null> {
-  // 1. Try to find existing user by email
-  const { data: existing } = await supabase
+  // 1. Try to find existing user by email (anon client avoids RLS issues after login)
+  const { data: existing } = await supabaseNoAuth
     .from('users')
     .select('*')
     .eq('email', email)

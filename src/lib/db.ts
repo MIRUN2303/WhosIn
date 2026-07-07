@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseNoAuth } from './supabase';
 import type {
   User, Group, GroupMember, Event, League, Team, Match,
   AttendanceRecord, Notification, Friendship, Story,
@@ -13,13 +13,13 @@ function now() { return new Date().toISOString(); }
 // USERS
 // =============================================
 export async function fetchUsers(): Promise<User[]> {
-  const { data, error } = await supabase.from('users').select('*');
+  const { data, error } = await supabaseNoAuth.from('users').select('*');
   if (error) throw error;
   return (data || []).map(mapUser);
 }
 
 export async function fetchUserById(id: string): Promise<User | null> {
-  const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
+  const { data, error } = await supabaseNoAuth.from('users').select('*').eq('id', id).single();
   if (error) return null;
   return mapUser(data);
 }

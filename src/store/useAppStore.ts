@@ -149,9 +149,9 @@ export const useAppStore = create<AppState>()(
 
       loadFromSupabase: async () => {
         try {
-          // 1. Check existing auth session
+          // 1. Check existing auth session — isLoggedIn is driven by the SESSION, not DB profile
           const session = await auth.getSession();
-          const authUser = session?.user;
+          const authUser = session?.user ?? null;
 
           // 2. Fetch all data from Supabase tables
           const [events, groups, notifications, friendships, stories] = await Promise.all([
@@ -163,8 +163,8 @@ export const useAppStore = create<AppState>()(
           ]);
           const users = await db.fetchUsers().catch(() => []);
 
-          // 3. If we have an auth session, resolve the local user
-          let currentUserId: string | null = null;
+          // 3. Resolve the local user profile from DB — but ALWAYS stay logged in if session exists
+          let currentUserId: string | null = authUser?.id ?? null;
           if (authUser?.email) {
             try {
               const resolved = await auth.resolveUserFromAuth(
@@ -173,19 +173,23 @@ export const useAppStore = create<AppState>()(
                 authUser.user_metadata?.name,
                 authUser.user_metadata?.phone,
               );
-              currentUserId = resolved?.id || null;
+              // Prefer the DB row id; fall back to auth uid so we never lose the session
+              currentUserId = resolved?.id ?? authUser.id;
             } catch {
-              // fallback — try to find by email in fetched users
+              // DB profile load failed (e.g. RLS) — fall back to email match or auth uid
               const match = users.find((u: any) => u.email === authUser.email);
-              currentUserId = match?.id || null;
+              currentUserId = match?.id ?? authUser.id;
             }
           }
 
           const currentUser = users.find((u: any) => u.id === currentUserId);
-          const needsPhone = !!currentUserId && (!currentUser || !currentUser.phone);
-          set({ events, groups, notifications, friendships, stories, users, loaded: true, isLoggedIn: !!currentUserId, currentUserId, needsPhone });
+          // isLoggedIn = !!session, not !!currentUserId — DB failure won't log the user out
+          const isLoggedIn = !!authUser;
+          const needsPhone = isLoggedIn && (!currentUser || !currentUser.phone);
+          set({ events, groups, notifications, friendships, stories, users, loaded: true, isLoggedIn, currentUserId, needsPhone });
         } catch (e) {
           console.warn('Supabase load failed, using empty state', e);
+          // Preserve existing isLoggedIn so a network hiccup doesn't log the user out
           set({ loaded: true });
         }
       },
@@ -197,15 +201,26 @@ export const useAppStore = create<AppState>()(
             return false;
           }
           const data = await auth.signInWithEmail(emailOrPhone, password);
-          if (!data.user?.email) return false;
+          if (!data.user) return false;
 
-          const resolved = await auth.resolveUserFromAuth(
-            data.user.id,
-            data.user.email,
-            data.user.user_metadata?.name,
-          );
+          const authUser = data.user;
+          // Default to auth uid; DB profile resolution is best-effort
+          let resolvedId: string = authUser.id;
+          try {
+            if (authUser.email) {
+              const resolved = await auth.resolveUserFromAuth(
+                authUser.id,
+                authUser.email,
+                authUser.user_metadata?.name,
+              );
+              resolvedId = resolved?.id ?? authUser.id;
+            }
+          } catch {
+            // DB profile unavailable — auth uid is a safe fallback
+          }
+
           const users = await db.fetchUsers().catch(() => get().users);
-          set({ isLoggedIn: true, currentUserId: resolved!.id, users });
+          set({ isLoggedIn: true, currentUserId: resolvedId, users, loaded: true });
           return true;
         } catch {
           toast.error('Invalid credentials');
@@ -216,17 +231,27 @@ export const useAppStore = create<AppState>()(
       signup: async (name, email, phone, password) => {
         try {
           const data = await auth.signUpWithEmail(email, password, name, phone);
-          if (!data.user?.email) return false;
+          if (!data.user) return false;
 
-          // Resolve (creates row in users table)
-          const resolved = await auth.resolveUserFromAuth(
-            data.user.id,
-            data.user.email,
-            name,
-            phone,
-          );
+          const authUser = data.user;
+          // Default to auth uid; DB profile creation is best-effort
+          let resolvedId: string = authUser.id;
+          try {
+            if (authUser.email) {
+              const resolved = await auth.resolveUserFromAuth(
+                authUser.id,
+                authUser.email,
+                name,
+                phone,
+              );
+              resolvedId = resolved?.id ?? authUser.id;
+            }
+          } catch {
+            // RLS or network error — auth uid is a safe fallback
+          }
+
           const users = await db.fetchUsers().catch(() => get().users);
-          set({ isLoggedIn: true, currentUserId: resolved!.id, users });
+          set({ isLoggedIn: true, currentUserId: resolvedId, users, loaded: true });
           return true;
         } catch (e: any) {
           toast.error(e.message || 'Sign up failed');
