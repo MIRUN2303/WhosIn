@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 
 interface ImageLightboxProps {
   images: string[];
@@ -60,7 +60,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ images, initialInd
             {images.map((_, i) => (
               <div key={i} onClick={e => { e.stopPropagation(); setIdx(i); }}
                 className="w-2 h-2 rounded-full cursor-pointer transition-all"
-                style={{ background: i === idx ? '#00ff41' : 'rgba(255,255,255,0.2)', width: i === idx ? 10 : 6, height: i === idx ? 10 : 6 }} />
+                style={{ background: i === idx ? 'var(--green)' : 'rgba(255,255,255,0.2)', width: i === idx ? 10 : 6, height: i === idx ? 10 : 6 }} />
             ))}
           </div>
         )}

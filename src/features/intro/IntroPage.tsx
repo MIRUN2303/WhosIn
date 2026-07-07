@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
+import { useAppStore } from '../../store/useAppStore';
 
 export const IntroPage: React.FC = () => {
   const navigate = useNavigate();
+  const isLoggedIn = useAppStore(s => s.isLoggedIn);
+  const loaded = useAppStore(s => s.loaded);
   const [phase, setPhase] = useState<'logo' | 'tagline' | 'fadeout'>('logo');
 
   useEffect(() => {
+    if (!loaded) return;
+    const target = isLoggedIn ? '/home' : '/login';
     const t1 = setTimeout(() => setPhase('tagline'), 2800);
     const t2 = setTimeout(() => setPhase('fadeout'), 4200);
-    const t3 = setTimeout(() => navigate('/home', { replace: true }), 5400);
+    const t3 = setTimeout(() => navigate(target, { replace: true }), 5400);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, [navigate]);
+  }, [navigate, isLoggedIn, loaded]);
 
   return (
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden">
@@ -70,7 +75,7 @@ export const IntroPage: React.FC = () => {
               className="font-logo text-5xl tracking-[0.08em] text-white/85 select-none"
               style={{ letterSpacing: '0.08em' }}
             >
-              Whos<span className="text-[#00ff41] text-6xl" style={{ textShadow: '0 0 20px rgba(0,255,65,0.5)' }}>I</span>n
+              Whos<span className="text-[var(--green)] text-6xl" style={{ textShadow: '0 0 20px rgba(var(--green-rgb),0.5)' }}>I</span>n
             </motion.span>
           </motion.div>
         )}
@@ -91,7 +96,7 @@ export const IntroPage: React.FC = () => {
               className="font-logo text-5xl tracking-[0.08em] text-white/85 select-none"
               style={{ letterSpacing: '0.08em' }}
             >
-              Whos<span className="text-[#00ff41] text-6xl" style={{ textShadow: '0 0 20px rgba(0,255,65,0.5)' }}>I</span>n
+              Whos<span className="text-[var(--green)] text-6xl" style={{ textShadow: '0 0 20px rgba(var(--green-rgb),0.5)' }}>I</span>n
             </motion.span>
             <motion.div
               initial={{ width: 0 }}

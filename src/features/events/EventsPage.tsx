@@ -1,18 +1,19 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { format, parseISO } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
 import { SPORT_CONFIG, getUserById } from '../../data/mockData';
 import { Card, Avatar, Badge, Button, SportOrb, SectionHeader, Chip } from '../../components/ui';
+import { Iconic } from '../../components/ui/icons';
 import { StaggerList, StaggerItem, FadeUp } from '../../components/motion';
 import { ImageLightbox } from '../../components/media/ImageLightbox';
 import { CreateEventSheet } from '../../components/events/CreateEventSheet';
 import type { AttendanceStatus } from '../../data/types';
 
-const ATTENDANCE_OPTIONS: { status: AttendanceStatus; label: string; emoji: string; color: string }[] = [
-  { status: 'coming',      label: 'Coming',     emoji: '✅', color: '#22c55e' },
-  { status: 'not_coming',  label: 'Can\'t Make It', emoji: '❌', color: '#ef4444' },
+const ATTENDANCE_OPTIONS: { status: AttendanceStatus; label: string; icon: string; color: string }[] = [
+  { status: 'coming',      label: 'Coming',     icon: 'check_circle', color: '#22c55e' },
+  { status: 'not_coming',  label: 'Can\'t Make It', icon: 'x_circle', color: '#ef4444' },
 ];
 
 // =============================================
@@ -80,7 +81,7 @@ export const EventDetailPage: React.FC = () => {
   if (!event) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <p className="text-5xl mb-4">🔍</p>
+        <Iconic name="search" size={48} className="mb-4" />
         <p className="text-white/60">Event not found</p>
         <Button onClick={() => navigate('/home')} className="mt-4">Go home</Button>
       </div>
@@ -94,8 +95,8 @@ export const EventDetailPage: React.FC = () => {
   const notComing = event.attendance.filter(a => a.status === 'not_coming');
 
   const attendanceGroups = [
-    { label: 'Coming', emoji: '✅', items: confirmed, color: '#22c55e' },
-    { label: "Can't", emoji: '❌', items: notComing, color: '#ef4444' },
+    { label: 'Coming', icon: 'check_circle', items: confirmed, color: '#22c55e' },
+    { label: "Can't", icon: 'x_circle', items: notComing, color: '#ef4444' },
   ];
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,17 +125,17 @@ export const EventDetailPage: React.FC = () => {
         </button>
         <div className="absolute top-4 right-4 flex gap-2 z-10">
           {event.status === 'live'
-            ? <Badge variant="lime" dot>🔴 Live</Badge>
+            ? <Badge variant="lime" dot><Iconic name="live" size={14} /> Live</Badge>
             : event.status === 'paused'
-            ? <Badge variant="amber" dot>⏸ Paused</Badge>
+            ? <Badge variant="amber" dot><Iconic name="pause" size={14} /> Paused</Badge>
             : event.status === 'completed'
-            ? <Badge variant="glass">✓ History</Badge>
+            ? <Badge variant="glass"><Iconic name="check" size={14} /> History</Badge>
             : event.status === 'cancelled'
-            ? <Badge variant="glass">🚫 Cancelled</Badge>
+            ? <Badge variant="glass"><Iconic name="x" size={14} /> Cancelled</Badge>
             : <Badge variant="green" dot>Upcoming</Badge>
           }
           {isEditable && (
-            <Badge variant="amber">✏️ Edit</Badge>
+            <Badge variant="amber"><Iconic name="edit" size={14} /> Edit</Badge>
           )}
         </div>
       </div>
@@ -148,11 +149,11 @@ export const EventDetailPage: React.FC = () => {
               <div className="flex-1">
                 <h1 className="font-display font-black text-xl text-white leading-tight">{event.title}</h1>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                  <p className="text-white/60 text-sm">📅 {format(parseISO(event.date), 'EEEE, MMM d')}</p>
-                  <p className="text-white/60 text-sm">⏰ {event.time} – {event.endTime}</p>
-                  <p className="text-white/60 text-sm">📍 {event.venue}</p>
-                  <p className="text-white/60 text-sm">👤 {organizer?.name}</p>
-                  <p className="text-white/60 text-sm">{event.weather.icon} {event.weather.temp}° · {event.weather.condition}</p>
+                  <p className="text-white/60 text-sm flex items-center gap-1"><Iconic name="calendar" size={14} /> {format(parseISO(event.date), 'EEEE, MMM d')}</p>
+                  <p className="text-white/60 text-sm flex items-center gap-1"><Iconic name="clock" size={14} /> {event.time} – {event.endTime}</p>
+                  <p className="text-white/60 text-sm flex items-center gap-1"><Iconic name="map_pin" size={14} /> {event.venue}</p>
+                  <p className="text-white/60 text-sm flex items-center gap-1"><Iconic name="users" size={14} /> {organizer?.name}</p>
+                  <p className="text-white/60 text-sm flex items-center gap-1"><Iconic name={event.weather.icon} size={14} /> {event.weather.temp}° · {event.weather.condition}</p>
                 </div>
                 {event.description && (
                   <p className="text-white/70 text-sm mt-3 leading-relaxed">{event.description}</p>
@@ -165,7 +166,7 @@ export const EventDetailPage: React.FC = () => {
         {/* Announcements */}
         {event.announcements.length > 0 && (
           <FadeUp delay={0.05}>
-            <SectionHeader title="📢 Announcements" className="mb-2" />
+            <SectionHeader title={<span><Iconic name="message" size={16} /> Announcements</span>} className="mb-2" />
             <div className="space-y-2">
               {event.announcements.map(ann => {
                 const author = getUserById(ann.authorId);
@@ -213,7 +214,7 @@ export const EventDetailPage: React.FC = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
               >
-                <span className="text-lg">{opt.emoji}</span>
+                <Iconic name={opt.icon} size={22} />
                 {opt.label}
               </motion.button>
             ))}
@@ -224,7 +225,7 @@ export const EventDetailPage: React.FC = () => {
             {attendanceGroups.filter(g => g.items.length > 0).map(group => (
               <div key={group.label}>
                 <p className="text-xs font-semibold text-white/40 mb-2 flex items-center gap-1.5">
-                  <span>{group.emoji}</span>
+                  <Iconic name={group.icon} size={16} />
                   {group.label}
                   <span className="glass rounded-full px-2 py-0.5 text-white/60">{group.items.length}</span>
                 </p>
@@ -296,28 +297,28 @@ export const EventDetailPage: React.FC = () => {
               <div className="flex gap-2">
                 <Button variant="danger" size="sm" className="flex-1"
                   onClick={() => promptConfirm('Cancel Event', () => { useAppStore.getState().cancelEvent(event.id); })}>
-                  🚫 Cancel Event
+                  <Iconic name="x" size={14} /> Cancel Event
                 </Button>
               </div>
 
               {showEditDetails && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 overflow-hidden">
                   <input value={editFields.title} onChange={e => setEditFields(f => ({ ...f, title: e.target.value }))} placeholder="Title"
-                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)]" />
                   <div className="grid grid-cols-2 gap-2">
                     <input type="date" value={editFields.date} onChange={e => setEditFields(f => ({ ...f, date: e.target.value }))}
-                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)]" />
                     <input type="time" value={editFields.time} onChange={e => setEditFields(f => ({ ...f, time: e.target.value }))}
-                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)]" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <input value={editFields.venue} onChange={e => setEditFields(f => ({ ...f, venue: e.target.value }))} placeholder="Venue"
-                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)]" />
                     <input type="time" value={editFields.endTime} onChange={e => setEditFields(f => ({ ...f, endTime: e.target.value }))}
-                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                      className="text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)]" />
                   </div>
                   <textarea value={editFields.description} onChange={e => setEditFields(f => ({ ...f, description: e.target.value }))} placeholder="Description" rows={2}
-                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41] resize-none" />
+                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)] resize-none" />
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" className="flex-1" onClick={() => setShowEditDetails(false)}>Cancel</Button>
                     <Button variant="lime" size="sm" className="flex-1" onClick={() => { editEvent(event.id, editFields); setShowEditDetails(false); }}>Save</Button>
@@ -336,14 +337,14 @@ export const EventDetailPage: React.FC = () => {
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 overflow-hidden">
                   <input value={leagueName} onChange={e => setLeagueName(e.target.value)}
                     placeholder="League name"
-                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41] transition-colors" />
+                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)] transition-colors" />
                   <div className="flex gap-2">
                     <button onClick={() => setLeagueFormat('single')}
-                      className={`flex-1 text-xs font-bold py-2 rounded-xl border transition-all ${leagueFormat === 'single' ? 'border-[#00ff41] text-[#00ff41] bg-[#00ff41]/10' : 'border-white/10 text-white/50'}`}>
+                      className={`flex-1 text-xs font-bold py-2 rounded-xl border transition-all ${leagueFormat === 'single' ? 'border-[var(--green)] text-[var(--green)] bg-[var(--green)]/10' : 'border-white/10 text-white/50'}`}>
                       Singles
                     </button>
                     <button onClick={() => setLeagueFormat('doubles')}
-                      className={`flex-1 text-xs font-bold py-2 rounded-xl border transition-all ${leagueFormat === 'doubles' ? 'border-[#00ff41] text-[#00ff41] bg-[#00ff41]/10' : 'border-white/10 text-white/50'}`}>
+                      className={`flex-1 text-xs font-bold py-2 rounded-xl border transition-all ${leagueFormat === 'doubles' ? 'border-[var(--green)] text-[var(--green)] bg-[var(--green)]/10' : 'border-white/10 text-white/50'}`}>
                       Doubles
                     </button>
                   </div>
@@ -363,7 +364,7 @@ export const EventDetailPage: React.FC = () => {
         {/* ROUTE INFO (for route-based events) */}
         {(event.category === 'cycling' || event.category === 'jogging' || event.category === 'walking') && (event.status === 'live' || event.status === 'completed' || event.status === 'cancelled') && (
           <FadeUp delay={0.1}>
-            <SectionHeader title={event.category === 'cycling' ? '🚴 Route' : event.category === 'jogging' ? '🏃 Route' : '🚶‍➡️ Route'} className="mb-3" />
+            <SectionHeader title={<span><Iconic name={event.category === 'cycling' ? 'cycling' : event.category === 'jogging' ? 'running' : 'trekking'} size={16} /> Route</span>} className="mb-3" />
             <Card padding="md" variant="dark">
               <div className="grid grid-cols-2 gap-3">
                 {event.startPoint && (
@@ -388,13 +389,13 @@ export const EventDetailPage: React.FC = () => {
               {(event.distance || event.motivation) && (
                 <div className="flex items-center gap-3 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                   {event.distance && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: 'rgba(0,255,65,0.08)' }}>
-                      <span className="text-xs">📏</span>
-                      <span className="text-xs font-bold text-[#00ff41]">{event.distance}</span>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: 'rgba(var(--green-rgb),0.08)' }}>
+                      <Iconic name="map_pin" size={14} />
+                      <span className="text-xs font-bold text-[var(--green)]">{event.distance}</span>
                     </div>
                   )}
                   {event.motivation && (
-                    <p className="text-xs flex-1" style={{ color: 'rgba(255,255,255,0.5)' }}>💪 {event.motivation}</p>
+                    <p className="text-xs flex-1" style={{ color: 'rgba(255,255,255,0.5)' }}><Iconic name="lightning" size={14} /> {event.motivation}</p>
                   )}
                 </div>
               )}
@@ -406,7 +407,7 @@ export const EventDetailPage: React.FC = () => {
         {event.category !== 'badminton' && (event.status === 'live' || event.status === 'completed' || event.status === 'cancelled') && (
           <FadeUp delay={0.15}>
             <SectionHeader
-              title="📝 Summary"
+              title={<span><Iconic name="edit" size={16} /> Summary</span>}
               action={
                 isEventAdmin && event.status !== 'completed' && (
                   <span className="text-xs text-white/30">Editable</span>
@@ -446,12 +447,12 @@ export const EventDetailPage: React.FC = () => {
           {/* COMPLETED SUMMARY */}
           {event.status === 'completed' && event.rankings && (
             <div className="space-y-3 mb-4">
-              <SectionHeader title="🏆 Event Results" className="mb-3" />
+              <SectionHeader title={<span><Iconic name="trophy" size={16} /> Event Results</span>} className="mb-3" />
               <Card padding="md" variant="dark">
                 <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Best Team</p>
                 {event.rankings.length > 0 && (
                   <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.3)' }}>
-                    <p className="text-lg mb-1">🥇</p>
+                    <p className="mb-1"><Iconic name="trophy" size={28} /></p>
                     <p className="font-display font-bold text-white text-lg">{event.rankings[0].teamName}</p>
                     <p className="text-white/50 text-xs mt-1">{event.rankings[0].wins} win{event.rankings[0].wins !== 1 ? 's' : ''} · {event.rankings[0].matchesPlayed} match{event.rankings[0].matchesPlayed !== 1 ? 'es' : ''}</p>
                   </div>
@@ -460,7 +461,7 @@ export const EventDetailPage: React.FC = () => {
                   <div className="mt-2 space-y-1">
                     {event.rankings.slice(1).map((r, i) => (
                       <div key={r.teamId} className="flex items-center justify-between px-3 py-1.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                        <span className="text-xs text-white/60">{i === 0 ? '🥈' : i === 1 ? '🥉' : `#${i+2}`} {r.teamName}</span>
+                        <span className="text-xs text-white/60 flex items-center gap-1">{i === 0 ? <Iconic name="medal" size={14} /> : i === 1 ? <Iconic name="star" size={14} /> : `#${i+2}`} {r.teamName}</span>
                         <span className="text-xs text-white/40">{r.wins} win{r.wins !== 1 ? 's' : ''}</span>
                       </div>
                     ))}
@@ -473,7 +474,7 @@ export const EventDetailPage: React.FC = () => {
                   <div className="space-y-1.5">
                     {event.mvps.map((m, i) => (
                       <div key={m.userId} className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                        <span className="text-sm">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+                        <Iconic name={i === 0 ? 'trophy' : i === 1 ? 'medal' : 'star'} size={18} />
                         <Avatar src={getUserById(m.userId)?.avatar} name={m.playerName} size="xs" />
                         <span className="flex-1 text-sm font-bold text-white">{m.playerName}</span>
                         <span className="text-xs text-white/50">{m.wins} win{m.wins !== 1 ? 's' : ''}</span>
@@ -543,7 +544,7 @@ export const EventDetailPage: React.FC = () => {
 
                   {/* League Winner */}
                   {league.status === 'completed' && leagueWinners && (
-                    <div className="rounded-xl p-2.5 mb-3 text-center text-sm font-bold" style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.25)', color: '#00ff41' }}>
+                    <div className="rounded-xl p-2.5 mb-3 text-center text-sm font-bold" style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.25)', color: 'var(--green)' }}>
                       Winners: {leagueWinners}
                     </div>
                   )}
@@ -566,7 +567,7 @@ export const EventDetailPage: React.FC = () => {
                         }}>
                           {(match.name || match.isFinal) && (
                             <div className="flex items-center justify-center gap-1.5 mb-2">
-                              {match.isFinal && <span className="text-[11px]">🏆</span>}
+                              {match.isFinal && <Iconic name="trophy" size={16} />}
                               <span className="text-[11px] font-bold text-white/50 text-center">{match.name || 'Final'}</span>
                             </div>
                           )}
@@ -580,10 +581,10 @@ export const EventDetailPage: React.FC = () => {
                             {isEditing && !isLocked ? (
                               <div className="flex items-center gap-1">
                                 <input type="number" min="0" value={editingScore!.s1} onChange={e => setEditingScore(s => s ? { ...s, s1: e.target.value } : null)}
-                                  className="w-12 text-center bg-white/5 border border-white/10 rounded-lg px-1 py-1 text-white font-bold text-base outline-none focus:border-[#00ff41]" />
+                                  className="w-12 text-center bg-white/5 border border-white/10 rounded-lg px-1 py-1 text-white font-bold text-base outline-none focus:border-[var(--green)]" />
                                 <span className="text-xs text-white/40">/</span>
                                 <input type="number" min="0" value={editingScore!.s2} onChange={e => setEditingScore(s => s ? { ...s, s2: e.target.value } : null)}
-                                  className="w-12 text-center bg-white/5 border border-white/10 rounded-lg px-1 py-1 text-white font-bold text-base outline-none focus:border-[#00ff41]" />
+                                  className="w-12 text-center bg-white/5 border border-white/10 rounded-lg px-1 py-1 text-white font-bold text-base outline-none focus:border-[var(--green)]" />
                                 <button onClick={() => {
                                   const s1v = parseInt(editingScore!.s1);
                                   const s2v = parseInt(editingScore!.s2);
@@ -591,12 +592,12 @@ export const EventDetailPage: React.FC = () => {
                                   const wid = s1v > s2v ? t1?.id : (s2v > s1v ? t2?.id : null);
                                   updateMatchScore(event.id, league.id, match.id, s1v, s2v, wid || '');
                                   setEditingScore(null);
-                                }} className="text-[10px] font-bold text-[#00ff41] hover:underline ml-1">save</button>
+                                }} className="text-[10px] font-bold text-[var(--green)] hover:underline ml-1">save</button>
                                 <button onClick={() => setEditingScore(null)} className="text-[10px] text-white/40 hover:underline ml-0.5">x</button>
                               </div>
                             ) : (
                               <span onClick={() => { if (!isLocked && canScore) setEditingScore({ leagueId: league.id, matchId: match.id, s1: String(match.score1), s2: String(match.score2) }); }}
-                                className={`font-display font-bold text-base px-2 ${!isLocked && canScore ? 'cursor-pointer hover:text-[#00ff41] transition-colors' : ''} ${match.winnerId ? 'text-white' : 'text-white/50'}`}>
+                                className={`font-display font-bold text-base px-2 ${!isLocked && canScore ? 'cursor-pointer hover:text-[var(--green)] transition-colors' : ''} ${match.winnerId ? 'text-white' : 'text-white/50'}`}>
                                 {match.score1}/{match.score2}
                               </span>
                             )}
@@ -628,13 +629,13 @@ export const EventDetailPage: React.FC = () => {
                             <p className="text-xs font-bold text-white/50 mb-1.5">Match Name (optional)</p>
                             <input type="text" placeholder="e.g. Semi Final 1"
                               value={matchForm!.name} onChange={e => setMatchForm(m => m ? { ...m, name: e.target.value } : m)}
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm outline-none focus:border-[#00ff41]" />
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm outline-none focus:border-[var(--green)]" />
                           </div>
                           {/* Final Toggle */}
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" checked={matchForm!.isFinal}
                               onChange={e => setMatchForm(m => m ? { ...m, isFinal: e.target.checked } : m)}
-                              className="accent-[#00ff41] w-4 h-4" />
+                              className="accent-[var(--green)] w-4 h-4" />
                             <span className="text-xs font-bold text-white/50">This is the Final Match</span>
                           </label>
                           {/* Side 1 */}
@@ -649,7 +650,7 @@ export const EventDetailPage: React.FC = () => {
                                 return (
                                   <button key={pid} disabled={disabled}
                                     onClick={() => setMatchForm(m => m ? { ...m, side1: sel ? m.side1.filter(x => x !== pid) : [...m.side1, pid] } : m)}
-                                    className={`text-[11px] font-medium py-1 px-2.5 rounded-lg border transition-all ${sel ? 'border-[#00ff41] bg-[#00ff41]/10 text-[#00ff41]' : disabled ? 'border-white/5 text-white/20' : 'border-white/10 text-white/50 hover:text-white/70'}`}>
+                                    className={`text-[11px] font-medium py-1 px-2.5 rounded-lg border transition-all ${sel ? 'border-[var(--green)] bg-[var(--green)]/10 text-[var(--green)]' : disabled ? 'border-white/5 text-white/20' : 'border-white/10 text-white/50 hover:text-white/70'}`}>
                                     {u.name.split(' ')[0]}
                                   </button>
                                 );
@@ -675,7 +676,7 @@ export const EventDetailPage: React.FC = () => {
                                 return (
                                   <button key={pid} disabled={disabled}
                                     onClick={() => setMatchForm(m => m ? { ...m, side2: sel ? m.side2.filter(x => x !== pid) : [...m.side2, pid] } : m)}
-                                    className={`text-[11px] font-medium py-1 px-2.5 rounded-lg border transition-all ${sel ? 'border-[#00ff41] bg-[#00ff41]/10 text-[#00ff41]' : disabled ? 'border-white/5 text-white/20' : 'border-white/10 text-white/50 hover:text-white/70'}`}>
+                                    className={`text-[11px] font-medium py-1 px-2.5 rounded-lg border transition-all ${sel ? 'border-[var(--green)] bg-[var(--green)]/10 text-[var(--green)]' : disabled ? 'border-white/5 text-white/20' : 'border-white/10 text-white/50 hover:text-white/70'}`}>
                                     {u.name.split(' ')[0]}
                                   </button>
                                 );
@@ -689,11 +690,11 @@ export const EventDetailPage: React.FC = () => {
                             <div className="flex items-center gap-2 justify-center">
                               <input type="number" min="0" placeholder="21"
                                 value={matchForm!.score1} onChange={e => setMatchForm(m => m ? { ...m, score1: e.target.value } : m)}
-                                className="w-16 text-center bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-lg outline-none focus:border-[#00ff41]" />
+                                className="w-16 text-center bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-lg outline-none focus:border-[var(--green)]" />
                               <span className="text-white/30 font-bold text-sm">/</span>
                               <input type="number" min="0" placeholder="18"
                                 value={matchForm!.score2} onChange={e => setMatchForm(m => m ? { ...m, score2: e.target.value } : m)}
-                                className="w-16 text-center bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-lg outline-none focus:border-[#00ff41]" />
+                                className="w-16 text-center bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-lg outline-none focus:border-[var(--green)]" />
                             </div>
                           </div>
 
@@ -738,14 +739,14 @@ export const EventDetailPage: React.FC = () => {
         {/* GALLERY */}
         <FadeUp delay={0.2}>
           <SectionHeader
-            title="📸 Gallery"
+            title={<span><Iconic name="image" size={16} /> Gallery</span>}
             action={
               <div className="flex items-center gap-2">
                 <span className="text-xs text-white/30">{event.gallery.length}/10</span>
                 {event.gallery.length < 10 && event.status !== 'completed' && (
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()}>📁</Button>
-                    <Button variant="ghost" size="sm" onClick={() => cameraRef.current?.click()}>📷</Button>
+                    <Button variant="ghost" size="sm" icon={<Iconic name="📤" size={16} />} onClick={() => fileRef.current?.click()} />
+                    <Button variant="ghost" size="sm" icon={<Iconic name="camera" size={16} />} onClick={() => cameraRef.current?.click()} />
                   </div>
                 )}
               </div>
@@ -804,7 +805,7 @@ export const EventDetailPage: React.FC = () => {
 
                 <div className="text-center mb-4">
                   <span className="inline-block px-6 py-3 rounded-2xl text-2xl font-black tracking-[0.3em] select-none"
-                    style={{ background: '#00ff41', color: '#000', letterSpacing: '0.3em' }}>
+                    style={{ background: 'var(--green)', color: '#000', letterSpacing: '0.3em' }}>
                     {captchaWord.split('').join(' ')}
                   </span>
                 </div>
@@ -881,7 +882,7 @@ export const EventsPage: React.FC = () => {
     });
 
   return (
-    <div className="pb-24 max-w-lg mx-auto px-4 pt-4 space-y-4">
+    <div className="page-container !pb-24 space-y-4">
       <FadeUp>
         <div className="flex items-center justify-between">
           <div>
@@ -891,10 +892,10 @@ export const EventsPage: React.FC = () => {
           <motion.button
             onClick={() => setShowCreate(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
-            style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.25)', color: '#00ff41' }}
+            style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.25)', color: 'var(--green)' }}
             whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
           >
-            ⚡ Live
+            <Iconic name="lightning" size={14} /> Live
           </motion.button>
         </div>
       </FadeUp>
@@ -919,28 +920,28 @@ export const EventsPage: React.FC = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0f0a1e] via-[#0f0a1e]/30 to-transparent" />
                   <div className="absolute top-3 left-3 flex gap-2">
                     <Badge variant={event.status === 'upcoming' ? 'blue' : event.status === 'live' ? 'lime' : event.status === 'cancelled' ? 'glass' : 'glass'}>
-                      {event.status === 'upcoming' ? '⚡ Upcoming' : event.status === 'live' ? '🔴 Live' : event.status === 'paused' ? '⏸ Paused' : event.status === 'cancelled' ? '🚫 Cancelled' : '✓ Done'}
+                      {event.status === 'upcoming' ? <><Iconic name="lightning" size={12} /> Upcoming</> : event.status === 'live' ? <><Iconic name="live" size={12} /> Live</> : event.status === 'paused' ? <><Iconic name="pause" size={12} /> Paused</> : event.status === 'cancelled' ? <><Iconic name="x" size={12} /> Cancelled</> : <><Iconic name="check" size={12} /> Done</>}
                     </Badge>
-                    {event.isRecurring && <Badge variant="glass">🔁</Badge>}
-                    {(() => { const g = groups.find(gr => gr.id === event.groupId); return g ? <Badge variant="glass">{g.logo} {g.name}</Badge> : null; })()}
+                    {event.isRecurring && <Badge variant="glass"><Iconic name="refresh" size={12} /></Badge>}
+                    {(() => { const g = groups.find(gr => gr.id === event.groupId); return g ? <Badge variant="glass"><Iconic name={g.logo} size={12} /> {g.name}</Badge> : null; })()}
                   </div>
                   <div className="absolute top-3 right-3 glass rounded-xl px-2 py-1 text-xs text-white">
-                    {event.weather.icon} {event.weather.temp}°
+                    <Iconic name={event.weather.icon} size={14} /> {event.weather.temp}°
                   </div>
                 </div>
                 <div className="p-4 flex items-start gap-3">
                   <SportOrb emoji={cfg.emoji} color={cfg.color} bg={cfg.bg} size="sm" />
                   <div className="flex-1 min-w-0">
                     <p className="text-white/40 text-xs font-medium mb-0.5">
-                      {(() => { const g = groups.find(gr => gr.id === event.groupId); return g ? `${g.logo} ${g.name}` : ''; })()}
+                      {(() => { const g = groups.find(gr => gr.id === event.groupId); return g ? <><Iconic name={g.logo} size={14} /> {g.name}</> : ''; })()}
                     </p>
                     <p className="font-display font-bold text-white truncate">{event.title}</p>
                     <p className="text-white/50 text-xs mt-0.5">
                       {format(parseISO(event.date), 'EEE, MMM d')} · {event.time}
                     </p>
-                    <p className="text-white/50 text-xs">📍 {event.venue}</p>
+                    <p className="text-white/50 text-xs flex items-center gap-1"><Iconic name="map_pin" size={12} /> {event.venue}</p>
                     {(event.category === 'cycling' || event.category === 'jogging' || event.category === 'walking') && event.distance && (
-                      <p className="text-[#00ff41]/60 text-xs mt-0.5">{event.category === 'cycling' ? '🚴' : event.category === 'jogging' ? '🏃' : '🚶‍➡️'} {event.distance}</p>
+                      <p className="text-[var(--green)]/60 text-xs mt-0.5 flex items-center gap-1"><Iconic name={event.category === 'cycling' ? 'cycling' : event.category === 'jogging' ? 'running' : 'trekking'} size={12} /> {event.distance}</p>
                     )}
                     <div className="flex items-center gap-2 mt-2">
                       <div className="flex -space-x-1.5">

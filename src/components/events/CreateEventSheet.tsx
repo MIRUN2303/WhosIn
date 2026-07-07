@@ -1,28 +1,29 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { Button } from '../ui';
+import { Iconic } from '../ui/icons';
 import type { EventCategory } from '../../data/types';
 
-const CATEGORIES: { value: EventCategory; label: string; emoji: string; desc: string }[] = [
-  { value: 'badminton', label: 'Badminton', emoji: '🏸', desc: 'Leagues, matches & scoring' },
-  { value: 'movie', label: 'Movie Out', emoji: '🎬', desc: 'Attendance & summary' },
-  { value: 'cafe', label: 'Cafe Out', emoji: '☕', desc: 'Attendance & summary' },
-  { value: 'roaming', label: 'Roaming', emoji: '🚶', desc: 'Attendance & summary' },
-  { value: 'cycling', label: 'Cycle Ride', emoji: '🚴', desc: 'Route, distance & summary' },
-  { value: 'jogging', label: 'Jogging', emoji: '🏃', desc: 'Route, distance & summary' },
-  { value: 'walking', label: 'Walking', emoji: '🚶‍➡️', desc: 'Route, distance & summary' },
+const CATEGORIES: { value: EventCategory; label: string; icon: string; desc: string }[] = [
+  { value: 'badminton', label: 'Badminton', icon: 'badminton', desc: 'Leagues, matches & scoring' },
+  { value: 'movie', label: 'Movie Out', icon: 'movie', desc: 'Attendance & summary' },
+  { value: 'cafe', label: 'Cafe Out', icon: 'cafe', desc: 'Attendance & summary' },
+  { value: 'roaming', label: 'Roaming', icon: '🗺️', desc: 'Attendance & summary' },
+  { value: 'cycling', label: 'Cycle Ride', icon: 'cycling', desc: 'Route, distance & summary' },
+  { value: 'jogging', label: 'Jogging', icon: 'running', desc: 'Route, distance & summary' },
+  { value: 'walking', label: 'Walking', icon: '🚶', desc: 'Route, distance & summary' },
 ];
 
 const CATEGORY_MAP: Record<EventCategory, string> = {
-  badminton: '🏸',
-  movie: '🎬',
-  cafe: '☕',
-  roaming: '🚶',
-  cycling: '🚴',
-  jogging: '🏃',
-  walking: '🚶‍➡️',
+  badminton: 'badminton',
+  movie: 'movie',
+  cafe: 'cafe',
+  roaming: '🗺️',
+  cycling: 'cycling',
+  jogging: 'running',
+  walking: '🚶',
 };
 
 const CATEGORY_BANNERS: Record<EventCategory, string> = {
@@ -109,7 +110,7 @@ const CategoryDropdown: React.FC<{ value: EventCategory; onChange: (v: EventCate
         style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.08)', color: 'white' }}
         whileTap={{ scale: 0.98 }}
       >
-        <span className="text-xl">{selected.emoji}</span>
+        <Iconic name={selected.icon} size={24} />
         <div className="flex-1 text-left">
           <p className="text-sm font-bold">{selected.label}</p>
           <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{selected.desc}</p>
@@ -156,18 +157,18 @@ const CategoryDropdown: React.FC<{ value: EventCategory; onChange: (v: EventCate
                       onClick={() => { onChange(c.value); setOpen(false); }}
                       className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all"
                       style={isSelected
-                        ? { background: 'rgba(0,255,65,0.08)', color: '#00ff41', border: '1px solid rgba(0,255,65,0.2)' }
+                        ? { background: 'rgba(var(--green-rgb),0.08)', color: 'var(--green)', border: '1px solid rgba(var(--green-rgb),0.2)' }
                         : { background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.6)', border: '1px solid transparent' }
                       }
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <span className="text-2xl">{c.emoji}</span>
+                      <Iconic name={c.icon} size={28} />
                       <div className="flex-1">
                         <p className="text-sm font-bold">{c.label}</p>
-                        <p className="text-[10px]" style={{ color: isSelected ? 'rgba(0,255,65,0.4)' : 'rgba(255,255,255,0.3)' }}>{c.desc}</p>
+                        <p className="text-[10px]" style={{ color: isSelected ? 'rgba(var(--green-rgb),0.4)' : 'rgba(255,255,255,0.3)' }}>{c.desc}</p>
                       </div>
-                      {isSelected && <span className="text-xs" style={{ color: '#00ff41' }}>✓</span>}
+                      {isSelected && <span className="text-xs" style={{ color: 'var(--green)' }}>✓</span>}
                     </motion.button>
                   );
                 })}
@@ -290,7 +291,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
               <div className="flex items-center justify-between px-5 pb-4 pt-1">
                 <div>
                   <h2 className="font-display font-black text-xl text-white">
-                    {mode === 'live' ? '⚡ Start Live Event' : 'Schedule Event'}
+                    {mode === 'live' ? <span><Iconic name="lightning" size={20} /> Start Live Event</span> : 'Schedule Event'}
                   </h2>
                   <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
                     {selectedGroup ? `in ${selectedGroup.name}` : 'Select a group first'}
@@ -309,16 +310,16 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                       <div className="flex items-center gap-1.5">
                         <span className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-all"
                           style={step === s || (i === 0 && step === 'schedule')
-                            ? { background: '#00ff41', color: '#000' }
+                            ? { background: 'var(--green)', color: '#000' }
                             : { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}>
                           {i + 1}
                         </span>
                         <span className="text-xs font-semibold capitalize"
-                          style={{ color: step === s ? '#00ff41' : 'rgba(255,255,255,0.35)' }}>
+                          style={{ color: step === s ? 'var(--green)' : 'rgba(255,255,255,0.35)' }}>
                           {s}
                         </span>
                       </div>
-                      {i === 0 && <div className="flex-1 h-px" style={{ background: step === 'schedule' ? 'rgba(0,255,65,0.4)' : 'rgba(255,255,255,0.06)' }} />}
+                      {i === 0 && <div className="flex-1 h-px" style={{ background: step === 'schedule' ? 'rgba(var(--green-rgb),0.4)' : 'rgba(255,255,255,0.06)' }} />}
                     </React.Fragment>
                   ))}
                 </div>
@@ -340,7 +341,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                                 onClick={() => setGroupId(g.id)}
                                 className="flex items-center gap-2 px-3 py-2.5 rounded-2xl whitespace-nowrap text-sm font-semibold transition-all border flex-shrink-0"
                                 style={groupId === g.id
-                                  ? { background: 'rgba(0,255,65,0.1)', borderColor: '#00ff41', color: '#00ff41' }
+                                  ? { background: 'rgba(var(--green-rgb),0.1)', borderColor: 'var(--green)', color: 'var(--green)' }
                                   : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
                                 }
                                 whileTap={{ scale: 0.97 }}
@@ -364,7 +365,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none transition-all"
                           style={{
                             background: '#161616',
-                            border: title ? '1px solid rgba(0,255,65,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                            border: title ? '1px solid rgba(var(--green-rgb),0.4)' : '1px solid rgba(255,255,255,0.08)',
                           }}
                           autoFocus
                         />
@@ -408,8 +409,8 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                       initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                       className="space-y-4">
                       <div className="flex items-center gap-2 p-3 rounded-2xl"
-                        style={{ background: 'rgba(0,255,65,0.06)', border: '1px solid rgba(0,255,65,0.2)' }}>
-                        <span className="text-2xl">{CATEGORY_MAP[category]}</span>
+                        style={{ background: 'rgba(var(--green-rgb),0.06)', border: '1px solid rgba(var(--green-rgb),0.2)' }}>
+                        <Iconic name={CATEGORY_MAP[category]} size={28} />
                         <div>
                           <p className="font-bold text-white text-sm">{title}</p>
                           <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{selectedGroup?.name} · {category.charAt(0).toUpperCase() + category.slice(1)}</p>
@@ -426,7 +427,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none appearance-none"
                           style={{
                             background: '#161616',
-                            border: date ? '1px solid rgba(0,255,65,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                            border: date ? '1px solid rgba(var(--green-rgb),0.4)' : '1px solid rgba(255,255,255,0.08)',
                             colorScheme: 'dark',
                           }}
                         />
@@ -441,7 +442,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         <motion.button
                           onClick={() => setUseCustomTime(!useCustomTime)}
                           className="w-12 h-7 rounded-full relative transition-colors"
-                          style={{ background: useCustomTime ? '#00ff41' : 'rgba(255,255,255,0.12)' }}
+                          style={{ background: useCustomTime ? 'var(--green)' : 'rgba(255,255,255,0.12)' }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <motion.span
@@ -487,7 +488,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none"
                           style={{
                             background: '#161616',
-                            border: venue ? '1px solid rgba(0,255,65,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                            border: venue ? '1px solid rgba(var(--green-rgb),0.4)' : '1px solid rgba(255,255,255,0.08)',
                           }}
                         />
                       </div>
@@ -501,7 +502,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         <motion.button
                           onClick={() => setIsRecurring(!isRecurring)}
                           className="w-12 h-7 rounded-full relative transition-colors"
-                          style={{ background: isRecurring ? '#00ff41' : 'rgba(255,255,255,0.12)' }}
+                          style={{ background: isRecurring ? 'var(--green)' : 'rgba(255,255,255,0.12)' }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <motion.span
@@ -539,7 +540,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                                 onClick={() => setGroupId(g.id)}
                                 className="flex items-center gap-2 px-3 py-2.5 rounded-2xl whitespace-nowrap text-sm font-semibold transition-all border flex-shrink-0"
                                 style={groupId === g.id
-                                  ? { background: 'rgba(0,255,65,0.1)', borderColor: '#00ff41', color: '#00ff41' }
+                                  ? { background: 'rgba(var(--green-rgb),0.1)', borderColor: 'var(--green)', color: 'var(--green)' }
                                   : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
                                 }
                                 whileTap={{ scale: 0.97 }}
@@ -563,7 +564,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none transition-all"
                           style={{
                             background: '#161616',
-                            border: title ? '1px solid rgba(0,255,65,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                            border: title ? '1px solid rgba(var(--green-rgb),0.4)' : '1px solid rgba(255,255,255,0.08)',
                           }}
                           autoFocus
                         />
@@ -579,7 +580,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                           className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium outline-none"
                           style={{
                             background: '#161616',
-                            border: venue ? '1px solid rgba(0,255,65,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                            border: venue ? '1px solid rgba(var(--green-rgb),0.4)' : '1px solid rgba(255,255,255,0.08)',
                           }}
                         />
                       </div>
@@ -611,7 +612,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         disabled={!canSubmitLive} loading={loading}
                         onClick={handleCreateLive}
                       >
-                        🔥 Start Live Now
+                        <><Iconic name="lightning" size={18} /> Start Live Now</>
                       </Button>
                     </motion.div>
                   )}

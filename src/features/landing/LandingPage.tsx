@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { SPORT_CONFIG } from '../../data/mockData';
 
 const FEATURES = [
@@ -54,7 +54,7 @@ export const LandingPage: React.FC = () => {
         style={{ background: 'rgba(8,8,8,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full pulse-lime" style={{ background: '#aaeb00' }} />
-          <span className="font-logo text-xl tracking-wider text-white">Whos<span className="text-[#00ff41] text-2xl">I</span>n</span>
+          <span className="font-logo text-xl tracking-wider text-white">Whos<span className="text-[var(--green)] text-2xl">I</span>n</span>
         </div>
         <div className="hidden md:flex items-center gap-6">
           {['Features', 'Sports', 'Community'].map(item => (
@@ -370,7 +370,7 @@ export const LandingPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="py-8 px-6 text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <p className="font-logo text-2xl tracking-wider text-white mb-1">Whos<span className="text-[#00ff41] text-3xl">I</span>n</p>
+        <p className="font-logo text-2xl tracking-wider text-white mb-1">Whos<span className="text-[var(--green)] text-3xl">I</span>n</p>
         <p className="text-white/20 text-sm">Who's in? · Play. Compete. Conquer.</p>
       </footer>
     </div>

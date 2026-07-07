@@ -1,11 +1,12 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import { ICON_MAP } from './icons';
 
 // =============================================
 // BUTTON
 // =============================================
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'lime' | 'amber' | 'ghost' | 'glass' | 'danger' | 'dark';
+  variant?: 'green' | 'amber' | 'ghost' | 'glass' | 'danger' | 'dark';
   size?: 'sm' | 'md' | 'lg';
   icon?: React.ReactNode;
   iconRight?: React.ReactNode;
@@ -14,18 +15,18 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button: React.FC<ButtonProps> = ({
-  variant = 'lime', size = 'md', icon, iconRight, loading, fullWidth,
+  variant = 'green', size = 'md', icon, iconRight, loading, fullWidth,
   className, children, disabled, ...props
 }) => {
-  const base = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 select-none outline-none focus-visible:ring-2 focus-visible:ring-[#00ff41] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080808] active:scale-95';
+  const base = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 select-none outline-none focus-visible:ring-2 focus-visible:ring-[var(--green)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)] active:scale-95';
 
-  const variants = {
-    lime: 'btn-lime text-black',
+  const variants: Record<string, string> = {
+    green: 'btn-green text-black',
     amber: 'btn-amber text-black',
-    ghost: 'btn-ghost text-white/60 hover:text-[#00ff41] hover:border-[#00ff41]/40',
-    glass: 'glass text-white/70 hover:text-white hover:border-white/20',
-    danger: 'bg-red-600 text-white hover:bg-red-500',
-    dark: 'bg-[#1c1c1c] border border-white/10 text-white hover:border-white/20',
+    ghost: 'btn-ghost',
+    glass: 'glass text-white/70 hover:text-white',
+    danger: 'bg-[var(--red)] text-white hover:brightness-110',
+    dark: 'bg-[var(--bg-surface-2)] border border-[var(--border-medium)] text-white hover:border-white/20',
   };
 
   const sizes = {
@@ -56,25 +57,26 @@ interface CardProps {
   className?: string;
   onClick?: () => void;
   interactive?: boolean;
-  glow?: 'lime' | 'amber' | 'gold' | 'none';
+  glow?: 'green' | 'amber' | 'gold' | 'none';
   padding?: 'none' | 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'amber' | 'lime' | 'dark';
+  variant?: 'default' | 'amber' | 'green' | 'dark' | 'white';
 }
 
 export const Card: React.FC<CardProps> = ({
   children, className, onClick, interactive, glow = 'none', padding = 'md', variant = 'default'
 }) => {
-  const glows = {
-    lime: 'hover:shadow-[0_0_30px_rgba(0,255,65,0.2)]',
-    amber: 'hover:shadow-[0_0_30px_rgba(249,115,22,0.25)]',
-    gold: 'hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+  const glows: Record<string, string> = {
+    green: 'hover:shadow-[0_0_30px_rgba(var(--green-rgb),0.18)]',
+    amber: 'hover:shadow-[0_0_30px_rgba(var(--amber-rgb),0.22)]',
+    gold: 'hover:shadow-[0_0_20px_rgba(var(--gold-rgb),0.25)]',
     none: '',
   };
-  const variants = {
+  const variants: Record<string, string> = {
     default: 'glass-card',
     amber: 'glass-amber',
-    lime: 'glass-lime',
-    dark: 'bg-[#0f0f0f] border border-white/5',
+    green: 'glass-green',
+    dark: 'surface-0',
+    white: 'glass-white',
   };
   const paddings = { none: '', sm: 'p-3', md: 'p-4', lg: 'p-6' };
 
@@ -103,12 +105,12 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md', online, 
   return (
     <div className={clsx('relative flex-shrink-0', className)}>
       <div className={clsx(sizes[size], 'rounded-full overflow-hidden flex items-center justify-center font-bold flex-shrink-0',
-        ring && 'ring-2 ring-[#00ff41]/60 ring-offset-2 ring-offset-[#080808]',
+        ring && 'ring-2 ring-[var(--green)]/60 ring-offset-2 ring-offset-[var(--bg-base)]',
         !src && 'text-black font-bold'
-      )} style={!src ? { background: 'linear-gradient(135deg, #00ff41, #00aa1e)' } : {}}>
+      )} style={!src ? { background: 'linear-gradient(135deg, var(--green-bright), var(--green-dim))' } : {}}>
         {src ? <img src={src} alt={name} className="w-full h-full object-cover" /> : <span>{initials}</span>}
       </div>
-      {online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00ff41] rounded-full border-2 border-[#080808]" />}
+      {online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[var(--bg-base)]" style={{ background: 'var(--green)' }} />}
     </div>
   );
 };
@@ -118,20 +120,20 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md', online, 
 // =============================================
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'lime' | 'amber' | 'gold' | 'green' | 'red' | 'blue' | 'glass' | 'dark';
+  variant?: 'green' | 'amber' | 'gold' | 'emerald' | 'red' | 'blue' | 'glass' | 'dark';
   size?: 'sm' | 'md'; dot?: boolean; className?: string;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ children, variant = 'lime', size = 'md', dot, className }) => {
-  const variants = {
-    lime: 'bg-[#00ff41]/15 text-[#00ff41] border border-[#00ff41]/30',
-    amber: 'bg-orange-500/15 text-orange-300 border border-orange-500/30',
-    gold: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
-    green: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
-    red: 'bg-red-500/15 text-red-300 border border-red-500/25',
-    blue: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/25',
+export const Badge: React.FC<BadgeProps> = ({ children, variant = 'green', size = 'md', dot, className }) => {
+  const variants: Record<string, string> = {
+    green: 'bg-[rgba(var(--green-rgb),0.12)] text-[var(--green)] border border-[rgba(var(--green-rgb),0.25)]',
+    amber: 'bg-[rgba(var(--amber-rgb),0.12)] text-[var(--amber)] border border-[rgba(var(--amber-rgb),0.25)]',
+    gold: 'bg-[rgba(var(--gold-rgb),0.12)] text-amber-300 border border-[rgba(var(--gold-rgb),0.25)]',
+    emerald: 'bg-[rgba(var(--green-rgb),0.12)] text-emerald-300 border border-[rgba(var(--green-rgb),0.25)]',
+    red: 'bg-[rgba(var(--red-rgb),0.12)] text-red-300 border border-[rgba(var(--red-rgb),0.25)]',
+    blue: 'bg-[rgba(96,165,250,0.12)] text-blue-300 border border-[rgba(96,165,250,0.25)]',
     glass: 'bg-white/8 text-white/70 border border-white/10',
-    dark: 'bg-[#1c1c1c] text-white/50 border border-white/8',
+    dark: 'bg-[var(--bg-surface-2)] text-white/50 border border-white/8',
   };
   const sizes = { sm: 'text-[10px] px-2 py-0.5', md: 'text-xs px-2.5 py-1' };
   return (
@@ -153,12 +155,12 @@ export const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
 // SECTION HEADER
 // =============================================
 interface SectionHeaderProps {
-  title: string; subtitle?: string; action?: React.ReactNode; className?: string;
+  title: React.ReactNode; subtitle?: string; action?: React.ReactNode; className?: string;
 }
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, action, className }) => (
   <div className={clsx('flex items-start justify-between', className)}>
     <div>
-      <h2 className="font-display font-bold text-white text-[17px] leading-tight">{title}</h2>
+      <h2 className="font-display font-bold text-white text-[17px] leading-tight section-title">{title}</h2>
       {subtitle && <p className="text-white/40 text-xs mt-0.5">{subtitle}</p>}
     </div>
     {action}
@@ -173,13 +175,14 @@ interface ProgressBarProps {
   size?: 'sm' | 'md'; className?: string;
 }
 export const ProgressBar: React.FC<ProgressBarProps> = ({
-  value, max = 100, color = '#00ff41', size = 'md', className
+  value, max = 100, color, size = 'md', className
 }) => {
   const pct = Math.min(100, (value / max) * 100);
+  const barColor = color || 'var(--green)';
   return (
     <div className={clsx('w-full rounded-full overflow-hidden', size === 'sm' ? 'h-1' : 'h-2', 'bg-white/8', className)}>
       <div className="h-full rounded-full transition-all duration-700 ease-out"
-        style={{ width: `${pct}%`, background: color, boxShadow: `0 0 8px ${color}80` }} />
+        style={{ width: `${pct}%`, background: barColor, boxShadow: `0 0 8px ${barColor}80` }} />
     </div>
   );
 };
@@ -188,31 +191,40 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 // STAT CARD
 // =============================================
 interface StatCardProps {
-  label: string; value: string | number; icon?: string;
+  label: string; value: string | number;
+  icon?: React.ReactNode;
   sub?: string; color?: string; className?: string;
 }
 export const StatCard: React.FC<StatCardProps> = ({ label, value, icon, sub, color, className }) => (
-  <div className={clsx('bg-[#111] border border-white/6 rounded-2xl p-3 flex flex-col gap-1', className)}>
-    {icon && <span className="text-xl">{icon}</span>}
-    <p className="text-2xl font-display font-black leading-none" style={{ color: color || 'white' }}>{value}</p>
+  <div className={clsx('surface-1 rounded-2xl p-3 flex flex-col gap-1', className)}>
+    {icon && <span className="text-lg">{icon}</span>}
+    <p className="text-2xl font-display font-black leading-none" style={{ color: color || 'var(--text-primary)' }}>{value}</p>
     <p className="text-[11px] text-white/40 font-medium leading-tight">{label}</p>
     {sub && <p className="text-[10px] text-white/25">{sub}</p>}
   </div>
 );
 
 // =============================================
-// SPORT ORB
+// SPORT ORB (backward-compatible: emoji OR icon)
 // =============================================
 interface SportOrbProps {
-  emoji: string; color: string; bg: string;
+  emoji?: string;
+  icon?: React.ReactNode;
+  color: string; bg?: string;
   size?: 'sm' | 'md' | 'lg'; className?: string;
 }
-export const SportOrb: React.FC<SportOrbProps> = ({ emoji, color, bg, size = 'md', className }) => {
-  const sizes = { sm: 'w-9 h-9 text-lg rounded-xl', md: 'w-12 h-12 text-2xl rounded-2xl', lg: 'w-16 h-16 text-3xl rounded-3xl' };
+export const SportOrb: React.FC<SportOrbProps> = ({ emoji, icon, color, bg, size = 'md', className }) => {
+  const sizes = { sm: 'w-9 h-9 text-lg rounded-xl', md: 'w-12 h-12 text-xl rounded-2xl', lg: 'w-16 h-16 text-3xl rounded-3xl' };
+  const iconSizes = { sm: 18, md: 24, lg: 32 };
+  const IconComponent = emoji ? ICON_MAP[emoji] : undefined;
+  const content = icon || (IconComponent ? <IconComponent size={iconSizes[size]} /> : emoji);
   return (
     <div className={clsx('flex items-center justify-center flex-shrink-0', sizes[size], className)}
-      style={{ background: bg, border: `1px solid ${color}30` }}>
-      {emoji}
+      style={{
+        background: bg || `${color}14`,
+        border: `1px solid ${color}30`,
+      }}>
+      {content}
     </div>
   );
 };
@@ -230,26 +242,42 @@ export const Divider: React.FC<{ className?: string }> = ({ className }) => (
 interface ChipProps { label: string; active?: boolean; onClick?: () => void; className?: string; }
 export const Chip: React.FC<ChipProps> = ({ label, active, onClick, className }) => (
   <button onClick={onClick} className={clsx(
-    'text-sm font-semibold px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap border',
+    'text-sm font-semibold px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap border tap-scale',
     active
-      ? 'bg-[#00ff41] text-black border-[#00ff41] shadow-[0_0_15px_rgba(0,255,65,0.4)]'
-      : 'bg-transparent border-white/10 text-white/50 hover:text-white hover:border-white/20',
+      ? 'bg-[var(--green)] text-black border-[var(--green)] shadow-[0_0_15px_rgba(var(--green-rgb),0.4)]'
+      : 'bg-transparent border-[var(--border-medium)] text-white/50 hover:text-white hover:border-white/20',
     className
   )}>{label}</button>
 );
 
 // =============================================
-// EMPTY STATE
+// EMPTY STATE (backward-compatible: emoji OR icon)
 // =============================================
 interface EmptyStateProps {
-  emoji: string; title: string; description?: string;
+  emoji?: string;
+  icon?: React.ReactNode;
+  title: string; description?: string;
   action?: React.ReactNode; className?: string;
 }
-export const EmptyState: React.FC<EmptyStateProps> = ({ emoji, title, description, action, className }) => (
+export const EmptyState: React.FC<EmptyStateProps> = ({ emoji, icon, title, description, action, className }) => (
   <div className={clsx('flex flex-col items-center justify-center text-center py-12 gap-3', className)}>
-    <span className="text-5xl">{emoji}</span>
+    <div className="text-5xl mb-1 opacity-60">{icon || emoji}</div>
     <h3 className="font-display font-bold text-white text-lg">{title}</h3>
-    {description && <p className="text-white/40 text-sm max-w-xs">{description}</p>}
+    {description && <p className="text-white/40 text-sm max-w-xs text-balance">{description}</p>}
     {action}
+  </div>
+);
+
+// =============================================
+// PAGE LAYOUT (responsive container)
+// =============================================
+interface PageLayoutProps {
+  children: React.ReactNode;
+  className?: string;
+  padding?: boolean;
+}
+export const PageLayout: React.FC<PageLayoutProps> = ({ children, className, padding = true }) => (
+  <div className={clsx('page-container', padding && 'pb-24', className)}>
+    {children}
   </div>
 );

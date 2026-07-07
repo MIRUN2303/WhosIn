@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   isSameMonth, isSameDay, isToday, startOfWeek, endOfWeek,
@@ -325,7 +325,7 @@ export const CalendarPage: React.FC = () => {
   };
 
   return (
-    <div className="pb-24 max-w-lg mx-auto px-4 pt-4 space-y-4">
+    <div className="page-container !pb-24 space-y-4">
       <FadeUp>
         <h1 className="font-display font-black text-2xl text-white">Calendar</h1>
         <p className="text-white/50 text-sm">Your weekend schedule</p>

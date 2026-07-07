@@ -4,6 +4,7 @@ import type { Event, Group, Notification, Story, Friendship, League, AttendanceS
 import { getUserById, generateId } from '../data/mockData';
 import toast from 'react-hot-toast';
 import * as db from '../lib/db';
+import * as auth from '../lib/auth';
 
 const uid = () => `e_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 const gid = () => `g_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -72,9 +73,9 @@ interface AppState {
 
   isLoggedIn: boolean;
   currentUserId: string | null;
-  login: (emailOrPhone: string, password: string) => boolean;
-  signup: (name: string, email: string, phone: string, password: string) => boolean;
-  logout: () => void;
+  login: (emailOrPhone: string, password: string) => Promise<boolean>;
+  signup: (name: string, email: string, phone: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
 
   events: Event[];
   notifications: Notification[];
@@ -104,6 +105,8 @@ interface AppState {
   unreadCount: () => number;
   addNotification: (n: Omit<Notification, 'id' | 'timestamp'> & { userId?: string }) => void;
 
+  needsPhone: boolean;
+  setNeedsPhone: (v: boolean) => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
 
@@ -132,11 +135,12 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       loaded: false,
-      isLoggedIn: true,
-      currentUserId: 'u1',
+      isLoggedIn: false,
+      currentUserId: null,
       userProfiles: {},
       events: [],
       notifications: [],
+      needsPhone: false,
       activeTab: 'home',
       groups: [],
       users: [],
@@ -145,6 +149,11 @@ export const useAppStore = create<AppState>()(
 
       loadFromSupabase: async () => {
         try {
+          // 1. Check existing auth session
+          const session = await auth.getSession();
+          const authUser = session?.user;
+
+          // 2. Fetch all data from Supabase tables
           const [events, groups, notifications, friendships, stories] = await Promise.all([
             db.fetchEvents().catch(() => []),
             db.fetchGroups().catch(() => []),
@@ -153,45 +162,93 @@ export const useAppStore = create<AppState>()(
             db.fetchStories().catch(() => []),
           ]);
           const users = await db.fetchUsers().catch(() => []);
-          set({ events, groups, notifications, friendships, stories, users, loaded: true });
+
+          // 3. If we have an auth session, resolve the local user
+          let currentUserId: string | null = null;
+          if (authUser?.email) {
+            try {
+              const resolved = await auth.resolveUserFromAuth(
+                authUser.id,
+                authUser.email,
+                authUser.user_metadata?.name,
+                authUser.user_metadata?.phone,
+              );
+              currentUserId = resolved?.id || null;
+            } catch {
+              // fallback — try to find by email in fetched users
+              const match = users.find((u: any) => u.email === authUser.email);
+              currentUserId = match?.id || null;
+            }
+          }
+
+          const currentUser = users.find((u: any) => u.id === currentUserId);
+          const needsPhone = !!currentUserId && (!currentUser || !currentUser.phone);
+          set({ events, groups, notifications, friendships, stories, users, loaded: true, isLoggedIn: !!currentUserId, currentUserId, needsPhone });
         } catch (e) {
           console.warn('Supabase load failed, using empty state', e);
           set({ loaded: true });
         }
       },
 
-      login: (emailOrPhone, password) => {
-        const user = emailOrPhone.includes('@')
-          ? getUserByEmail(emailOrPhone)
-          : getUserByPhone(emailOrPhone);
-        if (!user || user.password !== password) return false;
-        setCurrentUserId(user.id);
-        set({ isLoggedIn: true, currentUserId: user.id });
-        return true;
+      login: async (emailOrPhone, password) => {
+        try {
+          // Only email-based login via Supabase Auth
+          if (!emailOrPhone.includes('@')) {
+            toast.error('Please use your email address to sign in');
+            return false;
+          }
+          const data = await auth.signInWithEmail(emailOrPhone, password);
+          if (!data.user?.email) return false;
+
+          // Resolve local user row
+          const resolved = await auth.resolveUserFromAuth(
+            data.user.id,
+            data.user.email,
+            data.user.user_metadata?.name,
+          );
+          if (resolved) {
+            // Refresh users list
+            const users = await db.fetchUsers().catch(() => get().users);
+            set({ isLoggedIn: true, currentUserId: resolved.id, users });
+          }
+          return true;
+        } catch (e: any) {
+          toast.error(e.message || 'Invalid credentials');
+          return false;
+        }
       },
 
-      signup: (name, email, phone, password) => {
-        if (getUserByEmail(email)) return false;
-        const newUser = {
-          id: generateId(),
-          name, username: name.toLowerCase().replace(/\s+/g, ''), email, phone, password,
-          profileCode: `${name.split(' ')[0].toUpperCase()}001`,
-          avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${name}&backgroundColor=b6e3f4`,
-          coverImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-          bio: '', favouriteSports: [], badges: [],
-          stats: { totalMatches: 0, wins: 0, losses: 0, attendanceRate: 0, currentStreak: 0, longestStreak: 0, winRate: 0, weeklyActivity: [0,0,0,0,0,0,0], monthlyActivity: [], sportBreakdown: [], pointsTotal: 0, mvpCount: 0 },
-          createdGroups: [], joinedGroups: [], joinedAt: new Date().toISOString().split('T')[0], level: 1, xp: 0,
-        };
-        const USERS = get().users;
-        (USERS as any[]).push(newUser);
-        setCurrentUserId(newUser.id);
-        set({ isLoggedIn: true, currentUserId: newUser.id });
-        return true;
+      signup: async (name, email, phone, password) => {
+        try {
+          const data = await auth.signUpWithEmail(email, password, name, phone);
+          if (!data.user?.email) return false;
+
+          // Resolve (creates row in users table)
+          const resolved = await auth.resolveUserFromAuth(
+            data.user.id,
+            data.user.email,
+            name,
+            phone,
+          );
+          if (resolved) {
+            const users = await db.fetchUsers().catch(() => get().users);
+            set({ isLoggedIn: true, currentUserId: resolved.id, users });
+          }
+          return true;
+        } catch (e: any) {
+          toast.error(e.message || 'Sign up failed');
+          return false;
+        }
       },
 
-      logout: () => {
+      logout: async () => {
+        try {
+          await auth.signOut();
+        } catch (e: any) {
+          console.warn('Sign out error', e);
+        }
         setCurrentUserId(null);
-        set({ isLoggedIn: false, currentUserId: null });
+        set({ isLoggedIn: false, currentUserId: null, needsPhone: false, users: [] });
       },
 
       // ---- EVENTS ----
@@ -545,6 +602,7 @@ export const useAppStore = create<AppState>()(
         db.createNotificationInDb(newNotif as any).catch(e => console.warn('Failed to save notification', e));
       },
 
+      setNeedsPhone: (v) => set({ needsPhone: v }),
       setActiveTab: (tab) => set({ activeTab: tab }),
 
       createGroup: (input) => {
@@ -748,12 +806,19 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'whosin-store',
-      version: 2,
+      version: 3,
       migrate: (persisted: any) => ({
         ...persisted,
-        isLoggedIn: true,
-        currentUserId: 'u1',
+        isLoggedIn: false,
+        currentUserId: null,
+        needsPhone: false,
         loaded: true,
+        users: [],
+        events: [],
+        groups: [],
+        notifications: [],
+        friendships: [],
+        stories: [],
       }),
       partialize: (state) => ({
         activeTab: state.activeTab,

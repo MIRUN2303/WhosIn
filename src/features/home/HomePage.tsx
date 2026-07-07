@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { format, differenceInSeconds, parseISO } from 'date-fns';
 import { useAppStore } from '../../store/useAppStore';
 import { USERS, GROUPS, SPORT_CONFIG, getGroupById } from '../../data/mockData';
 import { Avatar, Button, StatCard, SportOrb, SectionHeader } from '../../components/ui';
+import { Iconic } from '../../components/ui/icons';
 import { FadeUp } from '../../components/motion';
 import { CreateEventSheet } from '../../components/events/CreateEventSheet';
 import type { Event } from '../../data/types';
@@ -73,17 +74,17 @@ const GroupEventCard: React.FC<{
           {/* Group breadcrumb + live dot */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-base">{group?.logo}</span>
+              {group?.logo && <Iconic name={group.logo} size={20} />}
               <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.4)' }}>{group?.name}</span>
               {event.isRecurring && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)', color: '#00ff41' }}>
-                  🔄 {event.recurringPattern}
+                  style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.2)', color: 'var(--green)' }}>
+                  <Iconic name="refresh" size={12} /> {event.recurringPattern}
                 </span>
               )}
             </div>
             <div className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              {event.weather.icon} {event.weather.temp}°
+              <Iconic name={event.weather.icon} size={14} /> {event.weather.temp}°
             </div>
           </div>
 
@@ -96,7 +97,7 @@ const GroupEventCard: React.FC<{
             <div className="flex-1">
               <h2 className="font-display font-black text-xl text-white leading-tight">{event.title}</h2>
               <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                📍 {event.venue} · {event.status === 'live' ? '🔴 Now' : `${format(parseISO(event.date), 'EEE, MMM d')} · ${event.time}`}
+                <Iconic name="map_pin" size={14} /> {event.venue} · {event.status === 'live' ? <span><Iconic name="live" size={14} /> Now</span> : `${format(parseISO(event.date), 'EEE, MMM d')} · ${event.time}`}
               </p>
             </div>
           </div>
@@ -104,16 +105,16 @@ const GroupEventCard: React.FC<{
           {/* Countdown / Live indicator */}
           {event.status === 'live' ? (
             <div className="rounded-2xl p-3.5 flex items-center justify-center gap-3"
-              style={{ background: 'rgba(0,255,65,0.08)', border: '1px solid rgba(0,255,65,0.2)' }}>
-              <span className="w-3 h-3 rounded-full" style={{ background: '#00ff41', boxShadow: '0 0 12px #00ff41', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              style={{ background: 'rgba(var(--green-rgb),0.08)', border: '1px solid rgba(var(--green-rgb),0.2)' }}>
+              <span className="w-3 h-3 rounded-full" style={{ background: 'var(--green)', boxShadow: '0 0 12px var(--green)', animation: 'pulse 1.5s ease-in-out infinite' }} />
               <div className="text-center">
-                <p className="font-display font-black text-lg text-[#00ff41]">Live Now</p>
-                <p className="text-xs" style={{ color: 'rgba(0,255,65,0.5)' }}>Happening right now · {event.venue}</p>
+                <p className="font-display font-black text-lg text-[var(--green)]">Live Now</p>
+                <p className="text-xs" style={{ color: 'rgba(var(--green-rgb),0.5)' }}>Happening right now · {event.venue}</p>
               </div>
             </div>
           ) : (
             <div className="rounded-2xl p-3.5" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <p className="text-[10px] font-bold tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>⏳ STARTS IN</p>
+                <p className="text-[10px] font-bold tracking-widest mb-2 flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.3)' }}><Iconic name="clock" size={12} /> STARTS IN</p>
               <div className="flex gap-3">
                 {[
                   { val: countdown.days,    label: 'Days' },
@@ -145,8 +146,8 @@ const GroupEventCard: React.FC<{
             <div className="flex items-center gap-2">
               {myStatus ? (
                 <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
-                  style={{ background: 'rgba(0,255,65,0.12)', border: '1px solid rgba(0,255,65,0.25)', color: '#00ff41' }}>
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#00ff41', boxShadow: '0 0 6px #00ff41' }} />
+                  style={{ background: 'rgba(var(--green-rgb),0.12)', border: '1px solid rgba(var(--green-rgb),0.25)', color: 'var(--green)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--green)', boxShadow: '0 0 6px var(--green)' }} />
                   Answered
                 </span>
               ) : (
@@ -183,24 +184,24 @@ const GroupEventCard: React.FC<{
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.35)' }}>{group?.logo} {group?.name}</span>
+          <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.35)' }}>{group?.logo && <Iconic name={group.logo} size={14} />} {group?.name}</span>
         </div>
         <p className="font-bold text-white text-sm truncate">{event.title}</p>
         <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-          {event.status === 'live' ? '🔴 Today · Now' : `${format(parseISO(event.date), 'EEE, MMM d')} · ${event.time}`} · {event.venue}
+          {event.status === 'live' ? <><Iconic name="live" size={12} /> Today · Now</> : `${format(parseISO(event.date), 'EEE, MMM d')} · ${event.time}`} · {event.venue}
         </p>
       </div>
 
       <div className="text-right flex-shrink-0 flex items-center gap-2">
         {myStatus ? (
-          <span className="text-xs">{myStatus === 'coming' ? '✅' : '❌'}</span>
+          <span className="text-xs">{myStatus === 'coming' ? <Iconic name="check_circle" size={16} /> : <Iconic name="x_circle" size={16} />}</span>
         ) : (
           <span className="text-[10px] text-white/30">—</span>
         )}
         {event.status === 'live' ? (
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl" style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)' }}>
-            <span className="w-2 h-2 rounded-full" style={{ background: '#00ff41', boxShadow: '0 0 6px #00ff41' }} />
-            <span className="text-xs font-bold text-[#00ff41]">LIVE</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl" style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.2)' }}>
+            <span className="w-2 h-2 rounded-full" style={{ background: 'var(--green)', boxShadow: '0 0 6px var(--green)' }} />
+            <span className="text-xs font-bold text-[var(--green)]">LIVE</span>
           </div>
         ) : (
           <div>
@@ -230,24 +231,25 @@ export const HomePage: React.FC = () => {
   const heroEntry = myGroupEvents[0];
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? '🌅 Good morning' : hour < 17 ? '☀️ Good afternoon' : '🌙 Good evening';
+  const greetingIcon = hour < 12 ? 'sunrise' : hour < 17 ? 'sun' : 'moon';
+  const greetingText = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="pb-24 space-y-5 max-w-lg mx-auto px-4 pt-4">
+    <div className="page-container !pb-24 space-y-5">
 
       {/* Greeting */}
       <FadeUp>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>{greeting}</p>
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}><Iconic name={greetingIcon} size={16} /> {greetingText}</p>
             <h1 className="font-display font-black text-2xl text-white" style={{ letterSpacing: '-0.01em' }}>
-              {currentUser.name.split(' ')[0]} 👋
+              {currentUser.name.split(' ')[0]}
             </h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-              style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)', color: '#00ff41' }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#00ff41', boxShadow: '0 0 6px #00ff41' }} />
+              style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.2)', color: 'var(--green)' }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--green)', boxShadow: '0 0 6px var(--green)' }} />
               Lv.{currentUser.level}
             </div>
             <Avatar src={currentUser.avatar} name={currentUser.name} size="md" ring />
@@ -258,10 +260,10 @@ export const HomePage: React.FC = () => {
       {/* QUICK STATS */}
       <FadeUp delay={0.06}>
         <div className="grid grid-cols-4 gap-2">
-          <StatCard icon="🔥" label="Streak" value={currentUser.stats.currentStreak} color="#00ff41" />
-          <StatCard icon="🏆" label="Wins" value={currentUser.stats.wins} color="#f59e0b" />
-          <StatCard icon="📅" label="Events" value={myGroupEvents.length} color="#22c55e" />
-          <StatCard icon="📊" label="Win %" value={`${currentUser.stats.winRate}%`} color="#06b6d4" />
+          <StatCard icon={<Iconic name="flame" />} label="Streak" value={currentUser.stats.currentStreak} color="var(--green)" />
+          <StatCard icon={<Iconic name="trophy" />} label="Wins" value={currentUser.stats.wins} color="#f59e0b" />
+          <StatCard icon={<Iconic name="calendar" />} label="Events" value={myGroupEvents.length} color="#22c55e" />
+          <StatCard icon={<Iconic name="activity" />} label="Win %" value={`${currentUser.stats.winRate}%`} color="#06b6d4" />
         </div>
       </FadeUp>
 
@@ -274,7 +276,7 @@ export const HomePage: React.FC = () => {
             <motion.button
               onClick={() => setShowCreate(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
-              style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.25)', color: '#00ff41' }}
+              style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.25)', color: 'var(--green)' }}
               whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
             >
               + New Event
@@ -287,7 +289,7 @@ export const HomePage: React.FC = () => {
       {myGroupEvents.length === 0 ? (
         <FadeUp delay={0.12}>
           <div className="rounded-3xl p-8 text-center" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <p className="text-5xl mb-3">📅</p>
+            <Iconic name="calendar" size={48} className="mb-3" />
             <p className="font-display font-bold text-white mb-1">No upcoming events</p>
             <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>Create an event in one of your groups to get started</p>
             <Button variant="lime" onClick={() => setShowCreate(true)}>Create First Event</Button>
@@ -324,17 +326,17 @@ export const HomePage: React.FC = () => {
                 <div className="h-20 relative overflow-hidden">
                   <img src={group.banner} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent, #111)' }} />
-                  <span className="absolute top-2 left-2 text-xl">{group.logo}</span>
+                  <span className="absolute top-2 left-2">{group.logo && <Iconic name={group.logo} size={24} />}</span>
                   {nextEvent && (
                     <span className="absolute top-2 right-2 w-2 h-2 rounded-full pulse-lime"
-                      style={{ background: '#00ff41' }} />
+                      style={{ background: 'var(--green)' }} />
                   )}
                 </div>
                 <div className="p-3" style={{ background: '#111' }}>
                   <p className="font-bold text-white text-sm truncate">{group.name}</p>
                   <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
                     {nextEvent
-                      ? (nextEvent.event.status === 'live' ? '🔴 Live Now' : `📅 ${format(parseISO(nextEvent.event.date), 'MMM d')}`)
+                      ? (nextEvent.event.status === 'live' ? <><Iconic name="live" size={12} /> Live Now</> : <><Iconic name="calendar" size={12} /> {format(parseISO(nextEvent.event.date), 'MMM d')}</>)
                       : `${group.memberCount} members`}
                   </p>
                 </div>
@@ -347,11 +349,11 @@ export const HomePage: React.FC = () => {
             onClick={() => navigate('/groups')}
             className="flex-shrink-0 w-[160px] rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer"
             style={{ border: '1px dashed rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)', minHeight: 120 }}
-            whileHover={{ scale: 1.03, borderColor: 'rgba(0,255,65,0.3)' }}
+            whileHover={{ scale: 1.03, borderColor: 'rgba(var(--green-rgb),0.3)' }}
             whileTap={{ scale: 0.97 }}
           >
             <span className="w-9 h-9 rounded-xl flex items-center justify-center text-xl"
-              style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)' }}>+</span>
+              style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.2)' }}>+</span>
             <p className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.35)' }}>New Group</p>
           </motion.div>
         </div>
@@ -375,12 +377,12 @@ export const HomePage: React.FC = () => {
                     transition={{ delay: i * 0.04 + 0.4, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     className="w-full rounded-t-lg min-h-[4px]"
                     style={{
-                      background: isToday ? '#00ff41' : 'rgba(0,255,65,0.18)',
-                      boxShadow: isToday ? '0 0 8px rgba(0,255,65,0.5)' : 'none',
+                      background: isToday ? 'var(--green)' : 'rgba(var(--green-rgb),0.18)',
+                      boxShadow: isToday ? '0 0 8px rgba(var(--green-rgb),0.5)' : 'none',
                     }}
                   />
                   <span className="text-[10px] font-medium"
-                    style={{ color: isToday ? '#00ff41' : 'rgba(255,255,255,0.25)' }}>{day}</span>
+                    style={{ color: isToday ? 'var(--green)' : 'rgba(255,255,255,0.25)' }}>{day}</span>
                 </div>
               );
             })}

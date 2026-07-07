@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GROUPS, SPORT_CONFIG, getUserById, getGroupById, getCompletedGroupEvents, getUpcomingGroupEvents, getGroupEvents, computeMemberGroupStats, getOverallWinRate } from '../../data/mockData';
 import { Card, Avatar, Badge, Button, SectionHeader } from '../../components/ui';
+import { Iconic } from '../../components/ui/icons';
 import { FadeUp, StaggerList, StaggerItem } from '../../components/motion';
 import { clsx } from 'clsx';
 import { useAppStore } from '../../store/useAppStore';
@@ -10,12 +11,12 @@ import { CreateEventSheet } from '../../components/events/CreateEventSheet';
 import toast from 'react-hot-toast';
 
 const ROLE_CONFIG = {
-  creator: { label: 'Creator', color: '#f59e0b', emoji: '👑' },
-  admin: { label: 'Admin', color: '#7c3aed', emoji: '🛡️' },
-  member: { label: 'Member', color: '#6b7280', emoji: '⚡' },
+  creator: { label: 'Creator', color: '#f59e0b', icon: 'crown' },
+  admin: { label: 'Admin', color: '#7c3aed', icon: 'shield' },
+  member: { label: 'Member', color: '#6b7280', icon: 'lightning' },
 };
 
-const LOGO_OPTIONS = ['🏸', '🏏', '⚽', '🎾', '🏐', '🏀', '🏃', '🚴', '🥾', '🏊', '🎬', '☕', '🚗', '🎮', '🎲', '✨', '🎯'];
+const LOGO_OPTIONS = ['badminton', 'cricket', 'football', 'pickleball', 'volleyball', 'basketball', 'running', 'cycling', 'trekking', 'swimming', 'movie', 'cafe', 'roadtrip', 'gaming', 'boardgames', 'custom', 'target'];
 
 // =============================================
 // SPORT BADGE
@@ -26,7 +27,7 @@ const SportBadge: React.FC<{ sport: string; size?: 'sm' | 'xs' }> = ({ sport, si
   return (
     <span className={clsx('inline-flex items-center gap-1 rounded-full font-semibold', size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-0.5')}
       style={{ background: `${cfg.color}15`, border: `1px solid ${cfg.color}30`, color: cfg.color }}>
-      {cfg.emoji} {cfg.label}
+      <Iconic name={cfg.emoji} /> {cfg.label}
     </span>
   );
 };
@@ -72,7 +73,7 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
             roleCfg.label === 'Admin' ? 'bg-violet-400/10 text-violet-400' :
             'bg-white/10 text-white/50'
           )}>
-            {roleCfg.emoji}
+            <Iconic name={roleCfg.icon} size={14} />
           </span>
           <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }} className="text-white/30 text-sm">▼</motion.span>
         </div>
@@ -81,7 +82,7 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
         {open && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
             <div className="mx-3 mb-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">📊 Group Stats</p>
+              <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1"><Iconic name="activity" size={14} /> Group Stats</p>
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <StatItem label="Matches" value={computed.matchesPlayed} color="#7c3aed" />
                 <StatItem label="Wins" value={computed.wins} color="#10b981" />
@@ -91,13 +92,13 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
 
               {computed.sportBreakdown.length > 0 && (
                 <>
-                  <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">🏅 Per Sport</p>
+                  <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1"><Iconic name="target" size={14} /> Per Sport</p>
                   <div className="space-y-1.5">
                     {computed.sportBreakdown.map(s => {
                       const cfg = SPORT_CONFIG[s.sport as keyof typeof SPORT_CONFIG];
                       return (
                         <div key={s.sport} className="flex items-center gap-2 rounded-xl p-2" style={{ background: `${cfg?.color || '#7c3aed'}08` }}>
-                          <span className="text-sm">{cfg?.emoji || '🎯'}</span>
+                          {cfg?.emoji ? <Iconic name={cfg.emoji} size={16} /> : <Iconic name="target" size={16} />}
                           <span className="text-xs font-semibold text-white/60 flex-1">{cfg?.label || s.sport}</span>
                           <span className="text-xs text-white/40">{s.matchesPlayed}m</span>
                           <span className={clsx('text-xs font-bold', s.winRate >= 60 ? 'text-green-400' : s.winRate >= 40 ? 'text-amber-400' : 'text-red-400')}>
@@ -110,7 +111,7 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
                 </>
               )}
 
-              <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 mt-3">🏆 Overall (All Groups)</p>
+              <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 mt-3 flex items-center gap-1"><Iconic name="trophy" size={14} /> Overall (All Groups)</p>
               <div className="grid grid-cols-2 gap-2">
                 <StatItem label="Total Matches" value={overall.totalMatches} color="#7c3aed" />
                 <StatItem label="Total Wins" value={overall.totalWins} color="#10b981" />
@@ -122,7 +123,7 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
                 <button onClick={() => { updateMemberRole(groupId, userId, 'admin'); setOpen(false); }}
                   className="w-full mt-3 text-xs font-bold py-2 rounded-xl transition-all"
                   style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa' }}>
-                  🛡️ Make Admin
+                  <Iconic name="shield" size={14} /> Make Admin
                 </button>
               )}
               {canDemote && (
@@ -224,15 +225,15 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
               )}
               style={{
                 background: isSelected
-                  ? '#00ff41'
+                  ? 'var(--green)'
                   : isToday
-                  ? 'rgba(0,255,65,0.12)'
+                  ? 'rgba(var(--green-rgb),0.12)'
                   : 'transparent',
               }}
             >
               <span className={clsx(
                 'font-semibold',
-                isSelected ? 'text-[#080808]' : isToday ? 'text-[#00ff41]' : 'text-white/60'
+                isSelected ? 'text-[#080808]' : isToday ? 'text-[var(--green)]' : 'text-white/60'
               )}>
                 {cell.day}
               </span>
@@ -267,7 +268,7 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
               {isMember && (
                 <button onClick={() => setShowCreate(true)}
                   className="text-xs font-bold px-3 py-1.5 rounded-xl transition-all active:scale-95"
-                  style={{ background: '#00ff41', color: '#080808' }}>
+                  style={{ background: 'var(--green)', color: '#080808' }}>
                   + Schedule
                 </button>
               )}
@@ -286,7 +287,7 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
                       onClick={() => navigate(`/events/${e.id}`)}
                     >
                       <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs"
-                        style={{ background: `${cfg?.color || '#7c3aed'}20` }}>{cfg?.emoji || '📅'}</span>
+                        style={{ background: `${cfg?.color || '#7c3aed'}20` }}>{cfg?.emoji ? <Iconic name={cfg.emoji} size={16} /> : <Iconic name="calendar" size={16} />}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-white truncate">{e.title}</p>
                         <p className="text-[10px] text-white/40">{e.time} · {e.venue}</p>
@@ -300,12 +301,12 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
               </div>
             ) : (
               <div className="text-center py-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.06)' }}>
-                <p className="text-2xl mb-1">📅</p>
+<Iconic name="calendar" size={32} className="mb-1" />
                 <p className="text-white/30 text-xs">No events on this day</p>
                 {isMember && (
                   <button onClick={() => setShowCreate(true)}
                     className="mt-2 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all active:scale-95"
-                    style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)', color: '#00ff41' }}>
+                    style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.2)', color: 'var(--green)' }}>
                     + Schedule Event
                   </button>
                 )}
@@ -344,7 +345,7 @@ const CalendarView: React.FC<{ groupId: string }> = ({ groupId }) => {
 const CreateGroupModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
   const createGroup = useAppStore(s => s.createGroup);
   const [name, setName] = useState('');
-  const [logo, setLogo] = useState('🎯');
+  const [logo, setLogo] = useState('target');
   const [description, setDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [rules, setRules] = useState('');
@@ -383,31 +384,31 @@ const CreateGroupModal: React.FC<{ open: boolean; onClose: () => void }> = ({ op
         <div className="space-y-3">
           <div>
             <label className="text-white/50 text-xs font-semibold mb-1 block">Name *</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Weekend Crew" className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#00ff41]/50" />
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Weekend Crew" className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[var(--green)]/50" />
           </div>
           <div>
             <label className="text-white/50 text-xs font-semibold mb-1 block">Logo / Emoji</label>
             <div className="flex flex-wrap gap-1.5">
               {LOGO_OPTIONS.map(em => (
                 <button key={em} onClick={() => setLogo(em)}
-                  className={clsx('w-10 h-10 rounded-xl text-lg transition-all', logo === em ? 'bg-white/10 border border-white/20' : 'border border-transparent hover:bg-white/5')}
-                >{em}</button>
+                  className={clsx('w-10 h-10 rounded-xl transition-all', logo === em ? 'bg-white/10 border border-white/20' : 'border border-transparent hover:bg-white/5')}
+                ><Iconic name={em} size={22} /></button>
               ))}
             </div>
           </div>
           <div>
             <label className="text-white/50 text-xs font-semibold mb-1 block">Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="What's this group about?" rows={2} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#00ff41]/50 resize-none" />
+            <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="What's this group about?" rows={2} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[var(--green)]/50 resize-none" />
           </div>
           <div className="flex items-center gap-3">
             <label className="text-white/50 text-xs font-semibold">Private group</label>
-            <button onClick={() => setIsPrivate(!isPrivate)} className={clsx('w-10 h-5 rounded-full transition-all', isPrivate ? 'bg-[#00ff41]' : 'bg-white/20')}>
+            <button onClick={() => setIsPrivate(!isPrivate)} className={clsx('w-10 h-5 rounded-full transition-all', isPrivate ? 'bg-[var(--green)]' : 'bg-white/20')}>
               <div className={clsx('w-4 h-4 rounded-full bg-white transition-all', isPrivate ? 'translate-x-5' : 'translate-x-0.5')} />
             </button>
           </div>
           <div>
             <label className="text-white/50 text-xs font-semibold mb-1 block">Rules (one per line)</label>
-            <textarea value={rules} onChange={e => setRules(e.target.value)} placeholder="Be on time&#10;Respect others&#10;Have fun!" rows={3} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#00ff41]/50 resize-none" />
+            <textarea value={rules} onChange={e => setRules(e.target.value)} placeholder="Be on time&#10;Respect others&#10;Have fun!" rows={3} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[var(--green)]/50 resize-none" />
           </div>
           <motion.button onClick={handleSubmit} className="btn-lime w-full py-3 font-black text-sm" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             Create Group →
@@ -466,14 +467,14 @@ export const GroupDetailPage: React.FC = () => {
       <div className="px-4 mt-4 space-y-4">
         <FadeUp>
           <div className="flex items-start gap-3">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border-2 border-white/20 shadow-lg flex-shrink-0 glass">
-              {group.logo}
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center border-2 border-white/20 shadow-lg flex-shrink-0 glass">
+              <Iconic name={group.logo} size={32} />
             </div>
             <div className="flex-1">
               <h1 className="font-display font-black text-xl text-white">{group.name}</h1>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 {group.tags.map(tag => <SportBadge key={tag} sport={tag} />)}
-                {group.isPrivate ? <Badge variant="glass" size="sm">🔒 Private</Badge> : <Badge variant="green" size="sm">🌐 Public</Badge>}
+                {group.isPrivate ? <Badge variant="glass" size="sm"><Iconic name="shield" size={12} /> Private</Badge> : <Badge variant="green" size="sm"><Iconic name="globe" size={12} /> Public</Badge>}
               </div>
               <p className="text-white/60 text-sm mt-2 leading-relaxed">{group.description}</p>
             </div>
@@ -499,7 +500,7 @@ export const GroupDetailPage: React.FC = () => {
 
         <FadeUp delay={0.08}>
           <div className="flex items-center gap-2 text-xs text-white/40 glass rounded-2xl p-2.5">
-            <span>👤 Created by {getUserById(group.members.find(m => m.role === 'creator')?.userId || '')?.name}</span>
+            <span><Iconic name="users" size={14} /> Created by {getUserById(group.members.find(m => m.role === 'creator')?.userId || '')?.name}</span>
             {myRole === 'creator' && (
               <button onClick={() => {
                 setEditGroup(v => !v);
@@ -508,7 +509,7 @@ export const GroupDetailPage: React.FC = () => {
                 setEditGroupRules(group.rules.join('\n'));
               }} className="ml-auto text-[10px] font-bold px-2 py-1 rounded-lg transition-all"
                 style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}>
-                {editGroup ? 'Cancel' : '✏️ Edit'}
+                {editGroup ? 'Cancel' : <><Iconic name="edit" size={12} /> Edit</>}
               </button>
             )}
           </div>
@@ -519,17 +520,17 @@ export const GroupDetailPage: React.FC = () => {
                 <div>
                   <label className="text-white/50 text-[10px] font-semibold mb-1 block">Name</label>
                   <input value={editGroupName} onChange={e => setEditGroupName(e.target.value)}
-                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41]" />
+                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)]" />
                 </div>
                 <div>
                   <label className="text-white/50 text-[10px] font-semibold mb-1 block">Description</label>
                   <textarea value={editGroupDesc} onChange={e => setEditGroupDesc(e.target.value)} rows={2}
-                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41] resize-none" />
+                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)] resize-none" />
                 </div>
                 <div>
                   <label className="text-white/50 text-[10px] font-semibold mb-1 block">Rules (one per line)</label>
                   <textarea value={editGroupRules} onChange={e => setEditGroupRules(e.target.value)} rows={3}
-                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00ff41] resize-none" />
+                    className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[var(--green)] resize-none" />
                 </div>
                 <Button variant="lime" size="sm" className="w-full"
                   onClick={() => {
@@ -561,7 +562,7 @@ export const GroupDetailPage: React.FC = () => {
           {tab === 'Members' && (
             <motion.div key="members" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-1">
               <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <span>👥 Members ({group.members.length})</span>
+                <span><Iconic name="users" size={14} /> Members ({group.members.length})</span>
               </p>
               {group.members.map(member => (
                 <MemberDropdown key={member.userId} userId={member.userId} groupId={group.id} currentUserRole={myRole} />
@@ -572,15 +573,15 @@ export const GroupDetailPage: React.FC = () => {
           {tab === 'Rankings' && (
             <motion.div key="rankings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <span>🏆 {group.name} Rankings</span>
+                <span><Iconic name="trophy" size={14} /> {group.name} Rankings</span>
               </p>
               <div className="glass rounded-2xl overflow-hidden">
                 {rankedMembers.map((member, i) => {
                   const user = getUserById(member.userId);
                   const stats = computeMemberGroupStats(member.userId, group.id);
                   if (!user) return null;
-                  const medals = ['🥇', '🥈', '🥉'];
-                  const rankDisplay = i < 3 ? medals[i] : `#${i + 1}`;
+                  const rankIcons = ['trophy', 'medal', 'star'];
+                  const rankDisplay = i < 3 ? <Iconic name={rankIcons[i]} size={20} /> : `#${i + 1}`;
                   return (
                     <div key={member.userId} className={clsx('flex items-center gap-3 p-3.5', i < group.members.length - 1 && 'border-b border-white/5')}>
                       <span className="text-lg w-8 text-center">{rankDisplay}</span>
@@ -604,12 +605,12 @@ export const GroupDetailPage: React.FC = () => {
 
           {tab === 'Events' && (
             <motion.div key="events" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-              <Button variant="lime" fullWidth size="sm" onClick={() => setShowCreate(true)}>
-                ⚡ Create Live Event
+                <Button variant="lime" fullWidth size="sm" icon={<Iconic name="lightning" size={16} />} onClick={() => setShowCreate(true)}>
+                Create Live Event
               </Button>
               <div>
                 <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <span>⚡ Upcoming ({upcomingEvents.length})</span>
+                  <span><Iconic name="lightning" size={14} /> Upcoming ({upcomingEvents.length})</span>
                 </p>
                 {upcomingEvents.length > 0 ? (
                   <div className="space-y-2">
@@ -618,14 +619,14 @@ export const GroupDetailPage: React.FC = () => {
                       return (
                       <Card key={event.id} interactive padding="md" onClick={() => navigate(`/events/${event.id}`)}>
                         <div className="flex gap-3 items-start">
-                          <span className="text-2xl">{SPORT_CONFIG[event.sport as keyof typeof SPORT_CONFIG]?.emoji || '📅'}</span>
+                          {SPORT_CONFIG[event.sport as keyof typeof SPORT_CONFIG]?.emoji ? <Iconic name={SPORT_CONFIG[event.sport as keyof typeof SPORT_CONFIG]!.emoji} size={24} /> : <Iconic name="calendar" size={24} />}
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-white text-sm truncate">{event.title}</p>
                             <p className="text-white/50 text-xs">{event.date} · {event.time} · {event.venue}</p>
                           </div>
                           <div className="flex items-center gap-1.5">
                             {myStatus && (
-                              <span className="text-xs">{myStatus === 'coming' ? '✅' : '❌'}</span>
+                              <Iconic name={myStatus === 'coming' ? 'check_circle' : 'x_circle'} size={16} />
                             )}
                             <Badge variant="blue" size="sm">Soon</Badge>
                           </div>
@@ -635,21 +636,21 @@ export const GroupDetailPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="glass rounded-2xl p-6 text-center">
-                    <p className="text-2xl mb-1">📅</p>
+<Iconic name="calendar" size={32} className="mb-1" />
                     <p className="text-white/40 text-xs">No upcoming events</p>
                   </div>
                 )}
               </div>
               <div>
                 <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <span>📜 History ({completedEvents.length})</span>
+                  <span><Iconic name="clock" size={14} /> History ({completedEvents.length})</span>
                 </p>
                 {completedEvents.length > 0 ? (
                   <div className="space-y-3">
                     {completedEvents.map(event => (
                       <Card key={event.id} padding="md" interactive onClick={() => navigate(`/events/${event.id}`)}>
                         <div className="flex gap-3 items-start mb-3">
-                          <span className="text-xl">{SPORT_CONFIG[event.sport as keyof typeof SPORT_CONFIG]?.emoji || '📅'}</span>
+                          {SPORT_CONFIG[event.sport as keyof typeof SPORT_CONFIG]?.emoji ? <Iconic name={SPORT_CONFIG[event.sport as keyof typeof SPORT_CONFIG]!.emoji} size={22} /> : <Iconic name="calendar" size={22} />}
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-white text-sm">{event.title}</p>
                             <p className="text-white/40 text-xs">{event.date} · {event.venue}</p>
@@ -685,7 +686,7 @@ export const GroupDetailPage: React.FC = () => {
                                     <span className="text-white/30 text-[10px]">🏸 {formatLabel}</span>
                                   </div>
                                   {league.status === 'completed' && leagueWinners && (
-                                    <div className="rounded-lg p-1.5 mb-2 text-xs font-bold text-center" style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid rgba(0,255,65,0.2)', color: '#00ff41' }}>
+                                    <div className="rounded-lg p-1.5 mb-2 text-xs font-bold text-center" style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.2)', color: 'var(--green)' }}>
                                       🏆 {leagueWinners}
                                     </div>
                                   )}
@@ -712,7 +713,7 @@ export const GroupDetailPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="glass rounded-2xl p-6 text-center">
-                    <p className="text-2xl mb-1">🏁</p>
+<Iconic name="flag" size={32} className="mb-1" />
                     <p className="text-white/40 text-xs">No past events yet</p>
                   </div>
                 )}
@@ -729,12 +730,12 @@ export const GroupDetailPage: React.FC = () => {
           {tab === 'Invite' && (
             <motion.div key="invite" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
               <Card padding="md">
-                <p className="font-display font-bold text-white text-sm mb-3">🔗 Invite by Profile Code</p>
+                <p className="font-display font-bold text-white text-sm mb-3 flex items-center gap-1"><Iconic name="send" size={16} /> Invite by Profile Code</p>
                 <p className="text-white/40 text-xs mb-3">Enter a friend's profile code to add them to this group</p>
                 <InviteByCodeForm groupId={group.id} />
               </Card>
               <Card padding="md">
-                <p className="font-display font-bold text-white text-sm mb-3">👤 Current Members</p>
+                <p className="font-display font-bold text-white text-sm mb-3 flex items-center gap-1"><Iconic name="users" size={16} /> Current Members</p>
                 <div className="flex flex-wrap gap-2">
                   {group.members.map(m => {
                     const u = getUserById(m.userId);
@@ -749,7 +750,7 @@ export const GroupDetailPage: React.FC = () => {
                 </div>
               </Card>
               <Card padding="md">
-                <p className="font-display font-bold text-white text-sm mb-3">📋 Rules</p>
+                <p className="font-display font-bold text-white text-sm mb-3 flex items-center gap-1"><Iconic name="info" size={16} /> Rules</p>
                 <div className="space-y-2">
                   {group.rules.map((rule, i) => (
                     <div key={i} className="flex gap-2 text-sm">
@@ -788,7 +789,7 @@ const InviteByCodeForm: React.FC<{ groupId: string }> = ({ groupId }) => {
         value={code}
         onChange={e => setCode(e.target.value.toUpperCase())}
         placeholder="Enter profile code (e.g. MIRUN001)"
-        className="flex-1 glass rounded-2xl px-4 py-2.5 text-white text-sm outline-none border border-white/10 focus:border-[#00ff41]/50"
+        className="flex-1 glass rounded-2xl px-4 py-2.5 text-white text-sm outline-none border border-white/10 focus:border-[var(--green)]/50"
         onKeyDown={e => e.key === 'Enter' && handleInvite()}
       />
       <Button variant="lime" size="sm" onClick={handleInvite}>Invite</Button>
@@ -802,6 +803,7 @@ const InviteByCodeForm: React.FC<{ groupId: string }> = ({ groupId }) => {
 export const GroupsPage: React.FC = () => {
   const navigate = useNavigate();
   const currentUserId = useAppStore(s => s.currentUserId);
+  const isLoggedIn = useAppStore(s => s.isLoggedIn);
   const joinGroup = useAppStore(s => s.joinGroup);
   const [showCreate, setShowCreate] = useState(false);
 
@@ -815,7 +817,7 @@ export const GroupsPage: React.FC = () => {
   const overall = getOverallWinRate(currentUserId || '');
 
   return (
-    <div className="pb-24 max-w-lg mx-auto px-4 pt-4 space-y-6">
+    <div className="page-container !pb-24 space-y-6">
       <FadeUp>
         <div className="flex items-center justify-between">
           <div>
@@ -823,7 +825,7 @@ export const GroupsPage: React.FC = () => {
             <p className="text-white/50 text-sm">Your weekend communities</p>
           </div>
           <div className="text-right">
-            <p className="font-bold text-sm" style={{ color: '#00ff41' }}>Overall WR: {overall.overallWinRate}%</p>
+            <p className="font-bold text-sm" style={{ color: 'var(--green)' }}>Overall WR: {overall.overallWinRate}%</p>
             <p className="text-white/40 text-xs">{overall.totalWins}W · {overall.totalLosses}L</p>
           </div>
         </div>
@@ -840,8 +842,8 @@ export const GroupsPage: React.FC = () => {
 
       <FadeUp delay={0.1}>
         <SectionHeader
-          title="👑 Created by you"
-          action={canCreateMore ? <Button variant="lime" size="sm" onClick={() => setShowCreate(true)}>+ New Group</Button> : <Badge variant="glass" size="sm">Limit reached</Badge>}
+          title={<span><Iconic name="crown" size={16} /> Created by you</span>}
+          action={!isLoggedIn ? <Button variant="glass" size="sm" onClick={() => navigate('/login')}>Login to create</Button> : canCreateMore ? <Button variant="lime" size="sm" onClick={() => setShowCreate(true)}>+ New Group</Button> : <Badge variant="glass" size="sm">Limit reached</Badge>}
           className="mb-3"
         />
         <StaggerList className="space-y-3">
@@ -852,14 +854,14 @@ export const GroupsPage: React.FC = () => {
                   <img src={group.banner} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#0f0a1e]/80 to-transparent" />
                   <div className="absolute inset-0 p-4 flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 glass">
-                      {group.logo}
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 glass">
+                      <Iconic name={group.logo} size={24} />
                     </div>
                     <div>
                       <p className="font-display font-bold text-white">{group.name}</p>
                       <p className="text-white/50 text-xs">{group.memberCount} members · {group.totalEvents} events</p>
                     </div>
-                    <div className="ml-auto"><Badge variant="amber">👑 Creator</Badge></div>
+                    <div className="ml-auto"><Badge variant="amber"><Iconic name="crown" size={12} /> Creator</Badge></div>
                   </div>
                 </div>
               </Card>
@@ -867,7 +869,7 @@ export const GroupsPage: React.FC = () => {
           ))}
           {myCreatedGroups.length === 0 && (
             <div className="glass rounded-2xl p-6 text-center">
-              <p className="text-2xl mb-1">📁</p>
+<Iconic name="folder" size={32} className="mb-1" />
               <p className="text-white/40 text-xs">You haven't created any groups yet</p>
             </div>
           )}
@@ -875,7 +877,7 @@ export const GroupsPage: React.FC = () => {
       </FadeUp>
 
       <FadeUp delay={0.15}>
-        <SectionHeader title="⚡ Joined" className="mb-3" />
+        <SectionHeader title={<span><Iconic name="lightning" size={16} /> Joined</span>} className="mb-3" />
         <StaggerList className="space-y-3">
           {myJoinedGroups.map(group => (
             <StaggerItem key={group.id}>
@@ -884,8 +886,8 @@ export const GroupsPage: React.FC = () => {
                   <img src={group.banner} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#0f0a1e]/80 to-transparent" />
                   <div className="absolute inset-0 p-4 flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 glass">
-                      {group.logo}
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 glass">
+                      <Iconic name={group.logo} size={24} />
                     </div>
                     <div>
                       <p className="font-display font-bold text-white">{group.name}</p>
@@ -898,7 +900,7 @@ export const GroupsPage: React.FC = () => {
           ))}
           {myJoinedGroups.length === 0 && (
             <div className="glass rounded-2xl p-6 text-center">
-              <p className="text-2xl mb-1">🔍</p>
+              <Iconic name="search" size={32} className="mb-1" />
               <p className="text-white/40 text-xs">Join a group to get started</p>
             </div>
           )}
@@ -907,20 +909,20 @@ export const GroupsPage: React.FC = () => {
 
       {discoverGroups.length > 0 && canJoinMore && (
         <FadeUp delay={0.2}>
-          <SectionHeader title="🔍 Discover Groups" subtitle="Explore and join" className="mb-3" />
+          <SectionHeader title={<span><Iconic name="search" size={16} /> Discover Groups</span>} subtitle="Explore and join" className="mb-3" />
           <StaggerList className="space-y-3">
             {discoverGroups.map(group => (
               <StaggerItem key={group.id}>
                 <Card padding="md">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 glass">
-                      {group.logo}
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 glass">
+                      <Iconic name={group.logo} size={24} />
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-white">{group.name}</p>
                       <p className="text-white/50 text-xs">{group.memberCount} members</p>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => joinGroup(group.id)}>Join</Button>
+                    <Button variant="ghost" size="sm" onClick={() => isLoggedIn ? joinGroup(group.id) : navigate('/login')}>{isLoggedIn ? 'Join' : 'Login to Join'}</Button>
                   </div>
                 </Card>
               </StaggerItem>

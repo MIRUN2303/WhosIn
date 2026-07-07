@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useAppStore } from '../../store/useAppStore';
 import { Button } from '../../components/ui';
 import { FadeUp, StaggerList, StaggerItem } from '../../components/motion';
@@ -33,7 +33,7 @@ export const NotificationsPage: React.FC = () => {
   const unread = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="pb-24 max-w-lg mx-auto px-4 pt-4 space-y-4">
+    <div className="page-container !pb-24 space-y-4">
       <FadeUp>
         <div className="flex items-center justify-between">
           <div>

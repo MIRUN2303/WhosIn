@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../../store/useAppStore';
 import { Avatar } from '../../components/ui';
 import { FadeUp } from '../../components/motion';
@@ -36,7 +36,7 @@ export const StoriesPage: React.FC = () => {
   };
 
   return (
-    <div className="pb-24 space-y-5 max-w-lg mx-auto px-4 pt-4">
+    <div className="page-container !pb-24 space-y-5">
       <FadeUp>
         <h1 className="font-display font-black text-2xl text-white">Stories</h1>
         <p className="text-white/40 text-sm">See what your friends are up to</p>
@@ -54,17 +54,17 @@ export const StoriesPage: React.FC = () => {
             onClick={() => setStoryUploadOpen(true)}
           >
             <div className="relative w-16 h-16 flex-shrink-0">
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-dashed" style={{ borderColor: 'rgba(0,255,65,0.4)' }}>
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-dashed" style={{ borderColor: 'rgba(var(--green-rgb),0.4)' }}>
                 {myStories.length > 0 ? (
                   <img src={myStories[myStories.length - 1].imageUrl} alt="" className="w-full h-full object-cover"
                     onClick={e => { e.stopPropagation(); setStoryViewer({ user: currentUser, stories: myStories, idx: 0 }); }} />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-lg" style={{ background: 'rgba(0,255,65,0.08)' }}>+</div>
+                  <div className="w-full h-full flex items-center justify-center text-lg" style={{ background: 'rgba(var(--green-rgb),0.08)' }}>+</div>
                 )}
               </div>
               {myStories.length === 0 && (
                 <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full flex items-center justify-center text-xs"
-                  style={{ background: '#00ff41', color: '#080808' }}>📷</div>
+                  style={{ background: 'var(--green)', color: '#080808' }}>📷</div>
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -74,7 +74,7 @@ export const StoriesPage: React.FC = () => {
             {myStories.length > 0 && (
               <div className="flex items-center gap-1">
                 {[...Array(Math.min(myStories.length, 3))].map((_, i) => (
-                  <div key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: '#00ff41' }} />
+                  <div key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--green)' }} />
                 ))}
               </div>
             )}
@@ -88,7 +88,7 @@ export const StoriesPage: React.FC = () => {
               <p className="text-white/20 text-xs mt-1 mb-4">Add friends to see their stories</p>
               <button onClick={() => navigate('/profile')}
                 className="px-5 py-2.5 rounded-2xl text-sm font-bold transition-all active:scale-95"
-                style={{ background: '#00ff41', color: '#080808' }}>
+                style={{ background: 'var(--green)', color: '#080808' }}>
                 + Add Friends
               </button>
             </div>
@@ -110,7 +110,7 @@ export const StoriesPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     {[...Array(Math.min(fs.stories.length, 3))].map((_, i) => (
-                      <div key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: '#00ff41' }} />
+                      <div key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--green)' }} />
                     ))}
                   </div>
                 </motion.div>
@@ -264,12 +264,12 @@ const StoryUploadSheet: React.FC<{ onUpload: () => void; onClose: () => void }> 
           <p className="font-display font-bold text-white text-lg mb-4">📸 Add to Story</p>
           <button onClick={onUpload}
             className="w-full py-4 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-transform active:scale-95"
-            style={{ background: '#00ff41', color: '#080808' }}>
+            style={{ background: 'var(--green)', color: '#080808' }}>
             📁 Upload from Gallery
           </button>
           <button onClick={() => cameraRef.current?.click()}
             className="w-full py-4 mt-2 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-transform active:scale-95"
-            style={{ background: 'rgba(0,255,65,0.1)', color: '#00ff41', border: '1px solid rgba(0,255,65,0.25)' }}>
+            style={{ background: 'rgba(var(--green-rgb),0.1)', color: 'var(--green)', border: '1px solid rgba(var(--green-rgb),0.25)' }}>
             📷 Take Photo
           </button>
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"

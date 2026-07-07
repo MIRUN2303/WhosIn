@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis,
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip,
@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import { USERS, SPORT_CONFIG, BADGE_CONFIG, GROUPS, computeMemberGroupStats, getOverallWinRate } from '../../data/mockData';
 import { Card, Avatar, Button, StatCard, ProgressBar, Badge } from '../../components/ui';
+import { Iconic } from '../../components/ui/icons';
 import { FadeUp, AnimatedNumber } from '../../components/motion';
 import { clsx } from 'clsx';
 import { useAppStore } from '../../store/useAppStore';
@@ -54,8 +55,8 @@ export const ProfilePage: React.FC = () => {
   ];
 
   const pieData = [
-    { name: 'Wins', value: stats.wins, color: '#7c3aed' },
-    { name: 'Losses', value: stats.losses, color: '#1e1535' },
+    { name: 'Wins', value: stats.wins, color: 'var(--green)' },
+    { name: 'Losses', value: stats.losses, color: '#ffffff0d' },
   ];
 
   const xpProgress = (user.xp % 1000) / 1000 * 100;
@@ -83,7 +84,7 @@ export const ProfilePage: React.FC = () => {
                 <div className="space-y-2">
                   <input value={editName} onChange={e => setEditName(e.target.value.slice(0, 12))}
                     maxLength={12}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-display font-black text-2xl outline-none focus:border-[#00ff41]"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-display font-black text-2xl outline-none focus:border-[var(--green)]"
                   />
                   <p className="text-[10px] text-white/30">{editName.length}/12</p>
                 </div>
@@ -98,7 +99,7 @@ export const ProfilePage: React.FC = () => {
                     if (words.length <= 70) setEditBio(e.target.value);
                   }}
                     rows={3}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-[#00ff41] resize-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-[var(--green)] resize-none"
                   />
                   <p className="text-[10px] text-white/30">{editBio.split(/\s+/).filter(Boolean).length}/70 words</p>
                 </div>
@@ -128,26 +129,27 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="glass rounded-2xl p-3 mt-3 space-y-2">
-            <div className="flex items-center gap-2 text-white/60 text-xs">
-              <span>📧 {user.email}</span>
-              <span className="text-white/20">|</span>
-              <span>📱 {user.phone}</span>
+            <div className="glass rounded-2xl p-3 mt-3 space-y-2">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-white/60 text-xs">
+              <span className="flex items-center gap-1"><Iconic name="shield" size={12} className="text-green-400" /> {user.email}</span>
+              <span className="text-white/20 hidden sm:inline">|</span>
+              <span className="flex items-center gap-1"><Iconic name="shield" size={12} className="text-green-400" /> {user.phone}</span>
             </div>
             <div className="flex items-center gap-2 text-white/60 text-xs">
-              <span>🔑 Profile Code: <span className="font-mono font-bold text-violet-300">{user.profileCode}</span></span>
+              Profile Code: <span className="font-mono font-bold text-violet-300">{user.profileCode}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 flex items-center gap-0.5"><Iconic name="check_circle" size={10} /> Confirmed</span>
             </div>
           </div>
 
           <div className="glass rounded-2xl p-3 mt-3">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xl">⚡</span>
+                <Iconic name="lightning" size={20} />
                 <span className="font-bold text-white text-sm">Level {user.level}</span>
               </div>
               <span className="text-white/50 text-xs">{xpToNext} XP to next level</span>
             </div>
-            <ProgressBar value={xpProgress} max={100} color="#7c3aed" />
+            <ProgressBar value={xpProgress} max={100} color="var(--green)" />
             <p className="text-right text-white/40 text-xs mt-1">{user.xp.toLocaleString()} / {Math.ceil(user.xp / 1000) * 1000} XP</p>
           </div>
 
@@ -156,7 +158,7 @@ export const ProfilePage: React.FC = () => {
               const cfg = SPORT_CONFIG[sport];
               return (
                 <span key={sport} className="text-xs font-medium px-3 py-1.5 rounded-full" style={{ background: cfg.bg, border: `1px solid ${cfg.color}40`, color: cfg.color }}>
-                  {cfg.emoji} {cfg.label}
+                  <Iconic name={cfg.emoji} /> {cfg.label}
                 </span>
               );
             })}
@@ -165,37 +167,41 @@ export const ProfilePage: React.FC = () => {
 
         {/* Top stats with overall win rate */}
         <FadeUp delay={0.05}>
-          <div className="glass rounded-2xl p-3 mb-3">
-            <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">🏆 Overall Performance (All Groups)</p>
-            <div className="grid grid-cols-4 gap-2">
-              <div className="text-center">
+          <div className="glass-green rounded-2xl p-4 mb-3">
+            <p className="text-xs font-bold text-[var(--green)]/80 uppercase tracking-wider mb-3 flex items-center gap-1"><Iconic name="trophy" size={14} /> Overall Performance — All Groups</p>
+            <div className="grid grid-cols-4 gap-3">
+              <div className="text-center surface-0 rounded-xl py-3">
                 <p className="font-display font-black text-xl text-white">{overall.totalMatches}</p>
-                <p className="text-white/40 text-[10px]">Matches</p>
+                <p className="text-white/40 text-[10px] font-medium">Matches</p>
               </div>
-              <div className="text-center">
-                <p className="font-display font-black text-xl text-green-400">{overall.totalWins}</p>
-                <p className="text-white/40 text-[10px]">Wins</p>
+              <div className="text-center surface-0 rounded-xl py-3">
+                <p className="font-display font-black text-xl" style={{ color: 'var(--green)' }}>{overall.totalWins}</p>
+                <p className="text-white/40 text-[10px] font-medium">Wins</p>
               </div>
-              <div className="text-center">
+              <div className="text-center surface-0 rounded-xl py-3">
                 <p className="font-display font-black text-xl text-red-400">{overall.totalLosses}</p>
-                <p className="text-white/40 text-[10px]">Losses</p>
+                <p className="text-white/40 text-[10px] font-medium">Losses</p>
               </div>
-              <div className="text-center">
-                <p className="font-display font-black text-xl" style={{ color: overall.overallWinRate >= 60 ? '#10b981' : '#f59e0b' }}>{overall.overallWinRate}%</p>
-                <p className="text-white/40 text-[10px]">Win Rate</p>
+              <div className="text-center surface-0 rounded-xl py-3" style={{
+                border: overall.overallWinRate >= 60 ? '1px solid rgba(var(--green-rgb),0.3)' : '1px solid rgba(var(--amber-rgb),0.3)',
+              }}>
+                <p className="font-display font-black text-xl" style={{
+                  color: overall.overallWinRate >= 60 ? 'var(--green)' : 'var(--amber)',
+                }}>{overall.overallWinRate}%</p>
+                <p className="text-white/40 text-[10px] font-medium">Win Rate</p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            <StatCard icon="🏆" label="Total Wins" value={stats.wins} color="#f59e0b" />
-            <StatCard icon="⚡" label="Win Rate" value={`${stats.winRate}%`} color="#10b981" />
-            <StatCard icon="🔥" label="Streak" value={stats.currentStreak} color="#ec4899" />
+            <StatCard icon={<Iconic name="trophy" />} label="Total Wins" value={stats.wins} color="var(--green)" />
+            <StatCard icon={<Iconic name="lightning" />} label="Win Rate" value={`${stats.winRate}%`} color="var(--amber)" />
+            <StatCard icon={<Iconic name="flame" />} label="Streak" value={stats.currentStreak} color="var(--green)" />
           </div>
           <div className="grid grid-cols-3 gap-2 mt-2">
-            <StatCard icon="📅" label="Matches" value={stats.totalMatches} />
-            <StatCard icon="📊" label="Attendance" value={`${stats.attendanceRate}%`} color="#8b5cf6" />
-            <StatCard icon="🎖️" label="MVP" value={`${stats.mvpCount}×`} color="#f59e0b" />
+            <StatCard icon={<Iconic name="calendar" />} label="Matches" value={stats.totalMatches} />
+            <StatCard icon={<Iconic name="activity" />} label="Attendance" value={`${stats.attendanceRate}%`} color="var(--green)" />
+            <StatCard icon={<Iconic name="medal" />} label="MVP" value={`${stats.mvpCount}×`} color="var(--amber)" />
           </div>
         </FadeUp>
 
@@ -208,7 +214,7 @@ export const ProfilePage: React.FC = () => {
                 onClick={() => setTab(t)}
                 className={clsx(
                   'flex-1 py-2 text-sm font-semibold rounded-xl transition-all duration-200 whitespace-nowrap px-2',
-                  tab === t ? 'bg-violet-600 text-white shadow-lg' : 'text-white/50 hover:text-white'
+                  tab === t ? 'bg-[var(--green)] text-black shadow-lg shadow-[rgba(var(--green-rgb),0.3)]' : 'text-white/50 hover:text-white hover:bg-white/5'
                 )}
               >{t}</button>
             ))}
@@ -224,9 +230,9 @@ export const ProfilePage: React.FC = () => {
                   <BarChart data={stats.monthlyActivity} barGap={2}>
                     <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
                     <YAxis hide />
-                    <Tooltip contentStyle={{ background: '#1e1535', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} labelStyle={{ color: '#fff' }} itemStyle={{ color: 'rgba(255,255,255,0.7)' }} />
-                    <Bar dataKey="matches" fill="rgba(124,58,237,0.3)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="wins" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+                    <Tooltip contentStyle={{ background: '#111', border: '1px solid rgba(var(--green-rgb),0.2)', borderRadius: '12px' }} labelStyle={{ color: '#fff' }} itemStyle={{ color: 'rgba(255,255,255,0.7)' }} />
+                    <Bar dataKey="matches" fill="rgba(var(--green-rgb),0.15)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="wins" fill="var(--green)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </Card>
@@ -236,7 +242,7 @@ export const ProfilePage: React.FC = () => {
                   <RadarChart data={radarData}>
                     <PolarGrid stroke="rgba(255,255,255,0.1)" />
                     <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-                    <Radar dataKey="A" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.25} strokeWidth={2} />
+                    <Radar dataKey="A" stroke="var(--green)" fill="var(--green)" fillOpacity={0.25} strokeWidth={2} />
                   </RadarChart>
                 </ResponsiveContainer>
               </Card>
@@ -268,7 +274,7 @@ export const ProfilePage: React.FC = () => {
                 const unlocked = user.badges.includes(key as any);
                 return (
                   <motion.div key={key} whileHover={unlocked ? { scale: 1.05, y: -2 } : {}} className={clsx('rounded-2xl p-4 text-center transition-all', unlocked ? 'glass border border-white/20' : 'bg-white/5 border border-white/10 opacity-40 grayscale')}>
-                    <div className="text-3xl mb-2">{badge.emoji}</div>
+                    <div className="mb-2"><Iconic name={badge.emoji} size={32} /></div>
                     <p className="text-white text-xs font-bold leading-tight">{badge.label}</p>
                     <div className="text-[10px] font-semibold mt-1 rounded-full px-2 py-0.5 inline-block" style={{ color: RARITY_COLORS[badge.rarity as keyof typeof RARITY_COLORS], background: `${RARITY_COLORS[badge.rarity as keyof typeof RARITY_COLORS]}20` }}>{badge.rarity}</div>
                     {!unlocked && <p className="text-white/30 text-[10px] mt-1">Locked</p>}
@@ -283,7 +289,7 @@ export const ProfilePage: React.FC = () => {
               {sportBreakdownData.map(s => (
                 <Card key={s.sport} padding="md">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-2xl">{s.emoji}</span>
+                    <Iconic name={s.emoji} size={24} />
                     <div className="flex-1"><p className="font-bold text-white text-sm">{s.label}</p><p className="text-white/50 text-xs">{s.matches} matches · {s.wins} wins</p></div>
                     <span className="font-display font-bold text-sm" style={{ color: s.color }}>{s.winRate}%</span>
                   </div>
@@ -296,15 +302,15 @@ export const ProfilePage: React.FC = () => {
           {tab === 'History' && (
             <motion.div key="history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-2">
               {[
-                { result: 'win', opp: 'Arjun Sharma', sport: '🏸', score: '21-15', date: '7 days ago' },
-                { result: 'loss', opp: 'Karthik Rajan', sport: '🏸', score: '18-21', date: '7 days ago' },
-                { result: 'win', opp: 'Team Beta', sport: '🏸', score: '22-20', date: '7 days ago' },
-                { result: 'win', opp: 'Rahul Dev', sport: '🏏', score: '156-142', date: '14 days ago' },
-                { result: 'loss', opp: 'Priya Nair', sport: '🚴', score: 'DNF', date: '21 days ago' },
+                { result: 'win', opp: 'Arjun Sharma', sport: 'badminton', score: '21-15', date: '7 days ago' },
+                { result: 'loss', opp: 'Karthik Rajan', sport: 'badminton', score: '18-21', date: '7 days ago' },
+                { result: 'win', opp: 'Team Beta', sport: 'badminton', score: '22-20', date: '7 days ago' },
+                { result: 'win', opp: 'Rahul Dev', sport: 'cricket', score: '156-142', date: '14 days ago' },
+                { result: 'loss', opp: 'Priya Nair', sport: 'cycling', score: 'DNF', date: '21 days ago' },
               ].map((match, i) => (
                 <div key={i} className="glass rounded-2xl p-3 flex items-center gap-3">
                   <span className={clsx('w-2 h-2 rounded-full flex-shrink-0', match.result === 'win' ? 'bg-green-400' : 'bg-red-400')} />
-                  <span className="text-lg">{match.sport}</span>
+                  <Iconic name={match.sport} size={20} />
                   <div className="flex-1"><p className="text-white/80 text-sm font-medium">vs {match.opp}</p><p className="text-white/40 text-xs">{match.date}</p></div>
                   <div className="text-right">
                     <p className={clsx('font-bold text-sm', match.result === 'win' ? 'text-green-400' : 'text-red-400')}>{match.result === 'win' ? 'W' : 'L'}</p>
@@ -319,7 +325,7 @@ export const ProfilePage: React.FC = () => {
             <motion.div key="groups" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
               {/* Created groups */}
               <div>
-                <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">👑 Created ({createdGroups.length}/3)</p>
+                <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1"><Iconic name="crown" size={14} /> Created ({createdGroups.length}/3)</p>
                 {createdGroups.length > 0 ? (
                   <div className="space-y-2">
                     {createdGroups.map(group => {
@@ -327,7 +333,7 @@ export const ProfilePage: React.FC = () => {
                       return (
                         <Card key={group.id} interactive padding="md" onClick={() => navigate(`/groups/${group.id}`)}>
                           <div className="flex items-center gap-3">
-                            <span className="text-2xl">{group.logo}</span>
+                            <Iconic name={group.logo} size={24} />
                             <div className="flex-1"><p className="font-bold text-white text-sm">{group.name}</p><p className="text-white/40 text-xs">{group.memberCount} members</p></div>
                             <div className="text-right">
                               <p className="font-bold text-sm" style={{ color: stats.winRate >= 60 ? '#10b981' : '#f59e0b' }}>{stats.winRate}%</p>
@@ -345,7 +351,7 @@ export const ProfilePage: React.FC = () => {
 
               {/* Joined groups */}
               <div>
-                <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">⚡ Joined ({joinedGroups.length}/3)</p>
+                <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1"><Iconic name="lightning" size={14} /> Joined ({joinedGroups.length}/3)</p>
                 {joinedGroups.length > 0 ? (
                   <div className="space-y-2">
                     {joinedGroups.map(group => {
@@ -353,7 +359,7 @@ export const ProfilePage: React.FC = () => {
                       return (
                         <Card key={group.id} interactive padding="md" onClick={() => navigate(`/groups/${group.id}`)}>
                           <div className="flex items-center gap-3">
-                            <span className="text-2xl">{group.logo}</span>
+                            <Iconic name={group.logo} size={24} />
                             <div className="flex-1"><p className="font-bold text-white text-sm">{group.name}</p><p className="text-white/40 text-xs">{group.memberCount} members</p></div>
                             <div className="text-right">
                               <p className="font-bold text-sm" style={{ color: stats.winRate >= 60 ? '#10b981' : '#f59e0b' }}>{stats.winRate}%</p>
@@ -426,7 +432,7 @@ const FriendsPanel: React.FC = () => {
     <div className="space-y-4">
       {pendingReceived.length > 0 && (
         <div>
-          <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">📩 Requests</p>
+          <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1"><Iconic name="send" size={14} /> Requests</p>
           <div className="space-y-2">
             {pendingReceived.map(fr => (
               <Card key={fr.id} padding="md">
@@ -445,7 +451,7 @@ const FriendsPanel: React.FC = () => {
       )}
 
       <div>
-        <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">👥 Friends ({friends.length})</p>
+        <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1"><Iconic name="users" size={14} /> Friends ({friends.length})</p>
         {friends.length > 0 ? (
           <div className="space-y-2">
             {friends.map(f => (
@@ -455,8 +461,8 @@ const FriendsPanel: React.FC = () => {
                   <div className="flex-1">
                     <p className="font-bold text-white text-sm">{f.otherUser?.name}</p>
                     <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#00ff41', boxShadow: '0 0 6px #00ff41' }} />
-                      <span className="text-[10px]" style={{ color: '#00ff41' }}>Online</span>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--green)', boxShadow: '0 0 6px var(--green)' }} />
+                      <span className="text-[10px]" style={{ color: 'var(--green)' }}>Online</span>
                     </div>
                   </div>
                   <Badge variant="lime" size="sm">Friends</Badge>
@@ -473,7 +479,7 @@ const FriendsPanel: React.FC = () => {
 
       {pendingSent.length > 0 && (
         <div>
-          <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">⏳ Sent Requests</p>
+          <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1"><Iconic name="clock" size={14} /> Sent Requests</p>
           <div className="space-y-2">
             {pendingSent.map(fr => {
               const u = USERS.find(us => us.id === fr.friendId);
@@ -495,11 +501,11 @@ const FriendsPanel: React.FC = () => {
       )}
 
       <div>
-        <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">🔍 Find Users</p>
+        <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1"><Iconic name="search" size={14} /> Find Users</p>
         <div className="flex gap-2 mb-3">
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search by name..."
-            className="flex-1 bg-transparent border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#00ff41]/40"
+            className="flex-1 bg-transparent border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[var(--green)]/40"
           />
         </div>
         {filteredOthers.length > 0 ? (
