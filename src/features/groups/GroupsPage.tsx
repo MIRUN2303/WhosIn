@@ -47,7 +47,7 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
   const group = groups.find(g => g.id === groupId);
   const groupMember = group?.members.find(m => m.userId === userId);
   const computed = groupMember?.stats || { matchesPlayed: 0, wins: 0, losses: 0, winRate: 0, attendanceRate: 0, currentStreak: 0, points: 0 };
-  const computedExt = computed as typeof computed & { sportBreakdown?: { sport: string; matchesPlayed: number }[] };
+  const computedExt = computed as typeof computed & { sportBreakdown?: { sport: string; matchesPlayed: number; winRate: number }[] };
   const overall = user.stats.winRate || 0;
   const member = group?.members.find(m => m.userId === userId);
   const roleCfg = ROLE_CONFIG[member?.role || 'member'] as typeof ROLE_CONFIG[keyof typeof ROLE_CONFIG];
