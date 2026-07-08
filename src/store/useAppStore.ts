@@ -157,7 +157,9 @@ async function computeAllUserStats(events: Event[], set: any, get: any) {
   });
 
   set({ users: updated } as any);
+  const currentUserId = get().currentUserId;
   for (const u of updated) {
+    if (u.id !== currentUserId) continue;
     try {
       await db.updateUser(u.id, {
         total_matches: u.stats.totalMatches, wins: u.stats.wins, losses: u.stats.losses,
