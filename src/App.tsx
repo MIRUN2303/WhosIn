@@ -112,15 +112,15 @@ const AppContent: React.FC = () => {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/complete-profile" element={<CompleteProfilePage />} />
               <Route path="/home" element={<PageWrapper><HomePage /></PageWrapper>} />
-              <Route path="/events" element={<AuthGuard><PageWrapper><EventsPage /></PageWrapper></AuthGuard>} />
-              <Route path="/events/:id" element={<AuthGuard><PageWrapper><EventDetailPage /></PageWrapper></AuthGuard>} />
-              <Route path="/calendar" element={<AuthGuard><PageWrapper><CalendarPage /></PageWrapper></AuthGuard>} />
+              <Route path="/events" element={<PageWrapper><EventsPage /></PageWrapper>} />
+              <Route path="/events/:id" element={<PageWrapper><EventDetailPage /></PageWrapper>} />
+              <Route path="/calendar" element={<PageWrapper><CalendarPage /></PageWrapper>} />
               <Route path="/profile" element={<PageWrapper><ProfilePage /></PageWrapper>} />
-              <Route path="/groups" element={<AuthGuard><PageWrapper><GroupsPage /></PageWrapper></AuthGuard>} />
-              <Route path="/groups/:id" element={<AuthGuard><PageWrapper><GroupDetailPage /></PageWrapper></AuthGuard>} />
-              <Route path="/stories" element={<AuthGuard><PageWrapper><StoriesPage /></PageWrapper></AuthGuard>} />
-              <Route path="/notifications" element={<AuthGuard><PageWrapper><NotificationsPage /></PageWrapper></AuthGuard>} />
-              <Route path="*" element={<Navigate to={isLoggedIn ? '/home' : '/login'} replace />} />
+              <Route path="/groups" element={<PageWrapper><GroupsPage /></PageWrapper>} />
+              <Route path="/groups/:id" element={<PageWrapper><GroupDetailPage /></PageWrapper>} />
+              <Route path="/stories" element={<PageWrapper><StoriesPage /></PageWrapper>} />
+              <Route path="/notifications" element={<PageWrapper><NotificationsPage /></PageWrapper>} />
+              <Route path="*" element={<Navigate to={'/home'} replace />} />
             </Routes>
           </AnimatePresence>
         </Suspense>
