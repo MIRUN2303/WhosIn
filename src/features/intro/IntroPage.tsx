@@ -101,7 +101,7 @@ export const IntroPage: React.FC = () => {
       <div className="relative z-10 flex items-baseline">
         {/* "Whos" — clip-path reveal from left */}
         <motion.span
-          className="font-logo text-5xl sm:text-6xl text-white/85 select-none"
+          className="font-logo text-5xl sm:text-6xl text-white/85 select-none pl-1"
           style={{ letterSpacing: '0.08em' }}
           initial={{ clipPath: 'inset(0 100% 0 0)' }}
           animate={{
@@ -117,6 +117,7 @@ export const IntroPage: React.FC = () => {
         {/* "I" — hero character, electric green, snaps in with flash */}
         <motion.span
           className="relative inline-block"
+          style={{ perspective: 800, marginLeft: 18 }}
           initial={{ opacity: 0, x: -20, scale: 0.5 }}
           animate={{
             opacity: phase === 'curtain' ? 0 : 1,
@@ -128,7 +129,6 @@ export const IntroPage: React.FC = () => {
             x: { type: 'spring', damping: 20, stiffness: 300, delay: 0.5 },
             scale: { duration: 0.25, ease: CINEMATIC, delay: 0.9 },
           }}
-          style={{ perspective: 800 }}
         >
           <span
             className="font-logo text-6xl sm:text-7xl select-none relative block"
@@ -157,7 +157,7 @@ export const IntroPage: React.FC = () => {
 
         {/* "n" — slides in from right */}
         <motion.span
-          className="font-logo text-5xl sm:text-6xl text-white/85 select-none"
+          className="font-logo text-5xl sm:text-6xl text-white/85 select-none pr-1"
           style={{ letterSpacing: '0.08em' }}
           initial={{ opacity: 0, clipPath: 'inset(0 0% 0 100%)' }}
           animate={{

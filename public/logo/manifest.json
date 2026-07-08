@@ -1,0 +1,16 @@
+{
+  "name": "WhosIn",
+  "short_name": "WhosIn",
+  "description": "Who's in? The social platform for friend groups to organize sports, outings, scores, and memories.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#080808",
+  "icons": [
+    {
+      "src": "/logo/whosin-logo.png",
+      "sizes": "1200x675",
+      "type": "image/png"
+    }
+  ]
+}
