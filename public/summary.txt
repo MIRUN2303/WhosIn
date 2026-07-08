@@ -1,0 +1,49 @@
+WhosIn — Who's in?
+===================
+A social platform for friend groups to organize sports, outings, scores, and memories.
+
+URL: https://whosin-rosy.vercel.app
+
+Features
+--------
+• Group creation & management (up to 3 groups per user)
+• Event scheduling with RSVP (Coming / Can't Make It)
+• Live events with countdown timers
+• Match scoring, leagues, and team management
+• Attendance tracking and streaks
+• Badge / achievement system (12 achievements with rarity tiers)
+• User profiles with stats, win rates, and weekly activity
+• Friend requests and invites
+• Google sign-in and email/password auth
+• Real-time notifications via Supabase
+• Story uploads
+• Group invite codes
+• PWA ready (add to home screen, offline manifest)
+
+Tech Stack
+----------
+• Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Motion
+• Backend: Supabase (PostgreSQL, Auth, Realtime)
+• Charts: Recharts
+• Hosting: Vercel
+
+Color Palette
+-------------
+• Background: #080808 (deep black)
+• Primary accent: #aaeb00 (lime green)
+• Supporting: white/85 for body text, glass surfaces
+• Badge rarity: common (#6b7280), uncommon (#22c55e), rare (#3b82f6), legendary (#f59e0b)
+
+Logo Font
+---------
+• Primary: Strandhill (OTF)
+• Fallbacks: Crenzo, Plus Jakarta Sans, sans-serif
+• "I" is larger and lime green — the brand signature
+
+Database
+--------
+All dummy data has been purged. The app starts clean. Create a new account to begin.
+
+Contact
+-------
+Built by MIRUN2303
