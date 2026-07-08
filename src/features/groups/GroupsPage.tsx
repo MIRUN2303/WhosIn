@@ -342,6 +342,7 @@ const CreateGroupModal: React.FC<{ open: boolean; onClose: () => void }> = ({ op
   const [description, setDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [rules, setRules] = useState('');
+  const [emojiOpen, setEmojiOpen] = useState(false);
 
   const handleSubmit = () => {
     if (!name.trim()) { toast.error('Group name is required'); return; }
@@ -367,50 +368,83 @@ const CreateGroupModal: React.FC<{ open: boolean; onClose: () => void }> = ({ op
         exit={{ y: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         onClick={e => e.stopPropagation()}
-        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-6"
-        style={{ background: '#0f0a1e', border: '1px solid rgba(255,255,255,0.08)' }}
+        className="relative w-full max-w-lg flex flex-col"
+        style={{
+          background: '#0f0a1e',
+          border: '1px solid rgba(255,255,255,0.08)',
+          maxHeight: 'min(82dvh, 82vh, 600px)',
+          borderRadius: '1.5rem 1.5rem 0 0',
+        }}
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between px-6 pt-5 pb-2 flex-shrink-0">
           <h2 className="font-display font-bold text-white text-lg">Create Group</h2>
-          <button onClick={onClose} className="text-white/40 text-lg">✕</button>
+          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40 hover:text-white transition-all" style={{ background: 'rgba(255,255,255,0.05)' }}>✕</button>
         </div>
 
-        <div className="space-y-3">
+        <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-4">
           <div>
-            <label className="text-white/50 text-xs font-semibold mb-1 block">Name *</label>
+            <label className="text-white/50 text-xs font-semibold mb-1.5 block">Name *</label>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Weekend Crew" className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[var(--green)]/50" />
           </div>
-          <div>
-            <label className="text-white/50 text-xs font-semibold mb-1 block">Group Emoji</label>
-            <div className="flex flex-wrap gap-1.5">
-              {LOGO_EMOJIS.map(em => (
-                <button key={em} type="button" onClick={() => setLogo(em)}
-                  className={clsx(
-                    'w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all',
-                    logo === em
-                      ? 'scale-110 shadow-lg'
-                      : 'opacity-50 hover:opacity-80 hover:scale-105',
-                  )}
-                  style={logo === em ? { background: 'rgba(var(--green-rgb),0.15)', border: '2px solid var(--green)', boxShadow: '0 0 12px rgba(var(--green-rgb),0.3)' } : {}}
-                >{em}</button>
-              ))}
-            </div>
+
+          <div className="relative">
+            <label className="text-white/50 text-xs font-semibold mb-1.5 block">Group Emoji</label>
+            <button type="button" onClick={() => setEmojiOpen(!emojiOpen)}
+              className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 flex items-center gap-3"
+            >
+              <span className="text-2xl">{logo}</span>
+              <span className="text-white/40 text-xs flex-1 text-left">Choose an emoji</span>
+              <motion.span animate={{ rotate: emojiOpen ? 180 : 0 }} className="text-white/30 text-xs">▾</motion.span>
+            </button>
+            <AnimatePresence>
+              {emojiOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden rounded-2xl mt-1.5"
+                  style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  <div className="grid grid-cols-6 gap-1 p-2.5">
+                    {LOGO_EMOJIS.map(em => (
+                      <button key={em} type="button" onClick={() => { setLogo(em); setEmojiOpen(false); }}
+                        className={clsx(
+                          'aspect-square rounded-xl flex items-center justify-center text-lg transition-all',
+                          logo === em
+                            ? 'scale-110'
+                            : 'hover:bg-white/5',
+                        )}
+                        style={logo === em ? { background: 'rgba(var(--green-rgb),0.15)', border: '2px solid var(--green)', boxShadow: '0 0 10px rgba(var(--green-rgb),0.25)' } : {}}
+                      >{em}</button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
+
           <div>
-            <label className="text-white/50 text-xs font-semibold mb-1 block">Description</label>
+            <label className="text-white/50 text-xs font-semibold mb-1.5 block">Description</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="What's this group about?" rows={2} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[var(--green)]/50 resize-none" />
           </div>
-          <div className="flex items-center gap-3">
-            <label className="text-white/50 text-xs font-semibold">Private group</label>
-            <button onClick={() => setIsPrivate(!isPrivate)} className={clsx('w-10 h-5 rounded-full transition-all', isPrivate ? 'bg-[var(--green)]' : 'bg-white/20')}>
-              <div className={clsx('w-4 h-4 rounded-full bg-white transition-all', isPrivate ? 'translate-x-5' : 'translate-x-0.5')} />
+
+          <div className="flex items-center justify-between glass rounded-2xl px-4 py-3 border border-white/10">
+            <div>
+              <p className="text-white text-sm font-semibold">Private group</p>
+              <p className="text-white/30 text-xs">Only invited members can join</p>
+            </div>
+            <button onClick={() => setIsPrivate(!isPrivate)} className={clsx('w-11 h-6 rounded-full transition-all flex items-center flex-shrink-0', isPrivate ? 'bg-[var(--green)]' : 'bg-white/20')}>
+              <div className={clsx('w-5 h-5 rounded-full bg-white transition-all shadow', isPrivate ? 'translate-x-5.5' : 'translate-x-0.5')} />
             </button>
           </div>
+
           <div>
-            <label className="text-white/50 text-xs font-semibold mb-1 block">Rules (one per line)</label>
+            <label className="text-white/50 text-xs font-semibold mb-1.5 block">Rules (one per line)</label>
             <textarea value={rules} onChange={e => setRules(e.target.value)} placeholder="Be on time&#10;Respect others&#10;Have fun!" rows={3} className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[var(--green)]/50 resize-none" />
           </div>
-          <motion.button onClick={handleSubmit} className="btn-lime w-full py-3 font-black text-sm" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+
+          <motion.button onClick={handleSubmit} className="btn-lime w-full py-3.5 font-black text-sm" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             Create Group →
           </motion.button>
         </div>
