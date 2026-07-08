@@ -139,7 +139,7 @@ export const FAB: React.FC<{ onClick: () => void }> = ({ onClick }) => {
 
   return (
     <motion.button
-      className="fixed bottom-28 right-6 z-40 w-14 h-14 rounded-2xl flex items-center justify-center focus:outline-none"
+      className="fixed bottom-20 sm:bottom-12 right-6 z-40 w-14 h-14 rounded-2xl flex items-center justify-center focus:outline-none"
       style={{
         background: 'linear-gradient(135deg, var(--green) 0%, var(--green-bright) 100%)',
         boxShadow: '0 6px 28px rgba(var(--green-rgb), 0.55)',

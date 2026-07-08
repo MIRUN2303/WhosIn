@@ -101,13 +101,13 @@ const CategoryDropdown: React.FC<{ value: EventCategory; onChange: (v: EventCate
   const selected = CATEGORIES.find(c => c.value === value)!;
 
   return (
-    <div className="relative">
+    <div>
       <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>CATEGORY</label>
       <motion.button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all"
-        style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.08)', color: 'white' }}
+        style={{ background: '#161616', border: `1px solid ${open ? 'rgba(var(--green-rgb),0.4)' : 'rgba(255,255,255,0.08)'}`, color: 'white' }}
         whileTap={{ scale: 0.98 }}
       >
         <Iconic name={selected.icon} size={24} />
@@ -116,64 +116,55 @@ const CategoryDropdown: React.FC<{ value: EventCategory; onChange: (v: EventCate
           <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{selected.desc}</p>
         </div>
         <motion.span
+          animate={{ rotate: open ? 180 : 0 }}
           className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}
         >▾</motion.span>
       </motion.button>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center"
-            onClick={() => setOpen(false)}
+            key="category-options"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="overflow-hidden rounded-2xl mt-1"
+            style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.06)' }}
           >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute inset-0 bg-black/60"
-            />
-            <motion.div
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-sm max-h-[70vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-5"
-              style={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,0.08)' }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <p className="font-display font-bold text-white text-lg">Select Category</p>
-                <button onClick={() => setOpen(false)} className="text-white/40 text-lg">✕</button>
-              </div>
-              <div className="space-y-1">
-                {CATEGORIES.map(c => {
-                  const isSelected = c.value === value;
-                  return (
-                    <motion.button
-                      key={c.value}
-                      type="button"
-                      onClick={() => { onChange(c.value); setOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all"
-                      style={isSelected
-                        ? { background: 'rgba(var(--green-rgb),0.08)', color: 'var(--green)', border: '1px solid rgba(var(--green-rgb),0.2)' }
-                        : { background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.6)', border: '1px solid transparent' }
-                      }
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Iconic name={c.icon} size={28} />
-                      <div className="flex-1">
-                        <p className="text-sm font-bold">{c.label}</p>
-                        <p className="text-[10px]" style={{ color: isSelected ? 'rgba(var(--green-rgb),0.4)' : 'rgba(255,255,255,0.3)' }}>{c.desc}</p>
-                      </div>
-                      {isSelected && <span className="text-xs" style={{ color: 'var(--green)' }}>✓</span>}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </motion.div>
+            <div className="p-1.5 space-y-0.5">
+              {CATEGORIES.map(c => {
+                const isSelected = c.value === value;
+                return (
+                  <motion.button
+                    key={c.value}
+                    type="button"
+                    onClick={() => { onChange(c.value); setOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left transition-all"
+                    style={isSelected
+                      ? { background: 'rgba(var(--green-rgb),0.1)', color: 'var(--green)' }
+                      : { background: 'transparent', color: 'rgba(255,255,255,0.55)' }
+                    }
+                    whileHover={isSelected ? {} : { background: 'rgba(255,255,255,0.04)' }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span className="w-8 h-8 rounded-lg flex items-center justify-center"
+                      style={{ background: isSelected ? 'rgba(var(--green-rgb),0.12)' : 'rgba(255,255,255,0.05)' }}>
+                      <Iconic name={c.icon} size={20} />
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">{c.label}</p>
+                      <p className="text-[10px]" style={{ color: isSelected ? 'rgba(var(--green-rgb),0.5)' : 'rgba(255,255,255,0.25)' }}>{c.desc}</p>
+                    </div>
+                    {isSelected && (
+                      <span className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--green)' }}>
+                        <Iconic name="check" size={12} className="text-black" />
+                      </span>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -282,11 +273,11 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="relative w-full max-w-lg mx-0 sm:mx-5 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col"
+              className="relative w-full max-w-lg mx-0 sm:mx-5 rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col"
               style={{
                 background: '#0f0f0f',
                 border: '1px solid rgba(255,255,255,0.08)',
-                maxHeight: 'min(90dvh, 90vh, 720px)',
+                maxHeight: 'min(75dvh, 75vh, 600px)',
               }}
               initial={{ y: '100%', opacity: 1 }}
               animate={{ y: 0, opacity: 1 }}
