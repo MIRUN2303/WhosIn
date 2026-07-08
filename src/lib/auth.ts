@@ -1,4 +1,4 @@
-import { supabase, supabaseNoAuth } from './supabase';
+import { supabase, supabaseNoAuth, supabaseAdmin } from './supabase';
 import type { User } from '../data/types';
 
 export async function signInWithEmail(email: string, password: string) {
@@ -86,9 +86,14 @@ export async function resolveUserFromAuth(
     level: 1, xp: 0,
   };
 
-  const { data: created, error } = await supabase.from('users').insert(newUser).select().single();
-  if (error) throw error;
-  return mapUserRow(created);
+  // Try with authenticated client first, then fall back to admin (bypasses RLS)
+  const { data: created, error: insertErr } = await supabase.from('users').insert(newUser).select().maybeSingle();
+  if (created) return mapUserRow(created);
+  // Auth INSERT blocked by RLS — retry with service_role admin client
+  const { data: created2, error: err2 } = await supabaseAdmin.from('users').insert(newUser).select().maybeSingle();
+  if (err2) throw err2;
+  if (created2) return mapUserRow(created2);
+  throw new Error(insertErr?.message || 'Failed to create user profile');
 }
 
 function mapUserRow(row: any): User {

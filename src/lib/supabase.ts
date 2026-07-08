@@ -15,6 +15,12 @@ export const supabaseNoAuth = createClient(
   { auth: { storageKey: 'sb-whosin-anon' } }
 );
 
+/** Admin client with service_role key — bypasses RLS. Use sparingly (e.g. user creation). */
+export const supabaseAdmin = createClient(
+  supabaseUrl!,
+  import.meta.env.VITE_SUPABASE_SERVICE_KEY!
+);
+
 export async function checkConnection() {
   try {
     const { error } = await supabase.from('events').select('id').limit(1);

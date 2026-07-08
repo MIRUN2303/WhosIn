@@ -185,6 +185,7 @@ body {
   background: linear-gradient(135deg, rgba(var(--green-rgb), 0.20), rgba(var(--amber-rgb), 0.10), transparent, rgba(var(--green-rgb), 0.08));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   pointer-events: none;
 }
@@ -198,6 +199,7 @@ body {
   background: linear-gradient(135deg, rgba(var(--amber-rgb), 0.25), rgba(var(--gold-rgb), 0.08), transparent);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   pointer-events: none;
 }
