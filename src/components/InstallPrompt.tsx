@@ -42,7 +42,7 @@ export const InstallPrompt: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 120, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-          className="fixed bottom-24 left-4 right-4 z-[999] max-w-md mx-auto"
+          className="fixed top-4 left-4 right-4 z-[999] max-w-md mx-auto"
         >
           <div className="glass border border-white/10 rounded-2xl p-4 flex items-start gap-3 shadow-2xl"
             style={{ background: 'rgba(8,8,8,0.96)', backdropFilter: 'blur(24px)' }}>
