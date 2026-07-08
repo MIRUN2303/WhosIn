@@ -5,6 +5,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { Button } from '../ui';
 import { Iconic } from '../ui/icons';
 import type { EventCategory } from '../../data/types';
+import { useScrollLock } from '../../lib/useScrollLock';
 
 const CATEGORIES: { value: EventCategory; label: string; icon: string; desc: string }[] = [
   { value: 'badminton', label: 'Badminton', icon: 'badminton', desc: 'Leagues, matches & scoring' },
@@ -206,6 +207,9 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
 
   const mode = initialMode;
 
+  // Lock body scroll while sheet is open (prevents iOS rubber-band scroll on background)
+  useScrollLock(isOpen);
+
   const selectedGroup = storeGroups.find(g => g.id === groupId);
 
   const canProceed = title.trim().length > 0 && groupId;
@@ -257,9 +261,14 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Backdrop — click to close, touch-action:none blocks background scroll */}
           <motion.div
             className="fixed inset-0 z-50"
-            style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)' }}
+            style={{
+              background: 'rgba(0,0,0,0.85)',
+              backdropFilter: 'blur(10px)',
+              touchAction: 'none',
+            }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -267,47 +276,49 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
             onClick={resetAndClose}
           />
 
+          {/* Sheet positioner — pointer-events-none so backdrop click falls through */}
           <motion.div
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
+            {/* Sheet card */}
             <motion.div
-              className="relative w-full max-w-lg flex flex-col"
+              className="relative w-full max-w-lg flex flex-col pointer-events-auto max-h-full"
               style={{
                 background: '#0f0f0f',
                 border: '1px solid rgba(255,255,255,0.08)',
-                maxHeight: 'min(78dvh, 78vh, 620px)',
-                borderRadius: '1.5rem 1.5rem 0 0',
-                boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
+                maxHeight: 'min(85dvh, 85vh)',
+                borderRadius: '1.5rem',
+                boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
               }}
-              initial={{ y: '100%', opacity: 1 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 420, damping: 36, mass: 1 }}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ duration: 0.15 }}
               onClick={e => e.stopPropagation()}
             >
               {/* Handle */}
-              <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-2" style={{ background: 'rgba(255,255,255,0.12)' }} />
+              <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-2 flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }} />
 
               {/* Header */}
-               <div className="flex items-center justify-between px-6 pt-1 pb-2 flex-shrink-0">
-                 <div>
-                   <h2 className="font-display font-bold text-lg text-white">
-                     {mode === 'live' ? 'Start Live Event' : 'Schedule Event'}
-                   </h2>
-                   <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                     {selectedGroup ? `in ${selectedGroup.name}` : 'Select a group first'}
-                   </p>
-                 </div>
-                 <button onClick={resetAndClose}
-                   className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all duration-200 flex-shrink-0"
-                   style={{ background: 'rgba(255,255,255,0.06)' }}>
-                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                 </button>
-               </div>
+              <div className="flex items-center justify-between px-6 pt-1 pb-2 flex-shrink-0">
+                <div>
+                  <h2 className="font-display font-bold text-lg text-white">
+                    {mode === 'live' ? 'Start Live Event' : 'Schedule Event'}
+                  </h2>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    {selectedGroup ? `in ${selectedGroup.name}` : 'Select a group first'}
+                  </p>
+                </div>
+                <button onClick={resetAndClose}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all duration-200 flex-shrink-0"
+                  style={{ background: 'rgba(255,255,255,0.06)' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
 
               {/* Step indicator */}
               {mode === 'schedule' && (
@@ -332,7 +343,15 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                 </div>
               )}
 
-              <div className="flex-1 overflow-y-auto px-6 pb-6">
+              {/* Scrollable body — safe-area padding + overscroll containment */}
+              <div
+                className="flex-1 overflow-y-auto px-6 min-h-0"
+                style={{
+                  paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 1.5rem) + 1.5rem)',
+                  overscrollBehavior: 'contain',
+                  WebkitOverflowScrolling: 'touch',
+                }}
+              >
                 <div className="space-y-4">
                 <AnimatePresence mode="wait">
                   {/* ===== SCHEDULE MODE: STEP 1 — DETAILS ===== */}
@@ -343,21 +362,34 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                       {!preselectedGroupId && (
                         <div>
                           <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>GROUP</label>
-                          <div className="flex gap-2 overflow-x-auto scrollbar-hidden pb-1">
-                            {myGroups.map(g => (
-                              <motion.button key={g.id}
-                                onClick={() => setGroupId(g.id)}
-                                className="flex items-center gap-2 px-3 py-2.5 rounded-2xl whitespace-nowrap text-sm font-semibold transition-all border flex-shrink-0"
-                                style={groupId === g.id
-                                  ? { background: 'rgba(var(--green-rgb),0.1)', borderColor: 'var(--green)', color: 'var(--green)' }
-                                  : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
-                                }
-                                whileTap={{ scale: 0.97 }}
-                              >
-                                <span>{g.logo}</span> {g.name}
-                              </motion.button>
-                            ))}
-                          </div>
+                          {myGroups.length === 0 ? (
+                            <div className="text-center py-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                              <p className="text-3xl mb-2">👥</p>
+                              <p className="text-white/50 text-sm font-semibold">No groups yet</p>
+                              <p className="text-white/30 text-xs mt-1 mb-4">Create a group to start hosting events</p>
+                              <button onClick={() => { onClose(); navigate('/groups'); }}
+                                className="px-5 py-2.5 rounded-2xl text-sm font-bold transition-all active:scale-95"
+                                style={{ background: 'var(--green)', color: '#080808' }}>
+                                + Create Group
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2 overflow-x-auto scrollbar-hidden pb-1">
+                              {myGroups.map(g => (
+                                <motion.button key={g.id}
+                                  onClick={() => setGroupId(g.id)}
+                                  className="flex items-center gap-2 px-3 py-2.5 rounded-2xl whitespace-nowrap text-sm font-semibold transition-all border flex-shrink-0"
+                                  style={groupId === g.id
+                                    ? { background: 'rgba(var(--green-rgb),0.1)', borderColor: 'var(--green)', color: 'var(--green)' }
+                                    : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
+                                  }
+                                  whileTap={{ scale: 0.97 }}
+                                >
+                                  <span>{g.logo}</span> {g.name}
+                                </motion.button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -528,21 +560,34 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                       {!preselectedGroupId && (
                         <div>
                           <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>GROUP</label>
-                          <div className="flex gap-2 overflow-x-auto scrollbar-hidden pb-1">
-                            {myGroups.map(g => (
-                              <motion.button key={g.id}
-                                onClick={() => setGroupId(g.id)}
-                                className="flex items-center gap-2 px-3 py-2.5 rounded-2xl whitespace-nowrap text-sm font-semibold transition-all border flex-shrink-0"
-                                style={groupId === g.id
-                                  ? { background: 'rgba(var(--green-rgb),0.1)', borderColor: 'var(--green)', color: 'var(--green)' }
-                                  : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
-                                }
-                                whileTap={{ scale: 0.97 }}
-                              >
-                                <span>{g.logo}</span> {g.name}
-                              </motion.button>
-                            ))}
-                          </div>
+                          {myGroups.length === 0 ? (
+                            <div className="text-center py-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                              <p className="text-3xl mb-2">👥</p>
+                              <p className="text-white/50 text-sm font-semibold">No groups yet</p>
+                              <p className="text-white/30 text-xs mt-1 mb-4">Create a group to start hosting events</p>
+                              <button onClick={() => { onClose(); navigate('/groups'); }}
+                                className="px-5 py-2.5 rounded-2xl text-sm font-bold transition-all active:scale-95"
+                                style={{ background: 'var(--green)', color: '#080808' }}>
+                                + Create Group
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2 overflow-x-auto scrollbar-hidden pb-1">
+                              {myGroups.map(g => (
+                                <motion.button key={g.id}
+                                  onClick={() => setGroupId(g.id)}
+                                  className="flex items-center gap-2 px-3 py-2.5 rounded-2xl whitespace-nowrap text-sm font-semibold transition-all border flex-shrink-0"
+                                  style={groupId === g.id
+                                    ? { background: 'rgba(var(--green-rgb),0.1)', borderColor: 'var(--green)', color: 'var(--green)' }
+                                    : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }
+                                  }
+                                  whileTap={{ scale: 0.97 }}
+                                >
+                                  <span>{g.logo}</span> {g.name}
+                                </motion.button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -613,9 +658,9 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                     </motion.div>
                   )}
                 </AnimatePresence>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
           </motion.div>
         </>
       )}

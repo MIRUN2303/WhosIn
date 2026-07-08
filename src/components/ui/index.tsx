@@ -2,6 +2,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 import { motion } from 'motion/react';
 import { ICON_MAP } from './icons';
+import { useScrollLock } from '../../lib/useScrollLock';
 
 // =============================================
 // BUTTON
@@ -288,11 +289,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   open, title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel',
   variant = 'default', onConfirm, onCancel
 }) => {
-  React.useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
+  // iOS-safe scroll lock
+  useScrollLock(open);
 
   if (!open) return null;
 

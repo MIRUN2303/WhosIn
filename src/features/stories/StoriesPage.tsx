@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../../store/useAppStore';
 import { Avatar, ConfirmModal } from '../../components/ui';
 import { FadeUp } from '../../components/motion';
+import { useScrollLock } from '../../lib/useScrollLock';
 
 export const StoriesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -185,9 +186,11 @@ const StoryViewerPopup: React.FC<{ user: any; stories: any[]; initialIdx: number
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
-    document.body.style.overflow = 'hidden';
-    return () => { window.removeEventListener('keydown', handler); document.body.style.overflow = ''; };
+    return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  // Lock body scroll while viewer is open
+  useScrollLock(true);
 
   const goNext = () => { if (idx < stories.length - 1) { setIdx(i => i + 1); } else onClose(); };
   const goPrev = () => { if (idx > 0) { setIdx(i => i - 1); } };
@@ -204,7 +207,13 @@ const StoryViewerPopup: React.FC<{ user: any; stories: any[]; initialIdx: number
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
       className="fixed inset-0 z-[100] flex items-center justify-center"
-      style={{ background: '#000' }}
+      style={{
+        background: '#000',
+        /* Ensure true full-screen on mobile — 100dvh accounts for collapsing browser chrome */
+        height: '100dvh',
+        width: '100vw',
+        touchAction: 'none',
+      }}
       onClick={goNext}
     >
       {/* Progress bars */}
@@ -246,25 +255,37 @@ const StoryViewerPopup: React.FC<{ user: any; stories: any[]; initialIdx: number
         </div>
       </div>
 
-      {/* Full-screen image — proper aspect ratio container */}
-      <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ background: '#000' }}>
+      {/* Full-screen image — blurred bg fill + cover image for true full-screen on mobile */}
+      <div className="absolute inset-0 overflow-hidden" style={{ background: '#000' }}>
+        {/* Blurred background clone — fills black bars on portrait / landscape images */}
+        <img
+          src={stories[idx]?.imageUrl}
+          alt=""
+          className="absolute inset-0 w-full h-full"
+          style={{ objectFit: 'cover', filter: 'blur(24px) brightness(0.45)', transform: 'scale(1.1)' }}
+          aria-hidden
+        />
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
-            className="w-full h-full flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center"
             initial={{ opacity: 0, scale: 1.02 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
           >
-            <img src={stories[idx]?.imageUrl} alt=""
-              className="w-full h-full" style={{ objectFit: 'contain' }}
-              onClick={e => e.stopPropagation()} />
+            <img
+              src={stories[idx]?.imageUrl}
+              alt=""
+              className="w-full h-full"
+              style={{ objectFit: 'cover' }}
+              onClick={e => e.stopPropagation()}
+            />
           </motion.div>
         </AnimatePresence>
         {/* Bottom gradient overlay for caption readability */}
         <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
-          style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.65))' }} />
+          style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.72))' }} />
       </div>
 
       {/* Tap zones with visual indicators on hover */}
@@ -355,6 +376,7 @@ const StoryUploadSheet: React.FC<{ onUpload: (file: File) => void; onClose: () =
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         className="fixed inset-0 z-[90] bg-black/60 flex items-end justify-center"
+        style={{ touchAction: 'none' }}
         onClick={onClose}
       >
         <motion.div
