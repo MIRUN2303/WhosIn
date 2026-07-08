@@ -137,6 +137,7 @@ export const ProfilePage: React.FC = () => {
           <div className="flex-1 min-w-0">
             <h1 className="font-display font-black text-xl text-white truncate">{user.name}</h1>
             <p className="text-white/40 text-xs">@{user.username}</p>
+            {user.profileCode && <p className="text-white/20 text-[10px] font-mono -mt-0.5">{user.profileCode}</p>}
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(var(--green-rgb),0.12)', color: 'var(--green)' }}>
                 <Iconic name="lightning" size={10} className="inline mr-0.5" /> Lv.{user.level}

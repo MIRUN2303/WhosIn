@@ -12,16 +12,29 @@ function now() { return new Date().toISOString(); }
 // =============================================
 // USERS
 // =============================================
+async function queryUsers(id?: string): Promise<any[]> {
+  // Try new view first; fall back to old users table
+  const view = 'user_profiles_full';
+  const table = 'users';
+  const r1 = await supabaseNoAuth.from(view).select('*');
+  if (!r1.error) {
+    if (id) return (r1.data || []).filter(x => x.id === id);
+    return r1.data || [];
+  }
+  const r2 = await supabaseNoAuth.from(table).select('*');
+  if (r2.error) throw r2.error;
+  if (id) return (r2.data || []).filter(x => x.id === id);
+  return r2.data || [];
+}
+
 export async function fetchUsers(): Promise<User[]> {
-  const { data, error } = await supabaseNoAuth.from('user_profiles_full').select('*');
-  if (error) throw error;
-  return (data || []).map(mapUser);
+  const data = await queryUsers();
+  return data.map(mapUser);
 }
 
 export async function fetchUserById(id: string): Promise<User | null> {
-  const { data, error } = await supabaseNoAuth.from('user_profiles_full').select('*').eq('id', id).single();
-  if (error) return null;
-  return mapUser(data);
+  const data = await queryUsers(id);
+  return data.length > 0 ? mapUser(data[0]) : null;
 }
 
 function mapUser(row: any): User {
