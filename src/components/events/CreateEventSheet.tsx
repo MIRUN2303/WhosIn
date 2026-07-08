@@ -363,14 +363,12 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         <div>
                           <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>GROUP</label>
                           {myGroups.length === 0 ? (
-                            <div className="text-center py-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                              <p className="text-3xl mb-2">👥</p>
-                              <p className="text-white/50 text-sm font-semibold">No groups yet</p>
-                              <p className="text-white/30 text-xs mt-1 mb-4">Create a group to start hosting events</p>
+                            <div className="flex items-center gap-2 py-3">
+                              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>No groups —</span>
                               <button onClick={() => { onClose(); navigate('/groups'); }}
-                                className="px-5 py-2.5 rounded-2xl text-sm font-bold transition-all active:scale-95"
-                                style={{ background: 'var(--green)', color: '#080808' }}>
-                                + Create Group
+                                className="text-xs font-bold transition-all active:scale-95 underline underline-offset-2"
+                                style={{ color: 'var(--green)' }}>
+                                Create one
                               </button>
                             </div>
                           ) : (
@@ -561,14 +559,12 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         <div>
                           <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>GROUP</label>
                           {myGroups.length === 0 ? (
-                            <div className="text-center py-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                              <p className="text-3xl mb-2">👥</p>
-                              <p className="text-white/50 text-sm font-semibold">No groups yet</p>
-                              <p className="text-white/30 text-xs mt-1 mb-4">Create a group to start hosting events</p>
+                            <div className="flex items-center gap-2 py-3">
+                              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>No groups —</span>
                               <button onClick={() => { onClose(); navigate('/groups'); }}
-                                className="px-5 py-2.5 rounded-2xl text-sm font-bold transition-all active:scale-95"
-                                style={{ background: 'var(--green)', color: '#080808' }}>
-                                + Create Group
+                                className="text-xs font-bold transition-all active:scale-95 underline underline-offset-2"
+                                style={{ color: 'var(--green)' }}>
+                                Create one
                               </button>
                             </div>
                           ) : (
