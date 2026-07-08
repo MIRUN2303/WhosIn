@@ -8,11 +8,13 @@ export const supabase = createClient(
   supabaseAnonKey!
 );
 
-/** Anon-only client that uses its own storage key so it never carries an auth session. */
+/**
+ * Client that picks up the auth session from localStorage when logged in,
+ * or runs as anon when not. Same underlying client as `supabase`.
+ */
 export const supabaseNoAuth = createClient(
   supabaseUrl!,
-  supabaseAnonKey!,
-  { auth: { storageKey: 'sb-whosin-anon' } }
+  supabaseAnonKey!
 );
 
 export async function checkConnection() {
