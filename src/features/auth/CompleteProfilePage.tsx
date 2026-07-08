@@ -92,13 +92,32 @@ export const CompleteProfilePage: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-white/50 text-xs font-semibold mb-1.5 block">Phone Number *</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="+91 99999 99001"
-              className="w-full glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#aaeb00]/50 transition-all"
-            />
+            <div className="flex gap-2 items-start">
+              <div className="relative" ref={ccRef}>
+                <button type="button" onClick={() => setCcOpen(o => !o)}
+                  className="glass rounded-2xl px-2.5 py-3 text-white/80 text-xs font-semibold outline-none border border-white/10 hover:border-white/20 transition-all flex items-center gap-1 whitespace-nowrap min-w-[72px] justify-center"
+                >
+                  {cc}
+                  <svg className={`w-3 h-3 transition-transform ${ccOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                {ccOpen && (
+                  <div className="absolute bottom-full mb-1 left-0 w-28 max-h-40 overflow-y-auto glass rounded-2xl border border-white/10 shadow-2xl z-20">
+                    {countryCodes.map(c => (
+                      <button key={c.code} type="button" onClick={() => { setCc(c.code); setCcOpen(false); }}
+                        className={`w-full text-left px-3 py-2 text-xs transition-colors ${cc === c.code ? 'text-[var(--green)] bg-white/[0.04]' : 'text-white/60 hover:text-white/80 hover:bg-white/[0.02]'}`}
+                      >{c.label}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <input
+                type="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="Phone number"
+                className="flex-1 glass rounded-2xl px-4 py-3 text-white text-sm outline-none border border-white/10 focus:border-[#aaeb00]/50 transition-all"
+              />
+            </div>
           </div>
           <motion.button
             type="submit"
