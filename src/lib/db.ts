@@ -198,7 +198,7 @@ export async function fetchJoinRequests(): Promise<JoinRequest[]> {
 
 export async function updateUser(id: string, updates: any): Promise<void> {
   const statsFields = ['total_matches', 'wins', 'losses', 'attendance_rate', 'current_streak', 'longest_streak', 'win_rate', 'weekly_activity', 'points_total', 'mvp_count'];
-  const profileFields = ['badges'];
+  const profileFields: string[] = [];
   const statsUpdates: any = {};
   const profileUpdates: any = {};
   const levelUpdates: any = {};

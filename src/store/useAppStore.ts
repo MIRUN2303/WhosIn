@@ -164,7 +164,7 @@ async function computeAllUserStats(events: Event[], set: any, get: any) {
         win_rate: u.stats.winRate, attendance_rate: u.stats.attendanceRate,
         current_streak: u.stats.currentStreak, longest_streak: u.stats.longestStreak,
         weekly_activity: u.stats.weeklyActivity, points_total: u.stats.pointsTotal,
-        mvp_count: u.stats.mvpCount, badges: u.badges,
+        mvp_count: u.stats.mvpCount,
       });
     } catch (e) { console.warn('Stats save fail', u.id, e) }
   }
