@@ -162,32 +162,27 @@ BEGIN
   profile_code_str := UPPER(SPLIT_PART(display_name, ' ', 1)) || LPAD(CAST(FLOOR(RANDOM() * 99999)::int AS TEXT), 5, '0');
 
   -- Insert into profiles
-  INSERT INTO public.profiles (
-    id, name, username, email, phone, profile_code,
-    avatar, cover_image, bio, joined_at
-  ) VALUES (
-    new.id,
-    display_name,
-    LOWER(REPLACE(display_name, ' ', '')),
-    new.email,
-    COALESCE(new.raw_user_meta_data ->> 'phone', ''),
-    profile_code_str,
+  INSERT INTO public.profiles (id, name, username, email, phone, profile_code, avatar, cover_image, bio, joined_at)
+  VALUES (new.id, display_name, LOWER(REPLACE(display_name, ' ', '')), new.email,
+    COALESCE(new.raw_user_meta_data ->> 'phone', ''), profile_code_str,
     'https://api.dicebear.com/9.x/avataaars/svg?seed=' || REPLACE(display_name, ' ', '%20') || '&backgroundColor=b6e3f4',
-    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-    '',
-    NOW()
-  )
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80', '', NOW())
   ON CONFLICT (id) DO NOTHING;
 
-  -- Insert into user_stats
-  INSERT INTO public.user_stats (user_id)
-  VALUES (new.id)
-  ON CONFLICT (user_id) DO NOTHING;
+  -- Also insert into old users table so existing FK constraints still work
+  INSERT INTO public.users (id, name, username, email, phone, password, profile_code, avatar, cover_image, bio,
+    favourite_sports, badges, total_matches, wins, losses, attendance_rate, current_streak, longest_streak, win_rate,
+    weekly_activity, points_total, mvp_count, created_groups, joined_groups, joined_at, level, xp)
+  VALUES (new.id, display_name, LOWER(REPLACE(display_name, ' ', '')), new.email,
+    COALESCE(new.raw_user_meta_data ->> 'phone', ''), '', profile_code_str,
+    'https://api.dicebear.com/9.x/avataaars/svg?seed=' || REPLACE(display_name, ' ', '%20') || '&backgroundColor=b6e3f4',
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80', '',
+    '{}', '{}', 0, 0, 0, 0, 0, 0, 0, '{0,0,0,0,0,0,0}', 0, 0, '{}', '{}',
+    CURRENT_DATE, 1, 0)
+  ON CONFLICT (id) DO NOTHING;
 
-  -- Insert into user_levels
-  INSERT INTO public.user_levels (user_id)
-  VALUES (new.id)
-  ON CONFLICT (user_id) DO NOTHING;
+  INSERT INTO public.user_stats (user_id) VALUES (new.id) ON CONFLICT (user_id) DO NOTHING;
+  INSERT INTO public.user_levels (user_id) VALUES (new.id) ON CONFLICT (user_id) DO NOTHING;
 
   RETURN new;
 END;
@@ -223,6 +218,8 @@ BEGIN
   CREATE POLICY user_stats_select_anon ON user_stats FOR SELECT TO anon USING (true);
   DROP POLICY IF EXISTS user_stats_select_auth ON user_stats;
   CREATE POLICY user_stats_select_auth ON user_stats FOR SELECT TO authenticated USING (true);
+  DROP POLICY IF EXISTS user_stats_insert_own ON user_stats;
+  CREATE POLICY user_stats_insert_own ON user_stats FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid()::TEXT);
   DROP POLICY IF EXISTS user_stats_update_own ON user_stats;
   CREATE POLICY user_stats_update_own ON user_stats FOR UPDATE TO authenticated USING (user_id = auth.uid()::TEXT) WITH CHECK (user_id = auth.uid()::TEXT);
 END $$;
@@ -234,6 +231,8 @@ BEGIN
   CREATE POLICY user_levels_select_anon ON user_levels FOR SELECT TO anon USING (true);
   DROP POLICY IF EXISTS user_levels_select_auth ON user_levels;
   CREATE POLICY user_levels_select_auth ON user_levels FOR SELECT TO authenticated USING (true);
+  DROP POLICY IF EXISTS user_levels_insert_own ON user_levels;
+  CREATE POLICY user_levels_insert_own ON user_levels FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid()::TEXT);
   DROP POLICY IF EXISTS user_levels_update_own ON user_levels;
   CREATE POLICY user_levels_update_own ON user_levels FOR UPDATE TO authenticated USING (user_id = auth.uid()::TEXT) WITH CHECK (user_id = auth.uid()::TEXT);
 END $$;
