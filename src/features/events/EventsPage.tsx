@@ -202,7 +202,7 @@ export const EventDetailPage: React.FC = () => {
 
         {/* ATTENDANCE */}
         <FadeUp delay={0.1}>
-          {event.status === 'completed' ? (
+          {event.status === 'completed' || event.status === 'cancelled' ? (
             /* Historical: readonly summary of who came */
             <>
               <SectionHeader title="Attendance" subtitle={`${confirmed.length} confirmed`} className="mb-3" />

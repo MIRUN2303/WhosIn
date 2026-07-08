@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { clsx } from 'clsx';
 import { create } from 'zustand';
 import { useAppStore } from '../../store/useAppStore';
@@ -148,7 +148,7 @@ export const BottomNav: React.FC = () => {
 export const FAB: React.FC = () => {
   const location = useLocation();
   const action = useFabStore(s => s.action);
-  const hiddenRoute = location.pathname === '/' || location.pathname === '/landing' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/complete-profile';
+  const hiddenRoute = location.pathname === '/' || location.pathname === '/landing' || location.pathname === '/login' || location.pathname === '/signup';
   if (hiddenRoute || !action) return null;
 
   return (
@@ -213,9 +213,19 @@ export const AppHeader: React.FC<{
               style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border-subtle)' }}
             >
               <IconBell size={18} className="text-white/50" />
-              {notifCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full pulse-green" />
-              )}
+              <AnimatePresence>
+                {notifCount > 0 && (
+                  <motion.span
+                    key="notif-dot"
+                    className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full"
+                    style={{ background: 'var(--red)', boxShadow: '0 0 6px rgba(var(--red-rgb), 0.6)' }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 20, mass: 0.3 }}
+                  />
+                )}
+              </AnimatePresence>
             </NavLink>
           ) : (
             <NavLink to="/login"

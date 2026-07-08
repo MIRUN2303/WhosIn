@@ -17,7 +17,6 @@ import { IntroPage } from './features/intro/IntroPage';
 import { StoriesPage } from './features/stories/StoriesPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { SignupPage } from './features/auth/SignupPage';
-import { CompleteProfilePage } from './features/auth/CompleteProfilePage';
 
 // ===== Energetic page transition with spring physics =====
 const pageVariants = {
@@ -76,7 +75,7 @@ const AppContent: React.FC = () => {
     };
   }, [loadFromSupabase]);
 
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/complete-profile';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
   return (
     <div className="min-h-screen bg-sport">
@@ -98,7 +97,7 @@ const AppContent: React.FC = () => {
               <Route path="/" element={<IntroPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
-              <Route path="/complete-profile" element={<CompleteProfilePage />} />
+
               <Route path="/home" element={<PageWrapper><HomePage /></PageWrapper>} />
               <Route path="/events" element={<PageWrapper><EventsPage /></PageWrapper>} />
               <Route path="/events/:id" element={<PageWrapper><EventDetailPage /></PageWrapper>} />

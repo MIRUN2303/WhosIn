@@ -219,7 +219,8 @@ interface AppState {
   isLoggedIn: boolean;
   currentUserId: string | null;
   login: (emailOrPhone: string, password: string) => Promise<boolean>;
-  signup: (name: string, email: string, phone: string, password: string) => Promise<boolean>;
+  signup: (name: string, email: string, password: string) => Promise<boolean>;
+
   logout: () => Promise<void>;
 
   events: Event[];
@@ -251,8 +252,6 @@ interface AppState {
   unreadCount: () => number;
   addNotification: (n: Omit<Notification, 'id' | 'timestamp'> & { userId?: string }) => void;
 
-  needsPhone: boolean;
-  setNeedsPhone: (v: boolean) => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
 
@@ -307,8 +306,8 @@ export const useAppStore = create<AppState>()(
       userProfiles: {},
       events: [],
       notifications: [],
-      needsPhone: false,
       activeTab: 'home',
+      setActiveTab: (tab) => set({ activeTab: tab }),
       groups: [],
       users: [],
       stories: [],
@@ -342,7 +341,6 @@ export const useAppStore = create<AppState>()(
                 authUser.id,
                 authUser.email,
                 authUser.user_metadata?.name,
-                authUser.user_metadata?.phone,
               );
               // Prefer the DB row id; fall back to auth uid so we never lose the session
               currentUserId = resolved?.id ?? authUser.id;
@@ -359,10 +357,8 @@ export const useAppStore = create<AppState>()(
           const allUsers = currentUser && !users.some((u: any) => u.id === currentUser.id)
             ? [...users, currentUser]
             : users;
-          // isLoggedIn = !!session, not !!currentUserId — DB failure won't log the user out
           const isLoggedIn = !!authUser;
-          const needsPhone = isLoggedIn && (!currentUser || !currentUser.phone);
-          set({ events, groups, notifications, friendships, joinRequests, stories, requests, users: allUsers, loaded: true, isLoggedIn, currentUserId, needsPhone });
+          set({ events, groups, notifications, friendships, joinRequests, stories, requests, users: allUsers, loaded: true, isLoggedIn, currentUserId });
           computeAllUserStats(events, set, get);
 
           // Set up realtime subscription for requests
@@ -446,13 +442,12 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      signup: async (name, email, phone, password) => {
+      signup: async (name, email, password) => {
         try {
-          const data = await auth.signUpWithEmail(email, password, name, phone);
+          const data = await auth.signUpWithEmail(email, password, name);
           if (!data.user) return false;
 
           const authUser = data.user;
-          // Default to auth uid; DB profile creation is best-effort
           let resolvedId: string = authUser.id;
           try {
             if (authUser.email) {
@@ -460,12 +455,10 @@ export const useAppStore = create<AppState>()(
                 authUser.id,
                 authUser.email,
                 name,
-                phone,
               );
               resolvedId = resolved?.id ?? authUser.id;
             }
           } catch {
-            // RLS or network error — auth uid is a safe fallback
           }
 
           const users = await db.fetchUsers().catch(() => get().users);
@@ -487,7 +480,7 @@ export const useAppStore = create<AppState>()(
         } catch (e: any) {
           console.warn('Sign out error', e)
         }
-        set({ isLoggedIn: false, currentUserId: null, needsPhone: false, users: [], requests: [] });
+        set({ isLoggedIn: false, currentUserId: null, users: [], requests: [] });
       },
 
       // ---- EVENTS ----
@@ -821,8 +814,10 @@ export const useAppStore = create<AppState>()(
       getMyGroupsNextEvents: () => {
         const state = get();
         const today = new Date().toISOString().split('T')[0];
-        const user = state.users.find((u: any) => u.id === state.currentUserId);
-        const myGroupIds = user ? [...(user.createdGroups || []), ...(user.joinedGroups || [])] : [];
+        const uid = state.currentUserId;
+        const myGroupIds = state.groups
+          .filter(g => g.members.some(m => m.userId === uid))
+          .map(g => g.id);
 
         return myGroupIds.map(groupId => {
           const event = state.events
@@ -859,8 +854,7 @@ export const useAppStore = create<AppState>()(
         db.createNotificationInDb(newNotif as any).catch(() => toast.error('Failed to save notification'));
       },
 
-      setNeedsPhone: (v) => set({ needsPhone: v }),
-      setActiveTab: (tab) => set({ activeTab: tab }),
+
 
       generateInviteCode: () => {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -1500,7 +1494,6 @@ export const useAppStore = create<AppState>()(
         ...persisted,
         isLoggedIn: false,
         currentUserId: null,
-        needsPhone: false,
         loaded: true,
         users: [],
         events: [],

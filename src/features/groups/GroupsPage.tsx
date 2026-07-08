@@ -51,6 +51,7 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
   const adminCount = group?.members.filter(m => m.role === 'admin').length || 0;
   const canPromote = isCreator && !isSelf && member?.role === 'member' && adminCount < 2;
   const canDemote = isCreator && !isSelf && member?.role === 'admin';
+  const [confirmAction, setConfirmAction] = useState<'promote' | 'demote' | null>(null);
 
   return (
     <div>
@@ -68,12 +69,12 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
             <p className="text-white/40 text-[10px]">{computed.matchesPlayed} matches</p>
           </div>
           <span className={clsx(
-            'text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1',
+            'text-xs font-semibold px-2.5 py-1 rounded-full',
             roleCfg.label === 'Creator' ? 'bg-amber-400/10 text-amber-400' :
             roleCfg.label === 'Admin' ? 'bg-violet-400/10 text-violet-400' :
             'bg-white/10 text-white/50'
           )}>
-            <Iconic name={roleCfg.icon} size={14} />
+            <Iconic name={roleCfg.icon} size={14} /> {roleCfg.label}
           </span>
           <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }} className="text-white/30 text-sm">▼</motion.span>
         </div>
@@ -120,16 +121,22 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
               </div>
 
               {canPromote && (
-                <button onClick={() => { updateMemberRole(groupId, userId, 'admin'); setOpen(false); }}
-                  className="w-full mt-3 text-xs font-bold py-2 rounded-xl transition-all"
-                  style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa' }}>
-                  <Iconic name="shield" size={14} /> Make Admin
+                <button onClick={() => setConfirmAction('promote')}
+                  className="w-full mt-3 flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-xl transition-all active:scale-[0.97] hover:brightness-125"
+                  style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.2), rgba(124,58,237,0.08))', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa' }}>
+                  <span className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(124,58,237,0.2)' }}>
+                    <Iconic name="shield" size={14} />
+                  </span>
+                  Make Admin
                 </button>
               )}
               {canDemote && (
-                <button onClick={() => { updateMemberRole(groupId, userId, 'member'); setOpen(false); }}
-                  className="w-full mt-3 text-xs font-bold py-2 rounded-xl transition-all"
-                  style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}>
+                <button onClick={() => setConfirmAction('demote')}
+                  className="w-full mt-3 flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-xl transition-all active:scale-[0.97] hover:brightness-125"
+                  style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.08))', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}>
+                  <span className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.2)' }}>
+                    <Iconic name="shield" size={14} />
+                  </span>
                   Remove Admin
                 </button>
               )}
@@ -137,6 +144,25 @@ const MemberDropdown: React.FC<{ userId: string; groupId: string; currentUserRol
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        open={confirmAction === 'promote'}
+        title="Promote to Admin?"
+        message={`Are you sure you want to make ${user.name} an admin of ${group?.name}? Admins can manage events and members.`}
+        confirmLabel="Promote"
+        variant="default"
+        onConfirm={() => { updateMemberRole(groupId, userId, 'admin'); setOpen(false); setConfirmAction(null); }}
+        onCancel={() => setConfirmAction(null)}
+      />
+      <ConfirmModal
+        open={confirmAction === 'demote'}
+        title="Remove Admin?"
+        message={`${user.name} will lose admin privileges in ${group?.name} and become a regular member.`}
+        confirmLabel="Remove"
+        variant="danger"
+        onConfirm={() => { updateMemberRole(groupId, userId, 'member'); setOpen(false); setConfirmAction(null); }}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 };

@@ -7,11 +7,11 @@ export async function signInWithEmail(email: string, password: string) {
   return data;
 }
 
-export async function signUpWithEmail(email: string, password: string, name: string, phone: string) {
+export async function signUpWithEmail(email: string, password: string, name: string) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { name, phone } },
+    options: { data: { name } },
   });
   if (error) throw error;
   return data;
@@ -51,7 +51,6 @@ export async function resolveUserFromAuth(
   authUserId: string,
   email: string,
   name?: string,
-  phone?: string,
 ): Promise<User | null> {
   // 1. Try to find existing user via view, fallback to old users table
   const r1 = await supabaseNoAuth.from('user_profiles_full').select('*').eq('email', email).maybeSingle();
@@ -72,7 +71,7 @@ export async function resolveUserFromAuth(
     name: displayName,
     username: displayName.toLowerCase().replace(/\s+/g, ''),
     email,
-    phone: phone || '',
+    phone: '',
     profile_code: profileCode,
     avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=b6e3f4`,
     cover_image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
@@ -97,7 +96,7 @@ export async function resolveUserFromAuth(
     name: displayName,
     username: displayName.toLowerCase().replace(/\s+/g, ''),
     email,
-    phone: phone || '',
+    phone: '',
     password: '',
     profile_code: profileCode,
     avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=b6e3f4`,
