@@ -6,6 +6,10 @@ import toast from 'react-hot-toast';
 import * as db from '../lib/db';
 import * as auth from '../lib/auth';
 
+function dbError(label: string) {
+  return (e: any) => toast.error(label + ': ' + (e?.message || e));
+}
+
 function evaluateBadges(user: any, allEvents: Event[]): BadgeId[] {
   const s = user.stats;
   const badges: BadgeId[] = [];
@@ -113,7 +117,7 @@ async function computeAllUserStats(events: Event[], set: any, get: any) {
         weekly_activity: u.stats.weeklyActivity, points_total: u.stats.pointsTotal,
         mvp_count: u.stats.mvpCount,
       });
-    } catch (e) { console.warn('Stats save fail', u.id, e); }
+    } catch (e) { console.warn('Stats save fail', u.id, e) }
   }
 }
 
@@ -278,6 +282,7 @@ interface AppState {
 
   userProfiles: Record<string, { name: string; bio: string }>;
   updateProfile: (userId: string, data: { name?: string; bio?: string }) => void;
+  addXp: (userId: string, amount: number, reason?: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -345,7 +350,7 @@ export const useAppStore = create<AppState>()(
           set({ events, groups, notifications, friendships, joinRequests, stories, users: allUsers, loaded: true, isLoggedIn, currentUserId, needsPhone });
           computeAllUserStats(events, set, get);
         } catch (e) {
-          console.warn('Supabase load failed, using empty state', e);
+          console.warn('Supabase load failed, using empty state', e)
           // Preserve existing isLoggedIn so a network hiccup doesn't log the user out
           set({ loaded: true });
         }
@@ -420,7 +425,7 @@ export const useAppStore = create<AppState>()(
         try {
           await auth.signOut();
         } catch (e: any) {
-          console.warn('Sign out error', e);
+          console.warn('Sign out error', e)
         }
         set({ isLoggedIn: false, currentUserId: null, needsPhone: false, users: [] });
       },
@@ -439,7 +444,10 @@ export const useAppStore = create<AppState>()(
           }),
         }));
         try { await db.upsertAttendance(eventId, userId, status || 'not_coming'); }
-        catch (e) { console.warn('Failed to sync attendance', e); }
+        catch (e) { toast.error('Failed to save attendance: ' + (e as any).message); }
+        if (status === 'coming') {
+          get().addXp(userId, 10, 'Attended an event');
+        }
       },
 
       createEvent: (input) => {
@@ -460,7 +468,8 @@ export const useAppStore = create<AppState>()(
           recurringPattern: input.recurringPattern, announcements: [], gallery: [], tags: [],
         };
         set(s => ({ events: [...s.events, newEvent] }));
-        db.createEventInDb(newEvent).catch(e => console.warn('Failed to save event', e));
+        db.createEventInDb(newEvent).catch(e => toast.error('Failed to save event: ' + e.message));
+        get().addXp(currentUserId, 20, 'Created an event');
         const grp = get().groups.find(g => g.id === input.groupId);
         get().addNotification({
           type: 'event', title: `New Event: ${input.title}`,
@@ -493,7 +502,8 @@ export const useAppStore = create<AppState>()(
           leagues: [], status: 'live', isRecurring: false, announcements: [], gallery: [], tags: [],
         };
         set(s => ({ events: [...s.events, newEvent] }));
-        db.createEventInDb(newEvent).catch(e => console.warn('Failed to save live event', e));
+        db.createEventInDb(newEvent).catch(e => toast.error('Failed to save live event: ' + e.message));
+        get().addXp(currentUserId, 25, 'Started a live event');
         const grp = get().groups.find(g => g.id === input.groupId);
         get().addNotification({
           type: 'event', title: `🔥 Live: ${input.title}`,
@@ -516,21 +526,21 @@ export const useAppStore = create<AppState>()(
           ),
         }));
         db.updateEventInDb(eventId, { status: 'live', time: nowTime, end_time: endTime, date: now.toISOString().split('T')[0] })
-          .catch(e => console.warn('Failed to start event', e));
+          .catch(dbError('Failed to start event'));
       },
 
       pauseEvent: (eventId) => {
         set(s => ({
           events: s.events.map(e => e.id === eventId && e.status === 'live' ? { ...e, status: 'paused' as const } : e),
         }));
-        db.updateEventInDb(eventId, { status: 'paused' }).catch(e => console.warn('Failed to pause event', e));
+        db.updateEventInDb(eventId, { status: 'paused' }).catch(dbError('Failed to pause event'));
       },
 
       resumeEvent: (eventId) => {
         set(s => ({
           events: s.events.map(e => e.id === eventId && e.status === 'paused' ? { ...e, status: 'live' as const } : e),
         }));
-        db.updateEventInDb(eventId, { status: 'live' }).catch(e => console.warn('Failed to resume event', e));
+        db.updateEventInDb(eventId, { status: 'live' }).catch(dbError('Failed to resume event'));
       },
 
       createLeague: (input) => {
@@ -539,7 +549,7 @@ export const useAppStore = create<AppState>()(
         set(s => ({
           events: s.events.map(e => e.id === input.eventId ? { ...e, leagues: [...e.leagues, league] } : e),
         }));
-        db.createLeagueInDb(league, input.eventId).catch(e => console.warn('Failed to create league', e));
+        db.createLeagueInDb(league, input.eventId).catch(dbError('Failed to create league'));
         return lid;
       },
 
@@ -576,7 +586,7 @@ export const useAppStore = create<AppState>()(
           newMatch,
           input.leagueId,
           newTeams
-        ).catch(e => console.warn('Failed to add match', e));
+        ).catch(dbError('Failed to add match'));
         return newMid;
       },
 
@@ -597,7 +607,7 @@ export const useAppStore = create<AppState>()(
           ),
         }));
         db.updateMatchInDb(matchId, { score1, score2, winner_id: winnerId, completed_at: winnerId ? new Date().toISOString() : null })
-          .catch(e => console.warn('Failed to update match score', e));
+          .catch(dbError('Failed to update match score'));
       },
 
       completeEvent: (eventId) => {
@@ -658,7 +668,8 @@ export const useAppStore = create<AppState>()(
           ),
         }));
         db.updateEventInDb(eventId, { status: 'completed', rankings, mvps })
-          .catch(e => console.warn('Failed to complete event', e));
+          .catch(e => toast.error('Failed to complete event: ' + e.message));
+        get().addXp(event.organizer, 50, 'Completed an event');
         const allEvents = get().events;
         computeAllUserStats(allEvents, set, get);
       },
@@ -672,7 +683,7 @@ export const useAppStore = create<AppState>()(
           ),
         }));
         db.updateEventInDb(eventId, { status: 'cancelled' })
-          .catch(e => console.warn('Failed to cancel event', e));
+          .catch(dbError('Failed to cancel event'));
         toast.success('Event cancelled');
       },
 
@@ -680,7 +691,7 @@ export const useAppStore = create<AppState>()(
         const event = get().events.find(e => e.id === eventId);
         if (!event) return;
         set(s => ({ events: s.events.filter(e => e.id !== eventId) }));
-        db.deleteEventFromDb(eventId).catch(e => console.warn('Failed to delete event', e));
+        db.deleteEventFromDb(eventId).catch(dbError('Failed to delete event'));
         toast.success('Event deleted');
       },
 
@@ -695,7 +706,7 @@ export const useAppStore = create<AppState>()(
             } : e
           ),
         }));
-        db.deleteMatchFromDb(matchId).catch(e => console.warn('Failed to delete match', e));
+        db.deleteMatchFromDb(matchId).catch(dbError('Failed to delete match'));
       },
 
       deleteLeague: (eventId, leagueId) => {
@@ -704,7 +715,7 @@ export const useAppStore = create<AppState>()(
             e.id === eventId ? { ...e, leagues: e.leagues.filter(l => l.id !== leagueId) } : e
           ),
         }));
-        db.deleteLeagueFromDb(leagueId).catch(e => console.warn('Failed to delete league', e));
+        db.deleteLeagueFromDb(leagueId).catch(dbError('Failed to delete league'));
       },
 
       editEvent: (eventId, updates) => {
@@ -718,14 +729,14 @@ export const useAppStore = create<AppState>()(
           ...(updates.endTime !== undefined && { end_time: updates.endTime }),
           ...(updates.venue !== undefined && { venue: updates.venue }),
           ...(updates.description !== undefined && { description: updates.description }),
-        }).catch(e => console.warn('Failed to edit event', e));
+        }).catch(dbError('Failed to edit event'));
       },
 
       updateEventSummary: (eventId, summary) => {
         set(s => ({
           events: s.events.map(e => e.id === eventId ? { ...e, summary } : e),
         }));
-        db.updateEventInDb(eventId, { summary }).catch(e => console.warn('Failed to update summary', e));
+        db.updateEventInDb(eventId, { summary }).catch(dbError('Failed to update summary'));
       },
 
       getGroupEvents: (groupId) => {
@@ -767,23 +778,25 @@ export const useAppStore = create<AppState>()(
 
       markNotificationRead: (id) => {
         set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }));
-        db.markNotificationReadInDb(id).catch(e => console.warn('Failed to mark read', e));
+        db.markNotificationReadInDb(id).catch(dbError('Failed to mark read'));
       },
 
       markAllRead: () => {
         set(s => ({ notifications: s.notifications.map(n => ({ ...n, read: true })) }));
-        db.markAllNotificationsReadInDb().catch(e => console.warn('Failed to mark all read', e));
+        db.markAllNotificationsReadInDb().catch(dbError('Failed to mark all read'));
       },
 
       unreadCount: () => get().notifications.filter(n => !n.read).length,
 
       addNotification: (n) => {
+        const uid = n.userId || get().currentUserId || '';
         const newNotif: Notification = {
           ...n, id: `notif_${Date.now()}`,
           timestamp: new Date().toISOString(),
+          userId: uid,
         } as Notification;
         set(s => ({ notifications: [newNotif, ...s.notifications] }));
-        db.createNotificationInDb(newNotif as any).catch(e => console.warn('Failed to save notification', e));
+        db.createNotificationInDb(newNotif as any).catch(() => toast.error('Failed to save notification'));
       },
 
       setNeedsPhone: (v) => set({ needsPhone: v }),
@@ -822,9 +835,10 @@ export const useAppStore = create<AppState>()(
 
         set(s => ({ groups: [...s.groups, newGroup] }));
 
-        db.createGroupInDb(newGroup).catch(e => console.warn('Failed to save group', e));
+        db.createGroupInDb(newGroup).catch(e => toast.error('Failed to save group: ' + e.message));
         db.addGroupMember({ group_id: newId, user_id: currentUserId, role: 'creator', joined_at: newGroup.createdAt, matches_played: 0, wins: 0, losses: 0, win_rate: 0, attendance_rate: 0, current_streak: 0, points: 0 })
-          .catch(e => console.warn('Failed to add group member', e));
+          .catch(e => toast.error('Failed to add group member: ' + e.message));
+        get().addXp(currentUserId, 30, 'Created a group');
 
         toast.success(`Group "${input.name}" created!`);
         return newId;
@@ -854,9 +868,9 @@ export const useAppStore = create<AppState>()(
 
         set(s => ({ groups: s.groups.map(g => g.id === groupId ? group : g) }));
 
-        db.updateGroup(groupId, { member_count: group.memberCount }).catch(e => console.warn('Failed to update group', e));
+        db.updateGroup(groupId, { member_count: group.memberCount }).catch(dbError('Failed to update group'));
         db.addGroupMember({ group_id: groupId, user_id: currentUserId, role: 'member', joined_at: new Date().toISOString().split('T')[0], matches_played: 0, wins: 0, losses: 0, win_rate: 0, attendance_rate: 0, current_streak: 0, points: 0 })
-          .catch(e => console.warn('Failed to add group member', e));
+          .catch(dbError('Failed to add group member'));
 
         toast.success(`Joined "${group.name}"!`);
       },
@@ -884,9 +898,9 @@ export const useAppStore = create<AppState>()(
 
         set(s => ({ groups: s.groups.map(g => g.id === groupId ? group : g) }));
 
-        db.updateGroup(groupId, { member_count: group.memberCount }).catch(e => console.warn('Failed to update group', e));
+        db.updateGroup(groupId, { member_count: group.memberCount }).catch(dbError('Failed to update group'));
         db.addGroupMember({ group_id: groupId, user_id: invitedUser.id, role: 'member', joined_at: new Date().toISOString().split('T')[0], matches_played: 0, wins: 0, losses: 0, win_rate: 0, attendance_rate: 0, current_streak: 0, points: 0 })
-          .catch(e => console.warn('Failed to add group member', e));
+          .catch(dbError('Failed to add group member'));
 
         toast.success(`Invited ${invitedUser.name} to the group!`);
         return true;
@@ -899,7 +913,7 @@ export const useAppStore = create<AppState>()(
           ),
         }));
         db.updateGroup(groupId, updates)
-          .catch(e => console.warn('Failed to update group details', e));
+          .catch(dbError('Failed to update group details'));
         toast.success('Group updated');
       },
 
@@ -912,14 +926,14 @@ export const useAppStore = create<AppState>()(
           ),
         }));
         db.updateGroupMemberRole(groupId, userId, role)
-          .catch(e => console.warn('Failed to update member role', e));
+          .catch(dbError('Failed to update member role'));
       },
 
       deleteGroup: (groupId) => {
         const group = get().groups.find(g => g.id === groupId);
         if (!group) return;
         set(s => ({ groups: s.groups.filter(g => g.id !== groupId) }));
-        db.deleteGroupInDb(groupId).catch(e => console.warn('Failed to delete group in db', e));
+        db.deleteGroupInDb(groupId).catch(dbError('Failed to delete group in db'));
         toast.success(`Group "${group.name}" deleted`);
       },
 
@@ -938,8 +952,8 @@ export const useAppStore = create<AppState>()(
               : g
           ),
         }));
-        db.updateGroup(groupId, { member_count: Math.max(0, group.memberCount - 1) }).catch(e => console.warn('Failed to update group', e));
-        db.removeGroupMember(groupId, currentUserId).catch(e => console.warn('Failed to remove member', e));
+        db.updateGroup(groupId, { member_count: Math.max(0, group.memberCount - 1) }).catch(dbError('Failed to update group'));
+        db.removeGroupMember(groupId, currentUserId).catch(dbError('Failed to remove member'));
         toast.success(`Left "${group.name}"`);
       },
 
@@ -954,8 +968,8 @@ export const useAppStore = create<AppState>()(
               : g
           ),
         }));
-        db.updateGroup(groupId, { member_count: Math.max(0, group.memberCount - 1) }).catch(e => console.warn('Failed to update group', e));
-        db.removeGroupMember(groupId, userId).catch(e => console.warn('Failed to remove member', e));
+        db.updateGroup(groupId, { member_count: Math.max(0, group.memberCount - 1) }).catch(dbError('Failed to update group'));
+        db.removeGroupMember(groupId, userId).catch(dbError('Failed to remove member'));
         toast.success(`Removed ${kicked?.name || 'member'} from group`);
       },
 
@@ -976,7 +990,7 @@ export const useAppStore = create<AppState>()(
         const request: JoinRequest = { id, groupId, userId: currentUserId, status: 'pending', createdAt: now, updatedAt: now };
         set(s => ({ joinRequests: [...s.joinRequests, request] }));
 
-        db.createJoinRequestInDb(request).catch(e => console.warn('Failed to save join request', e));
+        db.createJoinRequestInDb(request).catch(dbError('Failed to save join request'));
 
         const adminMember = group.members.find(m => m.role === 'creator' || m.role === 'admin');
         if (adminMember) {
@@ -1002,7 +1016,7 @@ export const useAppStore = create<AppState>()(
             r.id === requestId ? { ...r, status: 'accepted' as const, updatedAt: now } : r
           ),
         }));
-        db.updateJoinRequestInDb(requestId, { status: 'accepted', updated_at: now }).catch(e => console.warn('Failed to update join request', e));
+        db.updateJoinRequestInDb(requestId, { status: 'accepted', updated_at: now }).catch(dbError('Failed to update join request'));
 
         const group = get().groups.find(g => g.id === request.groupId);
         if (!group) return;
@@ -1012,9 +1026,9 @@ export const useAppStore = create<AppState>()(
           stats: { matchesPlayed: 0, wins: 0, losses: 0, winRate: 0, attendanceRate: 0, currentStreak: 0, points: 0 },
         });
         set(s => ({ groups: s.groups.map(g => g.id === request.groupId ? group : g) }));
-        db.updateGroup(request.groupId, { member_count: group.memberCount }).catch(e => console.warn('Failed to update group', e));
+        db.updateGroup(request.groupId, { member_count: group.memberCount }).catch(dbError('Failed to update group'));
         db.addGroupMember({ group_id: request.groupId, user_id: request.userId, role: 'member', joined_at: now.split('T')[0], matches_played: 0, wins: 0, losses: 0, win_rate: 0, attendance_rate: 0, current_streak: 0, points: 0 })
-          .catch(e => console.warn('Failed to add group member', e));
+          .catch(dbError('Failed to add group member'));
 
         const invitedUser = get().users.find((u: any) => u.id === request.userId);
         if (invitedUser) {
@@ -1037,7 +1051,7 @@ export const useAppStore = create<AppState>()(
             r.id === requestId ? { ...r, status: 'rejected' as const, updatedAt: now } : r
           ),
         }));
-        db.updateJoinRequestInDb(requestId, { status: 'rejected', updated_at: now }).catch(e => console.warn('Failed to reject join request', e));
+        db.updateJoinRequestInDb(requestId, { status: 'rejected', updated_at: now }).catch(dbError('Failed to reject join request'));
         toast.success('Join request rejected');
       },
 
@@ -1048,7 +1062,7 @@ export const useAppStore = create<AppState>()(
         if (!currentUserId) return;
         const friendship: Friendship = { id, userId: currentUserId, friendId, status: 'pending', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
         set(s => ({ friendships: [...s.friendships, friendship] }));
-        db.createFriendshipInDb(friendship).catch(e => console.warn('Failed to save friendship', e));
+        db.createFriendshipInDb(friendship).catch(dbError('Failed to save friendship'));
 
         const friend = get().users.find((u: any) => u.id === friendId);
         const requester = get().users.find((u: any) => u.id === currentUserId);
@@ -1070,7 +1084,7 @@ export const useAppStore = create<AppState>()(
           friendships: s.friendships.map(f => f.id === friendshipId ? { ...f, status: 'accepted' as const, updatedAt: new Date().toISOString() } : f),
         }));
         db.updateFriendshipInDb(friendshipId, { status: 'accepted', updated_at: new Date().toISOString() })
-          .catch(e => console.warn('Failed to accept friendship', e));
+          .catch(dbError('Failed to accept friendship'));
         toast.success('Friend request accepted!');
       },
 
@@ -1089,7 +1103,7 @@ export const useAppStore = create<AppState>()(
         try {
           await db.createStoryInDb(story);
         } catch (e) {
-          console.warn('Failed to save story to DB', e);
+          console.warn('Failed to save story to DB', e)
         }
         toast.success('Story uploaded!');
       },
@@ -1100,7 +1114,7 @@ export const useAppStore = create<AppState>()(
           await db.deleteStoryFromDb(storyId);
           toast.success('Story deleted');
         } catch (e) {
-          console.warn('Failed to delete story from DB', e);
+          console.warn('Failed to delete story from DB', e)
         }
       },
 
@@ -1133,6 +1147,32 @@ export const useAppStore = create<AppState>()(
         }));
       },
 
+      addXp: (userId, amount, _reason) => {
+        set(s => ({
+          users: s.users.map((u: any) => {
+            if (u.id !== userId) return u;
+            const newXp = (u.xp || 0) + amount;
+            const threshold = u.level * 100;
+            let newLevel = u.level;
+            let leveledUp = false;
+            if (newXp >= threshold) {
+              newLevel = u.level + 1;
+              leveledUp = true;
+            }
+            if (leveledUp) {
+              toast.success(`🎉 Level up! You're now level ${newLevel}!`);
+            }
+            return { ...u, xp: newXp, level: newLevel };
+          }),
+        }));
+        if (get().currentUserId === userId) {
+          const user = get().users.find((u: any) => u.id === userId);
+          if (user) {
+            db.updateUser(userId, { xp: user.xp, level: user.level }).catch(() => {});
+          }
+        }
+      },
+
       uploadEventImage: (eventId, imageUrl) => {
         set(s => ({
           events: s.events.map(e =>
@@ -1143,7 +1183,7 @@ export const useAppStore = create<AppState>()(
         }));
         const event = get().events.find(e => e.id === eventId);
         if (event) {
-          db.updateEventInDb(eventId, { gallery: event.gallery }).catch(e => console.warn('Failed to update gallery', e));
+          db.updateEventInDb(eventId, { gallery: event.gallery }).catch(dbError('Failed to update gallery'));
         }
       },
     }),
@@ -1171,6 +1211,7 @@ export const useAppStore = create<AppState>()(
     }
   )
 );
+
 
 
 

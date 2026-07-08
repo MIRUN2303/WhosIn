@@ -888,7 +888,20 @@ export const GroupDetailPage: React.FC = () => {
 // =============================================
 const InviteByCodeForm: React.FC<{ groupId: string }> = ({ groupId }) => {
   const inviteByProfileCode = useAppStore(s => s.inviteByProfileCode);
+  const friendships = useAppStore(s => s.friendships);
+  const currentUserId = useAppStore(s => s.currentUserId);
+  const users = useAppStore(s => s.users);
+  const groups = useAppStore(s => s.groups);
   const [code, setCode] = useState('');
+
+  const acceptedFriends = friendships.filter(f =>
+    f.status === 'accepted' && (f.userId === currentUserId || f.friendId === currentUserId)
+  );
+  const friendUsers = acceptedFriends
+    .map(f => users.find((u: any) => u.id === (f.userId === currentUserId ? f.friendId : f.userId)))
+    .filter(Boolean);
+  const group = groups.find(g => g.id === groupId);
+  const existingMemberIds = new Set(group?.members.map(m => m.userId) || []);
 
   const handleInvite = () => {
     if (!code.trim()) { toast.error('Enter a profile code'); return; }
@@ -896,16 +909,45 @@ const InviteByCodeForm: React.FC<{ groupId: string }> = ({ groupId }) => {
     setCode('');
   };
 
+  const inviteFriend = (friend: any) => {
+    inviteByProfileCode(groupId, friend.profileCode);
+  };
+
   return (
-    <div className="flex gap-2">
-      <input
-        value={code}
-        onChange={e => setCode(e.target.value.toUpperCase())}
-        placeholder="Enter profile code (e.g. MIRUN001)"
-        className="flex-1 glass rounded-2xl px-4 py-2.5 text-white text-sm outline-none border border-white/10 focus:border-[var(--green)]/50"
-        onKeyDown={e => e.key === 'Enter' && handleInvite()}
-      />
-      <Button variant="lime" size="sm" onClick={handleInvite}>Invite</Button>
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <input
+          value={code}
+          onChange={e => setCode(e.target.value.toUpperCase())}
+          placeholder="Enter profile code (e.g. MIRUN001)"
+          className="flex-1 glass rounded-2xl px-4 py-2.5 text-white text-sm outline-none border border-white/10 focus:border-[var(--green)]/50"
+          onKeyDown={e => e.key === 'Enter' && handleInvite()}
+        />
+        <Button variant="lime" size="sm" onClick={handleInvite}>Invite</Button>
+      </div>
+      {friendUsers.length > 0 && (
+        <div>
+          <p className="text-white/40 text-xs mb-2">Or invite a friend:</p>
+          <div className="flex flex-wrap gap-2">
+            {friendUsers.map((friend: any) => {
+              const alreadyInGroup = existingMemberIds.has(friend.id);
+              return (
+                <button
+                  key={friend.id}
+                  onClick={() => !alreadyInGroup && inviteFriend(friend)}
+                  disabled={alreadyInGroup}
+                  className="flex items-center gap-1.5 glass rounded-xl px-2.5 py-1.5 text-xs transition-opacity"
+                  style={{ opacity: alreadyInGroup ? 0.4 : 1, cursor: alreadyInGroup ? 'not-allowed' : 'pointer' }}
+                >
+                  <Avatar src={friend.avatar} name={friend.name} size="xs" />
+                  <span className="text-white/70">{friend.name.split(' ')[0]}</span>
+                  {alreadyInGroup && <span className="text-white/30 text-[10px]">(in group)</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { supabase, supabaseNoAuth } from './supabase';
+import { supabaseNoAuth } from './supabase';
 import type {
   User, Group, GroupMember, Event, League, Team, Match,
   AttendanceRecord, Notification, Friendship, Story, JoinRequest,
@@ -13,13 +13,13 @@ function now() { return new Date().toISOString(); }
 // USERS
 // =============================================
 export async function fetchUsers(): Promise<User[]> {
-  const { data, error } = await supabaseNoAuth.from('users').select('*');
+  const { data, error } = await supabaseNoAuth.from('user_profiles_full').select('*');
   if (error) throw error;
   return (data || []).map(mapUser);
 }
 
 export async function fetchUserById(id: string): Promise<User | null> {
-  const { data, error } = await supabaseNoAuth.from('users').select('*').eq('id', id).single();
+  const { data, error } = await supabaseNoAuth.from('user_profiles_full').select('*').eq('id', id).single();
   if (error) return null;
   return mapUser(data);
 }
@@ -31,7 +31,7 @@ function mapUser(row: any): User {
     username: row.username,
     email: row.email,
     phone: row.phone,
-    password: row.password,
+    password: '',
     profileCode: row.profile_code,
     avatar: row.avatar,
     coverImage: row.cover_image,
@@ -64,9 +64,9 @@ function mapUser(row: any): User {
 // GROUPS
 // =============================================
 export async function fetchGroups(): Promise<Group[]> {
-  const { data: gRows, error: gErr } = await supabase.from('groups').select('*');
+  const { data: gRows, error: gErr } = await supabaseNoAuth.from('groups').select('*');
   if (gErr) throw gErr;
-  const { data: mRows, error: mErr } = await supabase.from('group_members').select('*');
+  const { data: mRows, error: mErr } = await supabaseNoAuth.from('group_members').select('*');
   if (mErr) throw mErr;
 
   return (gRows || []).map(g => {
@@ -108,7 +108,7 @@ function mapGroupMember(row: any): GroupMember {
 }
 
 export async function createGroupInDb(group: Group): Promise<void> {
-  const { error } = await supabase.from('groups').insert({
+  const { error } = await supabaseNoAuth.from('groups').insert({
     id: group.id,
     name: group.name,
     logo: group.logo,
@@ -127,27 +127,27 @@ export async function createGroupInDb(group: Group): Promise<void> {
 }
 
 export async function addGroupMember(member: any): Promise<void> {
-  const { error } = await supabase.from('group_members').insert(member);
+  const { error } = await supabaseNoAuth.from('group_members').insert(member);
   if (error) throw error;
 }
 
 export async function updateGroupMemberRole(groupId: string, userId: string, role: string): Promise<void> {
-  const { error } = await supabase.from('group_members').update({ role }).eq('group_id', groupId).eq('user_id', userId);
+  const { error } = await supabaseNoAuth.from('group_members').update({ role }).eq('group_id', groupId).eq('user_id', userId);
   if (error) throw error;
 }
 
 export async function deleteGroupInDb(id: string): Promise<void> {
-  const { error } = await supabase.from('groups').delete().eq('id', id);
+  const { error } = await supabaseNoAuth.from('groups').delete().eq('id', id);
   if (error) throw error;
 }
 
 export async function removeGroupMember(groupId: string, userId: string): Promise<void> {
-  const { error } = await supabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', userId);
+  const { error } = await supabaseNoAuth.from('group_members').delete().eq('group_id', groupId).eq('user_id', userId);
   if (error) throw error;
 }
 
 export async function updateGroup(id: string, updates: any): Promise<void> {
-  const { error } = await supabase.from('groups').update(updates).eq('id', id);
+  const { error } = await supabaseNoAuth.from('groups').update(updates).eq('id', id);
   if (error) throw error;
 }
 
@@ -155,7 +155,7 @@ export async function updateGroup(id: string, updates: any): Promise<void> {
 // JOIN REQUESTS
 // =============================================
 export async function createJoinRequestInDb(request: JoinRequest): Promise<void> {
-  const { error } = await supabase.from('group_join_requests').insert({
+  const { error } = await supabaseNoAuth.from('group_join_requests').insert({
     group_id: request.groupId,
     user_id: request.userId,
     status: request.status,
@@ -166,12 +166,12 @@ export async function createJoinRequestInDb(request: JoinRequest): Promise<void>
 }
 
 export async function updateJoinRequestInDb(requestId: string, updates: any): Promise<void> {
-  const { error } = await supabase.from('group_join_requests').update(updates).eq('id', requestId);
+  const { error } = await supabaseNoAuth.from('group_join_requests').update(updates).eq('id', requestId);
   if (error) throw error;
 }
 
 export async function fetchJoinRequests(): Promise<JoinRequest[]> {
-  const { data, error } = await supabase.from('group_join_requests').select('*');
+  const { data, error } = await supabaseNoAuth.from('group_join_requests').select('*');
   if (error) throw error;
   return (data || []).map(r => ({
     id: r.id,
@@ -184,24 +184,46 @@ export async function fetchJoinRequests(): Promise<JoinRequest[]> {
 }
 
 export async function updateUser(id: string, updates: any): Promise<void> {
-  const { error } = await supabase.from('users').update(updates).eq('id', id);
-  if (error) throw error;
+  const statsFields = ['total_matches', 'wins', 'losses', 'attendance_rate', 'current_streak', 'longest_streak', 'win_rate', 'weekly_activity', 'points_total', 'mvp_count'];
+  const statsUpdates: any = {};
+  const profileUpdates: any = {};
+  const levelUpdates: any = {};
+  for (const [k, v] of Object.entries(updates)) {
+    if (statsFields.includes(k)) statsUpdates[k] = v;
+    else if (k === 'level' || k === 'xp') levelUpdates[k] = v;
+    else profileUpdates[k] = v;
+  }
+  const promises: Promise<{ error: any }>[] = [];
+  if (Object.keys(profileUpdates).length > 0) {
+    promises.push(supabaseNoAuth.from('profiles').update(profileUpdates).eq('id', id) as any);
+  }
+  if (Object.keys(statsUpdates).length > 0) {
+    promises.push(supabaseNoAuth.from('user_stats').upsert({ user_id: id, ...statsUpdates, updated_at: now() }) as any);
+  }
+  if (Object.keys(levelUpdates).length > 0) {
+    promises.push(supabaseNoAuth.from('user_levels').upsert({ user_id: id, ...levelUpdates, updated_at: now() }) as any);
+  }
+  if (promises.length === 0) return;
+  const results = await Promise.all(promises);
+  for (const r of results) {
+    if (r.error) throw r.error;
+  }
 }
 
 // =============================================
 // EVENTS (with nested leagues/teams/matches/attendance)
 // =============================================
 export async function fetchEvents(): Promise<Event[]> {
-  const { data: eRows, error: eErr } = await supabase.from('events').select('*');
+  const { data: eRows, error: eErr } = await supabaseNoAuth.from('events').select('*');
   if (eErr) throw eErr;
 
   if (!eRows || eRows.length === 0) return [];
 
   const ids = eRows.map(e => e.id);
-  const { data: aRows, error: aErr } = await supabase.from('attendance').select('*').in('event_id', ids);
+  const { data: aRows, error: aErr } = await supabaseNoAuth.from('attendance').select('*').in('event_id', ids);
   if (aErr) throw aErr;
 
-  const { data: lRows, error: lErr } = await supabase.from('leagues').select('*').in('event_id', ids);
+  const { data: lRows, error: lErr } = await supabaseNoAuth.from('leagues').select('*').in('event_id', ids);
   if (lErr) throw lErr;
 
   const leagueIds = (lRows || []).map(l => l.id);
@@ -209,8 +231,8 @@ export async function fetchEvents(): Promise<Event[]> {
   let mRows: any[] = [];
   if (leagueIds.length > 0) {
     const [tr, mr] = await Promise.all([
-      supabase.from('teams').select('*').in('league_id', leagueIds),
-      supabase.from('matches').select('*').in('league_id', leagueIds),
+      supabaseNoAuth.from('teams').select('*').in('league_id', leagueIds),
+      supabaseNoAuth.from('matches').select('*').in('league_id', leagueIds),
     ]);
     if (tr.error) throw tr.error;
     if (mr.error) throw mr.error;
@@ -305,7 +327,7 @@ function mapMatch(row: any): Match {
 }
 
 export async function createEventInDb(event: Event): Promise<void> {
-  const { error } = await supabase.from('events').insert({
+  const { error } = await supabaseNoAuth.from('events').insert({
     id: event.id,
     title: event.title,
     sport: event.sport,
@@ -343,17 +365,17 @@ export async function createEventInDb(event: Event): Promise<void> {
 }
 
 export async function deleteEventFromDb(id: string): Promise<void> {
-  const { error } = await supabase.from('events').delete().eq('id', id);
+  const { error } = await supabaseNoAuth.from('events').delete().eq('id', id);
   if (error) throw error;
 }
 
 export async function updateEventInDb(id: string, updates: any): Promise<void> {
-  const { error } = await supabase.from('events').update(updates).eq('id', id);
+  const { error } = await supabaseNoAuth.from('events').update(updates).eq('id', id);
   if (error) throw error;
 }
 
 export async function upsertAttendance(eventId: string, userId: string, status: string): Promise<void> {
-  const { error } = await supabase.from('attendance').upsert(
+  const { error } = await supabaseNoAuth.from('attendance').upsert(
     { event_id: eventId, user_id: userId, status, updated_at: now() },
     { onConflict: 'event_id,user_id' }
   );
@@ -361,7 +383,7 @@ export async function upsertAttendance(eventId: string, userId: string, status: 
 }
 
 export async function createLeagueInDb(league: League, eventId: string): Promise<void> {
-  const { error } = await supabase.from('leagues').insert({
+  const { error } = await supabaseNoAuth.from('leagues').insert({
     id: league.id,
     event_id: eventId,
     name: league.name,
@@ -373,21 +395,21 @@ export async function createLeagueInDb(league: League, eventId: string): Promise
 }
 
 export async function deleteLeagueFromDb(leagueId: string): Promise<void> {
-  await supabase.from('matches').delete().eq('league_id', leagueId);
-  await supabase.from('teams').delete().eq('league_id', leagueId);
-  const { error } = await supabase.from('leagues').delete().eq('id', leagueId);
+  await supabaseNoAuth.from('matches').delete().eq('league_id', leagueId);
+  await supabaseNoAuth.from('teams').delete().eq('league_id', leagueId);
+  const { error } = await supabaseNoAuth.from('leagues').delete().eq('id', leagueId);
   if (error) throw error;
 }
 
 export async function addMatchToDb(match: Match, leagueId: string, teams: Team[]): Promise<void> {
   for (const t of teams) {
-    const { error } = await supabase.from('teams').upsert(
+    const { error } = await supabaseNoAuth.from('teams').upsert(
       { id: t.id, league_id: leagueId, name: t.name, player_ids: t.playerIds, color: t.color },
       { onConflict: 'id' }
     );
     if (error) throw error;
   }
-  const { error } = await supabase.from('matches').insert({
+  const { error } = await supabaseNoAuth.from('matches').insert({
     id: match.id,
     league_id: leagueId,
     name: match.name || '',
@@ -405,12 +427,12 @@ export async function addMatchToDb(match: Match, leagueId: string, teams: Team[]
 }
 
 export async function updateMatchInDb(matchId: string, updates: any): Promise<void> {
-  const { error } = await supabase.from('matches').update(updates).eq('id', matchId);
+  const { error } = await supabaseNoAuth.from('matches').update(updates).eq('id', matchId);
   if (error) throw error;
 }
 
 export async function deleteMatchFromDb(matchId: string): Promise<void> {
-  const { error } = await supabase.from('matches').delete().eq('id', matchId);
+  const { error } = await supabaseNoAuth.from('matches').delete().eq('id', matchId);
   if (error) throw error;
 }
 
@@ -418,7 +440,7 @@ export async function deleteMatchFromDb(matchId: string): Promise<void> {
 // NOTIFICATIONS
 // =============================================
 export async function fetchNotifications(): Promise<Notification[]> {
-  const { data, error } = await supabase.from('notifications').select('*').order('timestamp', { ascending: false });
+  const { data, error } = await supabaseNoAuth.from('notifications').select('*').order('timestamp', { ascending: false });
   if (error) throw error;
   return (data || []).map(r => ({
     id: r.id,
@@ -433,7 +455,7 @@ export async function fetchNotifications(): Promise<Notification[]> {
 }
 
 export async function createNotificationInDb(n: Omit<Notification, 'id' | 'timestamp'> & { id: string; timestamp: string; userId?: string }): Promise<void> {
-  const { error } = await supabase.from('notifications').insert({
+  const { error } = await supabaseNoAuth.from('notifications').insert({
     id: n.id,
     user_id: (n as any).userId || '',
     type: n.type,
@@ -448,12 +470,12 @@ export async function createNotificationInDb(n: Omit<Notification, 'id' | 'times
 }
 
 export async function markNotificationReadInDb(id: string): Promise<void> {
-  const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id);
+  const { error } = await supabaseNoAuth.from('notifications').update({ read: true }).eq('id', id);
   if (error) throw error;
 }
 
 export async function markAllNotificationsReadInDb(): Promise<void> {
-  const { error } = await supabase.from('notifications').update({ read: true }).neq('id', '');
+  const { error } = await supabaseNoAuth.from('notifications').update({ read: true }).neq('id', '');
   if (error) throw error;
 }
 
@@ -461,7 +483,7 @@ export async function markAllNotificationsReadInDb(): Promise<void> {
 // FRIENDSHIPS
 // =============================================
 export async function fetchFriendships(): Promise<Friendship[]> {
-  const { data, error } = await supabase.from('friendships').select('*');
+  const { data, error } = await supabaseNoAuth.from('friendships').select('*');
   if (error) throw error;
   return (data || []).map(r => ({
     id: r.id,
@@ -474,7 +496,7 @@ export async function fetchFriendships(): Promise<Friendship[]> {
 }
 
 export async function createFriendshipInDb(f: Friendship): Promise<void> {
-  const { error } = await supabase.from('friendships').insert({
+  const { error } = await supabaseNoAuth.from('friendships').insert({
     id: f.id,
     user_id: f.userId,
     friend_id: f.friendId,
@@ -486,7 +508,7 @@ export async function createFriendshipInDb(f: Friendship): Promise<void> {
 }
 
 export async function updateFriendshipInDb(id: string, updates: any): Promise<void> {
-  const { error } = await supabase.from('friendships').update(updates).eq('id', id);
+  const { error } = await supabaseNoAuth.from('friendships').update(updates).eq('id', id);
   if (error) throw error;
 }
 
@@ -494,7 +516,7 @@ export async function updateFriendshipInDb(id: string, updates: any): Promise<vo
 // STORIES
 // =============================================
 export async function fetchStories(): Promise<Story[]> {
-  const { data, error } = await supabase.from('stories').select('*');
+  const { data, error } = await supabaseNoAuth.from('stories').select('*');
   if (error) throw error;
   return (data || []).map(r => ({
     id: r.id,
@@ -507,7 +529,7 @@ export async function fetchStories(): Promise<Story[]> {
 }
 
 export async function createStoryInDb(story: Story): Promise<void> {
-  const { error } = await supabase.from('stories').insert({
+  const { error } = await supabaseNoAuth.from('stories').insert({
     id: story.id,
     user_id: story.userId,
     image_url: story.imageUrl,
@@ -519,13 +541,13 @@ export async function createStoryInDb(story: Story): Promise<void> {
 }
 
 export async function deleteStoryFromDb(storyId: string): Promise<void> {
-  const { error } = await supabase.from('stories').delete().eq('id', storyId);
+  const { error } = await supabaseNoAuth.from('stories').delete().eq('id', storyId);
   if (error) throw error;
 }
 
 export async function getTodayStoryCount(userId: string): Promise<number> {
   const today = new Date().toISOString().split('T')[0];
-  const { count, error } = await supabase
+  const { count, error } = await supabaseNoAuth
     .from('stories')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)

@@ -32,7 +32,9 @@ export const NotificationsPage: React.FC = () => {
   const notifications = useAppStore(s => s.notifications);
   const markRead = useAppStore(s => s.markNotificationRead);
   const markAllRead = useAppStore(s => s.markAllRead);
-  const unread = notifications.filter(n => !n.read).length;
+  const currentUserId = useAppStore(s => s.currentUserId);
+  const myNotifications = notifications.filter(n => !n.userId || n.userId === currentUserId);
+  const unread = myNotifications.filter(n => !n.read).length;
 
   return (
     <div className="page-container !pb-24 space-y-4">
@@ -49,7 +51,7 @@ export const NotificationsPage: React.FC = () => {
       </FadeUp>
 
       <StaggerList className="space-y-2">
-        {notifications.map(notif => {
+        {myNotifications.map(notif => {
           const cfg = TYPE_CONFIG[notif.type];
           return (
             <StaggerItem key={notif.id}>

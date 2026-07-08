@@ -35,7 +35,7 @@ BEGIN
     new.email,
     COALESCE(new.raw_user_meta_data ->> 'phone', ''),
     '',
-    UPPER(SPLIT_PART(COALESCE(new.raw_user_meta_data ->> 'name', new.email), ' ', 1)) || '001',
+    UPPER(SPLIT_PART(COALESCE(new.raw_user_meta_data ->> 'name', new.email), ' ', 1)) || LPAD(CAST(FLOOR(RANDOM() * 99999)::int AS TEXT), 5, '0'),
     'https://api.dicebear.com/9.x/avataaars/svg?seed=' || REPLACE(COALESCE(new.raw_user_meta_data ->> 'name', new.email), ' ', '%20') || '&backgroundColor=b6e3f4',
     'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
     '', '{}', '{}',
