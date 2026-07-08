@@ -273,11 +273,12 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="relative w-full max-w-lg mx-0 sm:mx-5 rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col"
+              className="relative w-full max-w-lg flex flex-col"
               style={{
                 background: '#0f0f0f',
                 border: '1px solid rgba(255,255,255,0.08)',
-                maxHeight: 'min(75dvh, 75vh, 600px)',
+                maxHeight: 'min(78dvh, 78vh, 620px)',
+                borderRadius: '1.5rem 1.5rem 0 0',
               }}
               initial={{ y: '100%', opacity: 1 }}
               animate={{ y: 0, opacity: 1 }}
@@ -285,38 +286,34 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
               transition={{ type: 'spring', stiffness: 400, damping: 38 }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex justify-center pt-3 pb-1 flex-shrink-0 sm:hidden">
-                <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
-              </div>
-
-            <div className="overflow-y-auto flex-1 px-5 pb-6">
-              <div className="flex items-start justify-between pt-2 pb-4">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 pt-5 pb-2 flex-shrink-0">
                 <div>
-                  <h2 className="font-display font-black text-xl text-white">
-                    {mode === 'live' ? <span><Iconic name="lightning" size={20} /> Start Live Event</span> : 'Schedule Event'}
+                  <h2 className="font-display font-bold text-lg text-white">
+                    {mode === 'live' ? 'Start Live Event' : 'Schedule Event'}
                   </h2>
-                  <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
                     {selectedGroup ? `in ${selectedGroup.name}` : 'Select a group first'}
                   </p>
                 </div>
                 <button onClick={resetAndClose}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>✕</button>
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40 hover:text-white transition-all flex-shrink-0"
+                  style={{ background: 'rgba(255,255,255,0.05)' }}>✕</button>
               </div>
 
-              {/* Step indicator (schedule mode only) */}
+              {/* Step indicator */}
               {mode === 'schedule' && (
-                <div className="flex items-center gap-2 mb-5">
+                <div className="flex items-center gap-2 px-6 pb-3">
                   {['details', 'schedule'].map((s, i) => (
                     <React.Fragment key={s}>
                       <div className="flex items-center gap-1.5">
-                        <span className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-all"
+                        <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center transition-all"
                           style={step === s || (i === 0 && step === 'schedule')
                             ? { background: 'var(--green)', color: '#000' }
                             : { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}>
                           {i + 1}
                         </span>
-                        <span className="text-xs font-semibold capitalize"
+                        <span className="text-[10px] font-semibold capitalize"
                           style={{ color: step === s ? 'var(--green)' : 'rgba(255,255,255,0.35)' }}>
                           {s}
                         </span>
@@ -327,7 +324,8 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                 </div>
               )}
 
-              <div className="space-y-4">
+              <div className="flex-1 overflow-y-auto px-6 pb-6">
+                <div className="space-y-4">
                 <AnimatePresence mode="wait">
                   {/* ===== SCHEDULE MODE: STEP 1 — DETAILS ===== */}
                   {mode === 'schedule' && step === 'details' && (
@@ -435,24 +433,14 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         />
                       </div>
 
-                      <div className="flex items-center justify-between p-4 rounded-2xl"
-                        style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div className="flex items-center justify-between glass rounded-2xl px-4 py-3 border border-white/10">
                         <div>
-                          <p className="font-semibold text-white text-sm">Set custom time range</p>
-                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>Off = event runs all day (00:00–24:00)</p>
+                          <p className="text-white text-sm font-semibold">Set custom time</p>
+                          <p className="text-white/30 text-xs">Off = event runs all day</p>
                         </div>
-                        <motion.button
-                          onClick={() => setUseCustomTime(!useCustomTime)}
-                          className="w-12 h-7 rounded-full relative transition-colors"
-                          style={{ background: useCustomTime ? 'var(--green)' : 'rgba(255,255,255,0.12)' }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <motion.span
-                            className="absolute top-1 w-5 h-5 rounded-full bg-black shadow-lg"
-                            animate={{ left: useCustomTime ? 26 : 4 }}
-                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                          />
-                        </motion.button>
+                        <button onClick={() => setUseCustomTime(!useCustomTime)} className="w-11 h-6 rounded-full transition-all flex items-center flex-shrink-0" style={{ background: useCustomTime ? 'var(--green)' : 'rgba(255,255,255,0.15)' }}>
+                          <div className="w-5 h-5 rounded-full bg-white transition-all shadow" style={{ transform: useCustomTime ? 'translateX(22px)' : 'translateX(2px)' }} />
+                        </button>
                       </div>
 
                       {useCustomTime && (
@@ -495,24 +483,14 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                         />
                       </div>
 
-                      <div className="flex items-center justify-between p-4 rounded-2xl"
-                        style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div className="flex items-center justify-between glass rounded-2xl px-4 py-3 border border-white/10">
                         <div>
-                          <p className="font-semibold text-white text-sm">Recurring Event</p>
-                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>Repeat this event weekly</p>
+                          <p className="text-white text-sm font-semibold">Recurring Event</p>
+                          <p className="text-white/30 text-xs">Repeat this event weekly</p>
                         </div>
-                        <motion.button
-                          onClick={() => setIsRecurring(!isRecurring)}
-                          className="w-12 h-7 rounded-full relative transition-colors"
-                          style={{ background: isRecurring ? 'var(--green)' : 'rgba(255,255,255,0.12)' }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <motion.span
-                            className="absolute top-1 w-5 h-5 rounded-full bg-black shadow-lg"
-                            animate={{ left: isRecurring ? 26 : 4 }}
-                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                          />
-                        </motion.button>
+                        <button onClick={() => setIsRecurring(!isRecurring)} className="w-11 h-6 rounded-full transition-all flex items-center flex-shrink-0" style={{ background: isRecurring ? 'var(--green)' : 'rgba(255,255,255,0.15)' }}>
+                          <div className="w-5 h-5 rounded-full bg-white transition-all shadow" style={{ transform: isRecurring ? 'translateX(22px)' : 'translateX(2px)' }} />
+                        </button>
                       </div>
 
                       <div className="flex gap-3 pt-2 pb-4 sticky bottom-0" style={{ background: '#0f0f0f' }}>
