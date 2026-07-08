@@ -117,7 +117,7 @@ export const IntroPage: React.FC = () => {
         {/* "I" — hero character, electric green, snaps in with flash */}
         <motion.span
           className="relative inline-block"
-          style={{ perspective: 800, marginLeft: 8 }}
+          style={{ perspective: 800, marginLeft: 5 }}
           initial={{ opacity: 0, x: -20, scale: 0.5 }}
           animate={{
             opacity: phase === 'curtain' ? 0 : 1,
