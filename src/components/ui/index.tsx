@@ -1,5 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import { motion } from 'motion/react';
 import { ICON_MAP } from './icons';
 
 // =============================================
@@ -271,8 +272,77 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ emoji, icon, title, desc
 );
 
 // =============================================
-// PAGE LAYOUT (responsive container)
+// CONFIRM MODAL (replaces window.confirm)
 // =============================================
+interface ConfirmModalProps {
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: 'danger' | 'default';
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+export const ConfirmModal: React.FC<ConfirmModalProps> = ({
+  open, title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel',
+  variant = 'default', onConfirm, onCancel
+}) => {
+  React.useEffect(() => {
+    if (open) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  if (!open) return null;
+
+  const confirmColor = variant === 'danger' ? '#ef4444' : 'var(--green)';
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+      style={{ background: 'rgba(0,0,0,0.6)' }} onClick={onCancel}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.92, y: 20 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+        className="w-full max-w-sm rounded-3xl p-6 relative overflow-hidden"
+        style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.08)' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: 'rgba(255,255,255,0.15)' }} />
+        <div className="text-center">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: variant === 'danger' ? 'rgba(239,68,68,0.12)' : 'rgba(var(--green-rgb),0.1)', border: `1px solid ${variant === 'danger' ? 'rgba(239,68,68,0.2)' : 'rgba(var(--green-rgb),0.2)'}` }}>
+            {variant === 'danger' ? (
+              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            ) : (
+              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+            )}
+          </div>
+          <h3 className="font-display font-bold text-lg text-white mb-2">{title}</h3>
+          <p className="text-sm text-white/50 leading-relaxed mb-6">{message}</p>
+          <div className="flex gap-3">
+            <button onClick={onCancel}
+              className="flex-1 py-3 rounded-2xl text-sm font-semibold transition-all active:scale-95"
+              style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)' }}>
+              {cancelLabel}
+            </button>
+            <button onClick={onConfirm}
+              className="flex-1 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95"
+              style={{ background: confirmColor, color: variant === 'danger' ? '#fff' : '#080808' }}>
+              {confirmLabel}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 interface PageLayoutProps {
   children: React.ReactNode;
   className?: string;

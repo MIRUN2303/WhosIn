@@ -1,10 +1,29 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Event, Group, Notification, Story, Friendship, League, AttendanceStatus, Match, EventCategory } from '../data/types';
+import type { Event, Group, Notification, Story, Friendship, League, AttendanceStatus, Match, EventCategory, BadgeId } from '../data/types';
 
 import toast from 'react-hot-toast';
 import * as db from '../lib/db';
 import * as auth from '../lib/auth';
+
+function evaluateBadges(user: any, allEvents: Event[]): BadgeId[] {
+  const s = user.stats;
+  const badges: BadgeId[] = [];
+  const organizedCount = allEvents.filter((e: Event) => e.organizer === user.id).length;
+  if (s.totalMatches >= 1) badges.push('first_match');
+  if (s.wins >= 1) badges.push('first_win');
+  if (s.wins >= 5) badges.push('five_wins');
+  if (s.wins >= 10) badges.push('ten_wins');
+  if (s.wins >= 25) badges.push('twentyfive_wins');
+  if (s.wins >= 100) badges.push('hundred_wins');
+  if (s.attendanceRate === 100 && s.totalMatches >= 3) badges.push('full_attendance');
+  if (s.attendanceRate >= 80 && s.totalMatches >= 5) badges.push('weekend_warrior');
+  if (s.mvpCount >= 1) badges.push('mvp');
+  if (s.longestStreak >= 7) badges.push('longest_streak');
+  if (organizedCount >= 10) badges.push('captain');
+  if (s.attendanceRate === 100 && s.totalMatches >= 8) badges.push('iron_player');
+  return [...new Set(badges)];
+}
 
 async function computeAllUserStats(events: Event[], set: any, get: any) {
   const users = get().users;
@@ -67,8 +86,12 @@ async function computeAllUserStats(events: Event[], set: any, get: any) {
     const pts = wins * 10 + mvpCount * 25;
     const wr = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
 
+    const allEvents = get().events;
+    const earnedBadges = evaluateBadges({ ...user, stats: { totalMatches, wins, losses, winRate: wr, attendanceRate: attRate, currentStreak: curStreak, longestStreak, pointsTotal: pts, mvpCount, weeklyActivity: weekly, monthlyActivity: [], sportBreakdown: [] } }, allEvents);
+
     return {
       ...user,
+      badges: earnedBadges,
       stats: {
         totalMatches, wins, losses, winRate: wr, attendanceRate: attRate,
         currentStreak: curStreak, longestStreak,

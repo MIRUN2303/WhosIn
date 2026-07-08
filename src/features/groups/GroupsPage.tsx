@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { SPORT_CONFIG } from '../../data/sportConfig';
 import { getUserById, getCompletedGroupEvents, getUpcomingGroupEvents, getGroupEvents, computeMemberGroupStats, getOverallWinRate } from '../../data/mockData';
-import { Card, Avatar, Badge, Button, SectionHeader } from '../../components/ui';
+import { Card, Avatar, Badge, Button, SectionHeader, ConfirmModal } from '../../components/ui';
 import { Iconic } from '../../components/ui/icons';
 import { FadeUp, StaggerList, StaggerItem } from '../../components/motion';
 import { FAB } from '../../components/layout/Navigation';
@@ -465,6 +465,8 @@ export const GroupDetailPage: React.FC = () => {
   const [editGroupName, setEditGroupName] = useState('');
   const [editGroupDesc, setEditGroupDesc] = useState('');
   const [editGroupRules, setEditGroupRules] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmExit, setConfirmExit] = useState(false);
   const currentUserId = useAppStore(s => s.currentUserId);
   const updateGroupDetails = useAppStore(s => s.updateGroupDetails);
   const groups = useAppStore(s => s.groups);
@@ -599,7 +601,7 @@ export const GroupDetailPage: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => { if (window.confirm(`Delete "${group.name}" permanently? All events and data will be lost.`)) { useAppStore.getState().deleteGroup(group.id); navigate('/groups'); } }}
+                onClick={() => setConfirmDelete(true)}
                 className="w-full text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                 style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444' }}>
                 <Iconic name="trash" size={16} /> Delete Group
@@ -609,7 +611,7 @@ export const GroupDetailPage: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => { if (window.confirm('Leave this group?')) { useAppStore.getState().exitGroup(group.id); navigate('/groups'); } }}
+                onClick={() => setConfirmExit(true)}
                 className="w-full text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                 style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: 'rgba(239,68,68,0.7)' }}>
                 <Iconic name="log_out" size={16} /> Exit Group
@@ -836,6 +838,25 @@ export const GroupDetailPage: React.FC = () => {
       </div>
 
       <CreateEventSheet isOpen={showCreate} onClose={() => setShowCreate(false)} preselectedGroupId={group.id} initialMode="live" />
+
+      <ConfirmModal
+        open={confirmDelete}
+        title="Delete Group"
+        message={`Delete "${group.name}" permanently? All events and data will be lost. This cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={() => { setConfirmDelete(false); useAppStore.getState().deleteGroup(group.id); navigate('/groups'); }}
+        onCancel={() => setConfirmDelete(false)}
+      />
+      <ConfirmModal
+        open={confirmExit}
+        title="Exit Group"
+        message="Are you sure you want to leave this group?"
+        confirmLabel="Exit"
+        variant="danger"
+        onConfirm={() => { setConfirmExit(false); useAppStore.getState().exitGroup(group.id); navigate('/groups'); }}
+        onCancel={() => setConfirmExit(false)}
+      />
     </div>
   );
 };
@@ -946,8 +967,8 @@ export const GroupsPage: React.FC = () => {
           ))}
           {myCreatedGroups.length === 0 && (
             <div className="glass rounded-2xl p-6 text-center">
-<Iconic name="folder" size={32} className="mb-1" />
-              <p className="text-white/40 text-xs">You haven't created any groups yet</p>
+              <Iconic name="users" size={32} className="mb-1" />
+              <p className="text-white/40 text-xs">Create your first group</p>
             </div>
           )}
         </StaggerList>
