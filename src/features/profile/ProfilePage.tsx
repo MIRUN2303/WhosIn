@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { SPORT_CONFIG } from '../../data/sportConfig';
 import { Avatar, Button } from '../../components/ui';
 import { Iconic } from '../../components/ui/icons';
@@ -158,7 +159,7 @@ export const ProfilePage: React.FC = () => {
                 <BarChart data={weeklyData} margin={{ top: 4, right: 0, bottom: 0, left: -12 }}>
                   <XAxis dataKey="day" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
                   <YAxis hide domain={[0, maxWeekly]} />
-                  <Tooltip {...THEME_TOOLTIP} formatter={(v: number) => [`${v} events`, 'Activity'] as [number, string]} />
+                  <Tooltip {...THEME_TOOLTIP} formatter={(v: unknown) => [`${Number(v)} events`, 'Activity']} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} minPointSize={4}>
                     {weeklyData.map((_d: { day: string; value: number }, i: number) => (
                       <Cell key={i} fill={i === adjustedToday ? 'var(--green)' : 'rgba(var(--green-rgb),0.2)'} />
@@ -207,7 +208,7 @@ export const ProfilePage: React.FC = () => {
                         <Cell key={i} fill={SPORT_COLORS[i % SPORT_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip {...THEME_TOOLTIP} formatter={(v: number, n: string) => [`${v} matches`, n]} />
+                    <Tooltip {...THEME_TOOLTIP} formatter={(v: unknown, n: unknown) => [`${Number(v)} matches`, String(n)]} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -265,7 +266,7 @@ export const ProfilePage: React.FC = () => {
                   <PolarAngleAxis dataKey="metric" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.35)' }} />
                   <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
                   <Radar name="Stats" dataKey="value" stroke="var(--green)" strokeWidth={2} fill="var(--green)" fillOpacity={0.15} dot={{ fill: 'var(--green)', r: 3 }} />
-                  <Tooltip {...THEME_TOOLTIP} formatter={(v: number) => [`${Math.round(v)}%`, 'Score'] as [number, string]} />
+                  <Tooltip {...THEME_TOOLTIP} formatter={(v: unknown) => [`${Math.round(Number(v))}%`, 'Score']} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
