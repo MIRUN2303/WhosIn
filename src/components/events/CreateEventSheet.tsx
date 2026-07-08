@@ -276,26 +276,30 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
           />
 
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-5"
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl"
-              style={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,0.08)', maxHeight: '90vh' }}
-              initial={{ y: 80, opacity: 0 }}
+              className="relative w-full max-w-lg mx-0 sm:mx-5 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col"
+              style={{
+                background: '#0f0f0f',
+                border: '1px solid rgba(255,255,255,0.08)',
+                maxHeight: 'min(90dvh, 90vh, 720px)',
+              }}
+              initial={{ y: '100%', opacity: 1 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+              exit={{ y: '100%', opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 38 }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex justify-center pt-4 pb-1">
+              <div className="flex justify-center pt-3 pb-1 flex-shrink-0 sm:hidden">
                 <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
               </div>
 
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 60px)' }}>
-              <div className="flex items-center justify-between px-5 pb-4 pt-1">
+            <div className="overflow-y-auto flex-1 px-5 pb-6">
+              <div className="flex items-start justify-between pt-2 pb-4">
                 <div>
                   <h2 className="font-display font-black text-xl text-white">
                     {mode === 'live' ? <span><Iconic name="lightning" size={20} /> Start Live Event</span> : 'Schedule Event'}
@@ -305,13 +309,13 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                   </p>
                 </div>
                 <button onClick={resetAndClose}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
                   style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>✕</button>
               </div>
 
               {/* Step indicator (schedule mode only) */}
               {mode === 'schedule' && (
-                <div className="flex items-center gap-2 px-5 mb-5">
+                <div className="flex items-center gap-2 mb-5">
                   {['details', 'schedule'].map((s, i) => (
                     <React.Fragment key={s}>
                       <div className="flex items-center gap-1.5">
@@ -332,7 +336,7 @@ export const CreateEventSheet: React.FC<CreateEventSheetProps> = ({
                 </div>
               )}
 
-              <div className="px-5 pb-8 space-y-4">
+              <div className="space-y-4">
                 <AnimatePresence mode="wait">
                   {/* ===== SCHEDULE MODE: STEP 1 — DETAILS ===== */}
                   {mode === 'schedule' && step === 'details' && (
