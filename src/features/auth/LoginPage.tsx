@@ -44,11 +44,14 @@ export const LoginPage: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }} className="w-full max-w-sm relative z-10">
         <div className="text-center mb-5">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' as const, stiffness: 300, damping: 20, delay: 0.1 }}>
-            <div className="mx-auto mb-2 flex items-center justify-center">
-              <svg viewBox="0 0 64 64" width="28" height="28">
-                <rect x="6" y="6" width="52" height="52" rx="12" fill="rgba(8,8,8,0.6)"/>
-                <text x="31" y="42" textAnchor="middle" fontFamily="'Plus Jakarta Sans','Inter',sans-serif" fontWeight="800" fontSize="30" fill="#22d45b" letterSpacing="-1">Wi</text>
-              </svg>
+            <div className="mx-auto mb-3 flex items-center justify-center relative">
+              <div className="absolute w-16 h-16 rounded-2xl blur-xl" style={{ background: 'rgba(var(--green-rgb),0.15)' }} />
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center relative" style={{ background: 'rgba(8,8,8,0.7)', border: '1px solid rgba(var(--green-rgb),0.15)' }}>
+                <svg viewBox="0 0 64 64" width="30" height="30">
+                  <rect x="6" y="6" width="52" height="52" rx="12" fill="rgba(8,8,8,0.6)"/>
+                  <text x="31" y="42" textAnchor="middle" fontFamily="'Plus Jakarta Sans','Inter',sans-serif" fontWeight="800" fontSize="30" fill="#22d45b" letterSpacing="-1">Wi</text>
+                </svg>
+              </div>
             </div>
           </motion.div>
           <h1 className="font-logo text-3xl tracking-wider text-white">Whos<span className="text-[var(--green)] text-4xl" style={{ textShadow: '0 0 20px rgba(var(--green-rgb),0.4)' }}>I</span>n</h1>
