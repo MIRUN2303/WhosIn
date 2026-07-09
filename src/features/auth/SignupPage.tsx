@@ -51,7 +51,7 @@ export const SignupPage: React.FC = () => {
             whileHover={{ x: -3 }}
           >← Back to Sign in</motion.button>
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' as const, stiffness: 300, damping: 20, delay: 0.1 }}>
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.2)' }}>
+            <div className="mx-auto mb-2 flex items-center justify-center">
               <svg viewBox="0 0 64 64" width="24" height="24">
                 <rect x="6" y="6" width="52" height="52" rx="12" fill="rgba(8,8,8,0.6)"/>
                 <text x="31" y="42" textAnchor="middle" fontFamily="'Plus Jakarta Sans','Inter',sans-serif" fontWeight="800" fontSize="30" fill="#22d45b" letterSpacing="-1">Wi</text>

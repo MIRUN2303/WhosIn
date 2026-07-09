@@ -44,7 +44,7 @@ export const LoginPage: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }} className="w-full max-w-sm relative z-10">
         <div className="text-center mb-5">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' as const, stiffness: 300, damping: 20, delay: 0.1 }}>
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(var(--green-rgb),0.1)', border: '1px solid rgba(var(--green-rgb),0.2)' }}>
+            <div className="mx-auto mb-2 flex items-center justify-center">
               <svg viewBox="0 0 64 64" width="28" height="28">
                 <rect x="6" y="6" width="52" height="52" rx="12" fill="rgba(8,8,8,0.6)"/>
                 <text x="31" y="42" textAnchor="middle" fontFamily="'Plus Jakarta Sans','Inter',sans-serif" fontWeight="800" fontSize="30" fill="#22d45b" letterSpacing="-1">Wi</text>
